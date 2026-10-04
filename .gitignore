@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+.env.local
+test-results
+dist-e2e
+e2e/shots
+e2e/*.png
+e2e/dbg*.mjs
