@@ -7,3 +7,4 @@ dist-e2e
 e2e/shots
 e2e/*.png
 e2e/dbg*.mjs
+*.tsbuildinfo
