@@ -5,6 +5,8 @@ import { db } from '../lib/db';
 import { cropAgeWeeks, formatDate, isoWeek, todayLocal } from '../lib/dates';
 import { Icon } from '../components/Icon';
 import { alive } from '../lib/repo';
+import { phiByGreenhouse, pressureGrid } from '../lib/ipm';
+import { SevChip } from './Scout';
 
 export const byCode = (a: { code: string }, b: { code: string }) =>
   a.code.localeCompare(b.code, 'en', { numeric: true });
@@ -15,12 +17,21 @@ export function useGreenhouseBoard(farmId: string | null) {
     if (!farmId) return [];
     const today = todayLocal();
     const { year, week } = isoWeek(today);
-    const [ghs, cycles, crops, varieties] = await Promise.all([
+    const [ghs, cycles, crops, varieties, sessions, acts, ags, aps, prods] = await Promise.all([
       db.greenhouses.where('farm_id').equals(farmId).toArray(),
       db.crop_cycles.where('farm_id').equals(farmId).toArray(),
       db.crops.toArray(),
       db.varieties.toArray(),
+      db.scouting_sessions.where('farm_id').equals(farmId).toArray(),
+      db.activities.where('farm_id').equals(farmId).toArray(),
+      db.activity_greenhouses.where('farm_id').equals(farmId).toArray(),
+      db.activity_products.where('farm_id').equals(farmId).toArray(),
+      db.products.toArray(),
     ]);
+    const weekSessions = sessions.filter((x) => alive(x) && x.iso_year === year && x.iso_week === week);
+    const weekObs = weekSessions.length ? await db.scouting_observations.where('session_id').anyOf(weekSessions.map((x) => x.id)).toArray() : [];
+    const pressure = pressureGrid(weekSessions, weekObs);
+    const phi = phiByGreenhouse(acts, ags, aps, prods, today);
     const cropName = new Map(crops.map((c) => [c.id, c.name_ar]));
     const varName = new Map(varieties.map((v) => [v.id, v.name]));
     const out = [];
@@ -45,6 +56,8 @@ export function useGreenhouseBoard(farmId: string | null) {
         variety: cycle?.variety_id ? varName.get(cycle.variety_id) : undefined,
         plants,
         measured,
+        pest: pressure.get(`${g.id}|${year * 100 + week}`),
+        phi: phi.get(g.id),
       });
     }
     return out;
@@ -56,6 +69,17 @@ export function Home() {
   const board = useGreenhouseBoard(farmId);
   const today = todayLocal();
   const { week } = isoWeek(today);
+  const recs = useLiveQuery(async () => {
+    if (!farmId) return 0;
+    const [rs, acts] = await Promise.all([
+      db.recommendations.where('farm_id').equals(farmId).toArray(),
+      db.activities.where('farm_id').equals(farmId).toArray(),
+    ]);
+    const done = new Set(acts.filter((a) => alive(a) && a.recommendation_id).map((a) => a.recommendation_id));
+    return rs.filter((r) => alive(r) && (r.status === 'open' || r.status === 'in_progress') && !done.has(r.id)).length;
+  }, [farmId]);
+  const scouted = board?.filter((x) => x.pest).length ?? 0;
+  const blocked = board?.filter((x) => x.phi).length ?? 0;
 
   return (
     <main className="page">
@@ -64,24 +88,47 @@ export function Home() {
           <h1>الأسبوع {week}</h1>
           <p>{formatDate(today)}</p>
         </div>
+        <Link to="/dashboard" className="btn"><Icon name="chart" size={20} /> لوحة المتابعة</Link>
       </div>
 
       <div className="actions">
-        <Link to="/register" className="action primary" aria-disabled={!can.record}>
-          <span className="ico"><Icon name="ruler" size={28} /></span>
-          <b>تسجيل المحصول</b>
-          <small>القياسات الأسبوعية للنباتات المرجعية</small>
+        {can.record ? (
+          <>
+            <Link to="/register" className="action primary">
+              <span className="ico"><Icon name="ruler" size={28} /></span>
+              <b>تسجيل المحصول</b>
+              <small>القياسات الأسبوعية للنباتات المرجعية</small>
+            </Link>
+            <Link to="/scout" className="action">
+              <span className="ico"><Icon name="bug" size={28} /></span>
+              <b>الفحص الحشري</b>
+              <small>{board ? `فُحصت ${scouted} من ${board.length} صوبة هذا الأسبوع` : 'الآفات والأمراض والبؤر'}</small>
+            </Link>
+            <Link to="/activities" className="action">
+              <span className="ico"><Icon name="spray" size={28} /></span>
+              <b>المعاملات</b>
+              <small>{blocked ? `${blocked} صوبة في فترة أمان` : 'الرش والحقن والإطلاق الحيوي والعمليات'}</small>
+            </Link>
+          </>
+        ) : (
+          <Link to="/dashboard" className="action primary">
+            <span className="ico"><Icon name="chart" size={28} /></span>
+            <b>لوحة المتابعة</b>
+            <small>ضغط الآفات، توازن النبات، فترات الأمان</small>
+          </Link>
+        )}
+        <Link to="/recs" className="action">
+          <span className="ico"><Icon name="note" size={28} /></span>
+          <b>التوصيات</b>
+          <small>{recs ? `${recs} توصية مفتوحة` : 'لا توجد توصيات مفتوحة'}</small>
         </Link>
-        <div className="action" aria-disabled="true">
-          <span className="ico"><Icon name="bug" size={28} /></span>
-          <b>الفحص الحشري</b>
-          <small>قريبًا — الآفات والأمراض والبؤر</small>
-        </div>
-        <div className="action" aria-disabled="true">
-          <span className="ico"><Icon name="spray" size={28} /></span>
-          <b>المعاملات</b>
-          <small>قريبًا — الرش والحقن والإطلاق الحيوي</small>
-        </div>
+        {!can.record && (
+          <Link to="/activities" className="action">
+            <span className="ico"><Icon name="spray" size={28} /></span>
+            <b>سجل المعاملات</b>
+            <small>{blocked ? `${blocked} صوبة في فترة أمان` : 'الرش والحقن والإطلاق الحيوي'}</small>
+          </Link>
+        )}
       </div>
 
       <h2 className="section-title">
@@ -100,13 +147,13 @@ export function Home() {
       )}
 
       <div className="gh-list">
-        {board?.map(({ g, cycle, crop, variety, plants, measured }) => {
+        {board?.map(({ g, cycle, crop, variety, plants, measured, pest, phi }) => {
           let chip = <span className="chip">لا توجد دورة قائمة</span>;
           if (cycle && plants === 0) chip = <span className="chip warn">لم تُحدد نباتات مرجعية</span>;
           else if (cycle && measured >= plants) chip = <span className="chip ok"><Icon name="check" size={14} /> سُجّل هذا الأسبوع</span>;
           else if (cycle && measured > 0) chip = <span className="chip warn">{measured} من {plants} نبات</span>;
           else if (cycle) chip = <span className="chip bad">لم يُسجّل هذا الأسبوع</span>;
-          const target = cycle && plants > 0 && can.record ? `/register/${cycle.id}` : can.manage ? `/setup/greenhouses/${g.id}` : undefined;
+          const target = cycle && plants > 0 && can.record ? `/register/${cycle.id}` : can.manage ? `/setup/greenhouses/${g.id}` : cycle ? `/register/${cycle.id}/summary` : undefined;
           const body = (
             <>
               <span className="code">{g.code}</span>
@@ -118,7 +165,11 @@ export function Home() {
                     : g.area_m2 ? `${g.area_m2} م²` : 'جاهزة لدورة جديدة'}
                 </span>
               </span>
-              {chip}
+              <span className="gh-status">
+                {chip}
+                {pest && (pest.observations ? <SevChip v={pest.max} hotspot={pest.hotspots > 0} /> : <span className="chip ok">فحص: نظيفة</span>)}
+                {phi && <span className="chip bad" title={phi.product}><Icon name="shield" size={14} /> فترة أمان</span>}
+              </span>
             </>
           );
           return target ? (

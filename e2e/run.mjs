@@ -19,7 +19,8 @@ const ok = (cond, msg) => {
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const { server } = await startGateway();
+const gw = await startGateway();
+const { server } = gw;
 const preview = spawn('npx', ['vite', 'preview', '--outDir', 'dist-e2e', '--port', '4173', '--strictPort', '--host', 'localhost'], { stdio: 'ignore' });
 for (let i = 0; i < 40; i++) {
   try { if ((await fetch(APP)).ok) break; } catch { /* wait */ }
@@ -257,18 +258,171 @@ try {
   ok(true, 'المدير يرى الصوبة مكتملة بعد مزامنة قياس المهندس');
   await page.screenshot({ path: `${SHOTS}/14-home-complete.png` });
 
+  // ── 14. الفحص الحشري بدون إنترنت (المهندس، تابلت عمودي) ───────────
+  const sp = scout.page;
+  await sp.keyboard.press('Escape');
+  await scout.ctx.setOffline(true);
+  await sp.goto(APP + '#/');
+  await sp.click('a.action:has-text("الفحص الحشري")');
+  await sp.locator('.gh', { hasText: 'GH-07' }).locator('.chip', { hasText: 'لم تُفحص هذا الأسبوع' }).waitFor();
+  ok(true, 'شاشة الفحص: GH-07 لم تُفحص هذا الأسبوع');
+  await sp.click('.gh:has-text("GH-07")');
+  await sp.click('button:has-text("ابدأ جولة فحص")');
+  await sp.click('.sheet button:has-text("ابدأ")');
+  await sp.locator('.rowmap .rcell').first().waitFor();
+  ok((await sp.locator('.rowmap .rcell').count()) === 6, 'خريطة الصوبة بعدد الخطوط (6)');
+  await sp.click('button[aria-label="الخط التالي"]');
+  await sp.click('button[aria-label="الخط التالي"]');
+  ok((await sp.locator('.stepper b').textContent()) === '3', 'الخط الحالي = 3');
+  await sp.click('.pest-btn:has-text("العنكبوت الأحمر")');
+  const os = sp.locator('.sheet');
+  ok((await os.locator('label:has-text("الخط") input').first().inputValue()) === '3', 'الملاحظة تاخد الخط الحالي تلقائيًا');
+  await os.locator('.sev-pick button[data-v="3"]').click();
+  await os.locator('label:has-text("العدد") input').fill('12');
+  await os.locator('.chips-pick button:has-text("بالغات")').click();
+  await os.locator('.toggle:has-text("بؤرة إصابة") input').check();
+  const sharp = (await import('sharp')).default;
+  const png = await sharp({ create: { width: 320, height: 240, channels: 3, background: { r: 180, g: 60, b: 40 } } }).png().toBuffer();
+  await os.locator('input[type=file]').setInputFiles({ name: 'mite.png', mimeType: 'image/png', buffer: png });
+  await os.locator('.thumb img').first().waitFor();
+  await sp.screenshot({ path: `${SHOTS}/16-scout-observation.png` });
+  await os.locator('button:has-text("تسجيل")').click();
+  await sp.locator('.obs-item', { hasText: 'العنكبوت الأحمر' }).waitFor();
+  await sp.click('.pest-btn:has-text("ذبابة التبغ")');
+  await sp.locator('.sheet .sev-pick button[data-v="1"]').click();
+  await sp.locator('.sheet button:has-text("تسجيل")').click();
+  await sp.locator('.obs-item', { hasText: 'ذبابة التبغ' }).waitFor();
+  ok((await sp.locator('.rowmap .rcell[data-v="3"]').count()) === 1, 'الخريطة تلوّن الخط 3 بأعلى شدة (3)');
+  ok(await sp.locator('.obs-item .chip', { hasText: '1' }).first().isVisible(), 'الملاحظة تعرض عدد الصور');
+  await sp.screenshot({ path: `${SHOTS}/17-scout-session.png`, fullPage: true });
+  await sp.click('button:has-text("إنهاء الجولة")');
+  await sp.locator('h1', { hasText: 'فحص' }).waitFor();
+  ok(sql('select count(*) from scouting_observations') === '0', 'الفحص محفوظ على الجهاز فقط أثناء الانقطاع');
+  await scout.ctx.setOffline(false);
+  await sp.evaluate(() => window.dispatchEvent(new Event('online')));
+  await waitSynced(sp, 20000);
+  ok(sql("select count(*)||'|'||max(severity)||'|'||bool_or(is_hotspot) from scouting_observations") === '2|3|true', 'السيرفر استقبل ملاحظتين (أعلى شدة 3 + بؤرة)');
+  ok(sql('select count(*) from attachments') === '1' && gw.stats.objects() === 1, 'الصورة اترفعت للتخزين وسجلها وصل');
+  ok(sql("select max_severity||'|'||hotspots from v_pest_weekly where pest_name_ar='العنكبوت الأحمر'") === '3|1', 'v_pest_weekly على السيرفر يطابق');
+
+  // ── 15. المدير: مادة جديدة + توصية من ملاحظة الفحص ────────────────
+  await page.goto(APP + '#/');
+  await page.locator('.sync-pill').click();
+  await page.locator('.sheet button:has-text("زامن الآن")').click();
+  await waitSynced(page);
+  await page.keyboard.press('Escape');
+  await page.locator('.gh .sev', { hasText: 'شديد' }).waitFor({ timeout: 10000 });
+  ok(true, 'المدير يرى شدة الإصابة على كارت الصوبة');
+  await page.goto(APP + '#/products');
+  await page.click('button:has-text("مادة جديدة")');
+  const ps = page.locator('.sheet');
+  await ps.locator('label:has-text("الاسم التجاري") input').fill('فيرتميك');
+  await ps.locator('label:has-text("النوع") select').first().selectOption('acaricide');
+  await ps.locator('label:has-text("المادة الفعالة") input').fill('أبامكتين');
+  await ps.locator('label:has-text("مجموعة IRAC") input').fill('6');
+  await ps.locator('label:has-text("فترة الأمان") input').fill('3');
+  await ps.locator('label:has-text("وحدة الجرعة المعتادة") select').selectOption('ml_per_100l');
+  await ps.locator('button:has-text("حفظ")').click();
+  await page.locator('.tbl td', { hasText: 'فيرتميك' }).waitFor();
+  await page.goto(APP + '#/scout');
+  await page.click('.gh:has-text("GH-07")');
+  await page.click('.list-item >> nth=0');
+  await page.click('.obs-item:has-text("العنكبوت الأحمر")');
+  await page.locator('.sheet .thumb img').first().waitFor({ timeout: 10000 });
+  ok(true, 'المدير يرى صورة الإصابة اللي صورها المهندس');
+  await page.click('.sheet button:has-text("اكتب توصية")');
+  ok((await page.locator('label:has-text("التوصية") input').inputValue()) === 'مكافحة العنكبوت الأحمر', 'التوصية تتعبى من الملاحظة');
+  ok((await page.locator('.seg button[aria-pressed="true"]').textContent()) === 'مهمة', 'الأولوية "مهمة" تلقائيًا لشدة 3');
+  await page.fill('label:has-text("التفاصيل") textarea', 'رش أكاروسي موضعي للخطوط 2–4');
+  await page.click('button:has-text("إرسال التوصية")');
+  await page.locator('.rec h3', { hasText: 'مكافحة العنكبوت الأحمر' }).waitFor();
+  await waitSynced(page, 20000);
+  ok(sql("select status||'|'||priority||'|'||(observation_id is not null) from recommendations") === 'open|high|true', 'التوصية وصلت السيرفر مرتبطة بالملاحظة');
+
+  // ── 16. المهندس ينفذ التوصية: رش + فترة أمان ──────────────────────
+  await sp.goto(APP + '#/');
+  await sp.locator('.sync-pill').click();
+  await sp.locator('.sheet button:has-text("زامن الآن")').click();
+  await waitSynced(sp);
+  await sp.keyboard.press('Escape');
+  await sp.click('a.action:has-text("التوصيات")');
+  await sp.click('.rec a:has-text("سجّل التنفيذ")');
+  await sp.locator('.gh-pick button[aria-pressed="true"]', { hasText: 'GH-07' }).waitFor();
+  ok(true, 'نموذج المعاملة يفتح بالصوبة من التوصية');
+  await sp.locator('.line select').first().selectOption({ label: 'فيرتميك — أبامكتين' });
+  await sp.locator('.line label:has-text("الجرعة") input').first().fill('40');
+  await sp.fill('label:has-text("حجم المحلول") input', '400');
+  ok(await sp.locator('.banner', { hasText: 'فترة الأمان 3 يوم' }).isVisible(), 'فترة الأمان المتوقعة تظهر قبل الحفظ');
+  await sp.screenshot({ path: `${SHOTS}/18-activity-form.png`, fullPage: true });
+  await sp.click('button:has-text("حفظ المعاملة")');
+  await sp.locator('.banner.bad', { hasText: 'ممنوع الحصاد' }).waitFor();
+  ok(true, 'صفحة المعاملة: ممنوع الحصاد حتى انتهاء فترة الأمان');
+  await waitSynced(sp, 20000);
+  ok(sql("select a.activity_type||'|'||ap.dose||'|'||ap.dose_unit from activities a join activity_products ap on ap.activity_id=a.id") === 'chemical_spray|40.000|ml_per_100l', 'المعاملة ومادتها وصلت السيرفر');
+  ok(sql("select status from recommendations") === 'done', 'التوصية اتقفلت تلقائيًا على السيرفر بعد التنفيذ');
+  ok(sql("select harvest_blocked_today from v_greenhouse_phi_status") === 't', 'v_greenhouse_phi_status: الحصاد ممنوع اليوم');
+
+  // رشة ثانية بنفس المجموعة امبارح ← الثالثة تظهر تحذير تبديل المجموعة
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  await sp.goto(APP + '#/activities/new?type=chemical_spray');
+  await sp.click('.gh-pick button:has-text("GH-07")');
+  await sp.fill('label:has-text("التاريخ") input', yesterday);
+  await sp.locator('.line select').first().selectOption({ label: 'فيرتميك — أبامكتين' });
+  await sp.click('button:has-text("حفظ المعاملة")');
+  await sp.locator('h1', { hasText: 'رش' }).waitFor();
+  await sp.goto(APP + '#/activities/new?type=chemical_spray');
+  await sp.click('.gh-pick button:has-text("GH-07")');
+  await sp.locator('.line select').first().selectOption({ label: 'فيرتميك — أبامكتين' });
+  ok(await sp.locator('.banner.warn', { hasText: 'المجموعة 6' }).isVisible(), 'تحذير المقاومة: نفس المجموعة في آخر معاملتين');
+  await sp.screenshot({ path: `${SHOTS}/19-moa-warning.png` });
+  await sp.goto(APP + '#/activities');
+  await sp.locator('.phi-card', { hasText: 'GH-07' }).waitFor();
+  ok(true, 'سجل المعاملات: لوحة الصوب الممنوع حصادها');
+  await sp.screenshot({ path: `${SHOTS}/20-activity-log.png` });
+  await waitSynced(sp, 20000);
+
+  // ── 17. لوحة المتابعة ──────────────────────────────────────────────
+  await page.goto(APP + '#/');
+  await page.locator('.sync-pill').click();
+  await page.locator('.sheet button:has-text("زامن الآن")').click();
+  await waitSynced(page);
+  await page.keyboard.press('Escape');
+  await page.click('a:has-text("لوحة المتابعة")');
+  await page.locator('.kpi').first().waitFor();
+  ok((await page.locator('.kpi', { hasText: 'ممنوع الحصاد' }).locator('.v').textContent()) === '1', 'اللوحة: صوبة واحدة ممنوع حصادها');
+  ok((await page.locator('.kpi', { hasText: 'الفحص الحشري' }).locator('.v').textContent()) === '1 / 1', 'اللوحة: تغطية الفحص 1 / 1');
+  ok((await page.locator('.heat .hcell[data-v="3"]').count()) === 1, 'خريطة ضغط الآفات: خلية الأسبوع الحالي بشدة 3');
+  ok((await page.locator('.heat.bal .bcell[data-b="vegetative"]').count()) === 1, 'شريط التوازن: الأسبوع الحالي خضري');
+  ok((await page.locator('.chart polyline, .chart .dotp').count()) > 0, 'منحنيات النمو مرسومة');
+  await page.screenshot({ path: `${SHOTS}/21-dashboard.png`, fullPage: true });
+
   // ── 13. موبايل ────────────────────────────────────────────────────
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'ar-EG', hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
   const pp = await phone.newPage();
   await pp.goto(APP + '#/login');
   await pp.screenshot({ path: `${SHOTS}/15-phone-login.png` });
   const hScroll = await pp.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  // باقي الشاشات على الموبايل بدخول المهندس
+  await pp.fill('input[type=email]', 'scout@test.local');
+  await pp.fill('input[type=password]', 'Scout#2026');
+  await pp.click('button:has-text("دخول")');
+  await pp.locator('.gh').first().waitFor({ timeout: 15000 });
+  const wide = [];
+  for (const r of ['#/', '#/scout', '#/activities', '#/activities/new', '#/recs', '#/dashboard']) {
+    await pp.goto(APP + r);
+    await sleep(700);
+    if (await pp.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) wide.push(r);
+  }
+  ok(wide.length === 0, 'كل الشاشات الجديدة بدون تمرير أفقي على الموبايل' + (wide.length ? ': ' + wide.join(' ') : ''));
+  await pp.goto(APP + '#/dashboard');
+  await sleep(800);
+  await pp.screenshot({ path: `${SHOTS}/22-phone-dashboard.png`, fullPage: true });
   ok(!hScroll, 'لا يوجد تمرير أفقي على الموبايل');
 
   ok(consoleErrors.length === 0, `لا أخطاء في الكونسول${consoleErrors.length ? ': ' + consoleErrors.slice(0, 3).join(' | ') : ''}`);
 } catch (e) {
   failures++;
-  console.error('✘ FAILED:', e.message?.split('\n')[0]);
+  console.error('✘ FAILED:', e.message?.split('\n').slice(0, 6).join(' / '));
   let i = 0;
   for (const c of browser.contexts()) for (const pg of c.pages()) {
     await pg.screenshot({ path: `${SHOTS}/fail-${i++}.png` }).catch(() => {});

@@ -45,7 +45,8 @@ function send(res, status, body) {
 const readBody = (req) => new Promise((r) => { let d = ''; req.on('data', (c) => (d += c)); req.on('end', () => r(d)); });
 
 export function startGateway({ port = 54321, rest = 'http://127.0.0.1:3001' } = {}) {
-  const stats = { rest: 0, auth: 0 };
+  const stats = { rest: 0, auth: 0, storage: 0, objects: () => objects.size };
+  const objects = new Map();
   const server = http.createServer(async (req, res) => {
     if (req.method === 'OPTIONS') return send(res, 204);
     const url = new URL(req.url, 'http://x');
@@ -96,6 +97,33 @@ export function startGateway({ port = 54321, rest = 'http://127.0.0.1:3001' } = 
       } catch (e) {
         return send(res, 502, { message: String(e) });
       }
+    }
+    // تخزين الصور (محاكاة Supabase Storage في الذاكرة)
+    if (url.pathname.startsWith('/storage/v1/object/')) {
+      stats.storage = (stats.storage ?? 0) + 1;
+      const rest = url.pathname.slice('/storage/v1/object/'.length);
+      const t = (req.headers.authorization || '').replace(/^Bearer /, '');
+      const p = decode(t);
+      if (rest.startsWith('sign/')) {
+        const key = rest.slice(5);
+        if (req.method === 'POST') {
+          if (!p?.sub || !objects.has(key)) return send(res, 400, { statusCode: '404', error: 'not_found', message: 'Object not found' });
+          return send(res, 200, { signedURL: `/object/sign/${key}?token=e2e` });
+        }
+        const o = objects.get(key);
+        if (!o) return send(res, 404, { message: 'not found' });
+        res.writeHead(200, { ...cors, 'content-type': o.type });
+        return res.end(o.data);
+      }
+      if (req.method === 'POST' || req.method === 'PUT') {
+        if (!p?.sub) return send(res, 400, { statusCode: '403', error: 'Unauthorized', message: 'new row violates row-level security policy' });
+        if (objects.has(rest) && req.method === 'POST') return send(res, 400, { statusCode: '409', error: 'Duplicate', message: 'The resource already exists' });
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        objects.set(rest, { data: Buffer.concat(chunks), type: req.headers['content-type'] || 'application/octet-stream' });
+        return send(res, 200, { Key: rest, Id: crypto.randomUUID() });
+      }
+      return send(res, 404, { msg: 'not found' });
     }
     send(res, 404, { msg: 'not found' });
   });

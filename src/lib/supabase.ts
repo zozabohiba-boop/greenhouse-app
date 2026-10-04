@@ -16,5 +16,5 @@ export const supabase = createClient<Database>(url, key, {
     detectSessionInUrl: false,
     storageKey: 'gh.auth',
   },
-  global: { headers: { 'x-client-info': 'greenhouse-app/0.3' } },
+  global: { headers: { 'x-client-info': 'greenhouse-app/0.4' } },
 });

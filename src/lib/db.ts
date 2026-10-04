@@ -14,6 +14,17 @@ export interface MetaRow {
   value: unknown;
 }
 
+/** صورة محفوظة على الجهاز — id = attachment id */
+export interface BlobRow {
+  id: string;
+  path: string;
+  blob: Blob;
+  mime: string;
+  /** 1 = لم تُرفع بعد */
+  pending: 0 | 1;
+  error?: string | null;
+}
+
 export class GreenhouseDB extends Dexie {
   organizations!: Table<Local<Row<'organizations'>>, string>;
   farms!: Table<Local<Row<'farms'>>, string>;
@@ -38,6 +49,7 @@ export class GreenhouseDB extends Dexie {
   activity_products!: Table<Local<Row<'activity_products'>>, string>;
   attachments!: Table<Local<Row<'attachments'>>, string>;
   meta!: Table<MetaRow, string>;
+  blobs!: Table<BlobRow, string>;
 
   constructor(name = 'greenhouse-app') {
     super(name);
@@ -66,6 +78,13 @@ export class GreenhouseDB extends Dexie {
       activity_products: 'id, farm_id, activity_id, _dirty',
       attachments: 'id, farm_id, [entity_table+entity_id], _dirty',
       meta: 'key',
+    });
+    // v2: ملفات الصور على الجهاز لحين رفعها + فهارس الفحص والتوصيات
+    this.version(2).stores({
+      blobs: 'id, pending',
+      scouting_sessions: 'id, farm_id, greenhouse_id, crop_cycle_id, scouted_on, _dirty',
+      scouting_observations: 'id, farm_id, session_id, pest_id, _dirty',
+      recommendations: 'id, farm_id, greenhouse_id, status, _dirty',
     });
   }
 

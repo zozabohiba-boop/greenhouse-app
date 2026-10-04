@@ -17,6 +17,15 @@ const P: Record<string, string> = {
   cloudoff: 'M3 3l18 18M8.5 8.6A5 5 0 0 0 6 18h11m3.3-2.4A4 4 0 0 0 17 10h-1.3A6 6 0 0 0 10 5.6',
   edit: 'M4 20h4L19 9l-4-4L4 16v4Zm9-13 4 4',
   chart: 'M4 20V4m0 16h16M8 16v-5m4 5V8m4 8v-3',
+  camera: 'M4 8h3l2-3h6l2 3h3v11H4V8Zm8 9a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z',
+  drop: 'M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11Z',
+  trash: 'M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  flag: 'M5 21V4m0 0h11l-2 4 2 4H5',
+  clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v4l3 2',
+  shield: 'M12 3 5 6v5c0 4.5 3 8.5 7 10 4-1.5 7-5.5 7-10V6l-7-3Zm-3 9 2 2 4-4',
+  note: 'M5 4h14v12l-4 4H5V4Zm10 16v-4h4M8 9h8m-8 4h5',
+  search: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Zm9 2-4.3-4.3',
+  box: 'M4 8l8-4 8 4v8l-8 4-8-4V8Zm0 0 8 4m0 0 8-4m-8 4v8',
 };
 
 export function Icon({ name, size = 24, stroke = 2 }: { name: keyof typeof P | string; size?: number; stroke?: number }) {

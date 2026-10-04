@@ -8,6 +8,10 @@ import { CycleDetail, CycleForm, GreenhouseDetail, GreenhouseForm, SetupHome } f
 import { RegisterEntry, RegisterPick } from './screens/Register';
 import { RegisterSummary } from './screens/Summary';
 import { Team } from './screens/Team';
+import { ScoutGreenhouse, ScoutPick, ScoutSession } from './screens/Scout';
+import { ActivityDetail, ActivityForm, ActivityList, ProductList } from './screens/Activities';
+import { RecForm, RecList } from './screens/Recs';
+import { Dashboard } from './screens/Dashboard';
 
 function Protected() {
   const { user } = useApp();
@@ -28,6 +32,18 @@ function Protected() {
           <Route path="register/:cycleId" element={<RegisterEntry />} />
           <Route path="register/:cycleId/summary" element={<RegisterSummary />} />
           <Route path="team" element={<Team />} />
+          <Route path="scout" element={<ScoutPick />} />
+          <Route path="scout/gh/:ghId" element={<ScoutGreenhouse />} />
+          <Route path="scout/s/:id" element={<ScoutSession />} />
+          <Route path="activities" element={<ActivityList />} />
+          <Route path="activities/new" element={<ActivityForm />} />
+          <Route path="activities/:id" element={<ActivityDetail />} />
+          <Route path="activities/:id/edit" element={<ActivityForm />} />
+          <Route path="products" element={<ProductList />} />
+          <Route path="recs" element={<RecList />} />
+          <Route path="recs/new" element={<RecForm />} />
+          <Route path="recs/:id/edit" element={<RecForm />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

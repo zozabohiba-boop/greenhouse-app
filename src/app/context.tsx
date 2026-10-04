@@ -29,6 +29,10 @@ interface AppCtx {
     record: boolean; // التسجيل الميداني
     admin: boolean;
     invite: boolean;
+    /** تعديل سجلات الآخرين الميدانية (مدير المزرعة/النظام) */
+    supervise: boolean;
+    /** كتابة التوصيات وإدارة الكتالوج */
+    advise: boolean;
   };
   toast: (msg: string) => void;
 }
@@ -155,6 +159,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         record: !!role && role !== 'executive',
         admin: role === 'admin',
         invite: role === 'admin' || role === 'farm_manager',
+        supervise: role === 'admin' || role === 'farm_manager',
+        advise: role === 'admin' || role === 'farm_manager' || role === 'consultant',
       },
       toast,
     }),

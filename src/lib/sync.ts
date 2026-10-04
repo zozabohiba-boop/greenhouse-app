@@ -11,6 +11,7 @@ import { db, getMeta, setMeta } from './db';
 import { supabase } from './supabase';
 import { derive, onLocalWrite } from './repo';
 import { FULL_PULL, INCREMENTAL_PULL, PUSH_ORDER, toServerRow, type TableName } from './schema';
+import { blobPending, uploadPendingBlobs, UploadNetworkError } from './photos';
 
 export type SyncStatus = 'idle' | 'syncing' | 'offline' | 'error' | 'signed_out';
 
@@ -86,7 +87,19 @@ const isTransient = (err: PostgrestError | null) =>
 // ── PUSH ────────────────────────────────────────────────────────────────
 async function pushTable(table: TableName): Promise<number> {
   const t = db.tableOf(table);
-  const dirty: any[] = (await t.where('_dirty').equals(1).toArray()).filter((r) => !r._error);
+  let dirty: any[] = (await t.where('_dirty').equals(1).toArray()).filter((r) => !r._error);
+  if (table === 'attachments' && dirty.length) {
+    // الصورة نفسها تترفع الأول، وسجلها يستنى لحد ما ملفها يوصل
+    try {
+      await uploadPendingBlobs();
+    } catch (e) {
+      if (e instanceof UploadNetworkError) throw new RetryableError(e.message);
+      throw e;
+    }
+    const waiting = await blobPending(dirty.map((r) => r.id));
+    dirty = dirty.filter((r) => !waiting.has(r.id));
+    dirty = (await t.bulkGet(dirty.map((r) => r.id))).filter((r: any) => r && r._dirty && !r._error);
+  }
   let pushed = 0;
   for (let i = 0; i < dirty.length; i += PUSH_CHUNK) {
     const chunk = dirty.slice(i, i + PUSH_CHUNK);
@@ -313,6 +326,7 @@ export async function discardRejected(table: TableName, id: string) {
   const t = db.tableOf(table);
   const r = await t.get(id);
   if (!r) return;
+  if (table === 'attachments') await db.blobs.delete(id);
   if (!r.server_updated_at) await t.delete(id);
   else {
     await t.update(id, { _dirty: 0, _error: null });
