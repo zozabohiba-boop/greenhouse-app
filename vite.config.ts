@@ -15,8 +15,8 @@ export default defineConfig({
       includeAssets: ['icons/*.png', 'icons/*.svg'],
       manifest: {
         id: './',
-        name: 'سجل الصوب — Greenhouse Crop & IPM',
-        short_name: 'سجل الصوب',
+        name: 'Greenhouse Assistant',
+        short_name: 'Greenhouse Assistant',
         description: 'تسجيل نمو المحصول والفحص الحشري في الصوب — يعمل بدون إنترنت',
         lang: 'ar',
         dir: 'rtl',

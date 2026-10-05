@@ -19,7 +19,7 @@ export function Shell() {
         <Link to="/" className="brand" aria-label="الرئيسية">
           <img src="./icons/icon-192.png" alt="" />
           <span>
-            <b>{farm?.name ?? 'سجل الصوب'}</b>
+            <b>{farm?.name ?? 'Greenhouse Assistant'}</b>
             <small>{role ? ROLE_LABEL[role] : user?.email}</small>
           </span>
         </Link>

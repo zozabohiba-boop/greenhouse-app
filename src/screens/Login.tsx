@@ -28,7 +28,7 @@ export function Login() {
         <div className="mark">
           <img src="./icons/icon-192.png" alt="" />
           <div>
-            <h1>سجل الصوب</h1>
+            <h1 dir="ltr" lang="en">Greenhouse Assistant</h1>
             <p className="muted">تسجيل المحصول والفحص الحشري</p>
           </div>
         </div>
