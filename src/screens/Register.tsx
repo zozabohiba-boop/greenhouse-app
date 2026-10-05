@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp } from '../app/context';
 import { db } from '../lib/db';
 import { alive, create, update } from '../lib/repo';
-import { cropAgeWeeks, formatDate, isoWeek, todayLocal } from '../lib/dates';
+import { cropAgeWeeks, formatDate, isoWeek, todayLocal, weekSpan } from '../lib/dates';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
 import { useGreenhouseBoard } from './Home';
@@ -26,7 +26,7 @@ export function RegisterPick() {
   return (
     <main className="page">
       <Link to="/" className="back"><Icon name="back" size={18} /> الرئيسية</Link>
-      <div className="page-head"><div><h1>تسجيل المحصول</h1><p>الأسبوع {week} — اختر الصوبة</p></div></div>
+      <div className="page-head"><div><h1>تسجيل المحصول</h1><p>الأسبوع {week} ({weekSpan(todayLocal(), false)})، اختر الصوبة</p></div></div>
       {board && ready.length === 0 && (
         <div className="panel empty">
           <h3>لا توجد صوب جاهزة للتسجيل</h3>
@@ -292,7 +292,7 @@ export function RegisterEntry() {
           <PlaceLine zoneId={gh?.zone_id} />
           <h1><span className="num">{gh?.code}</span> — {crop?.name_ar}</h1>
           <p>
-            الأسبوع {week}، {isToday ? 'اليوم' : formatDate(date)}{' '}
+            الأسبوع {week} ({weekSpan(date, false)})، القياس {isToday ? 'اليوم' : `يوم ${formatDate(date)}`}{' '}
             <button className="btn ghost" style={{ minHeight: 32, padding: '0 8px', fontSize: 'var(--fs-sm)' }} onClick={() => setDateSheet(true)}>تغيير التاريخ</button>
           </p>
         </div>
@@ -405,7 +405,7 @@ function DateSheet({ value, min, onPick, onClose }: { value: string; min: string
       <div className="form">
         <p className="muted">استخدمه لو القياسات اتعملت في يوم سابق ولم تُسجل في وقتها.</p>
         <input className="input ltr" type="date" value={v} min={min} max={today} onChange={(e) => setV(e.target.value)} />
-        <p className="faint">الأسبوع {v ? isoWeek(v).week : '—'}</p>
+        <p className="faint">{v ? `الأسبوع ${isoWeek(v).week}: ${weekSpan(v)}` : '—'}</p>
         <div className="form-actions">
           <button className="btn primary" disabled={!v || v > today || v < min} onClick={() => onPick(v)}>اعتماد</button>
           <button className="btn" onClick={() => onPick(today)}>اليوم</button>

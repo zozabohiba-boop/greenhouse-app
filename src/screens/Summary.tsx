@@ -2,7 +2,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { alive } from '../lib/repo';
-import { formatDate, isoWeek, todayLocal } from '../lib/dates';
+import { isoWeek, todayLocal, weekSpan } from '../lib/dates';
 import { activeTarget, BALANCE_LABEL, summarize, type WeekSummary } from '../lib/balance';
 import { Icon } from '../components/Icon';
 import { PlaceLine } from '../components/ZoneBrowser';
@@ -60,7 +60,7 @@ export function RegisterSummary() {
         <div>
           <PlaceLine zoneId={gh?.zone_id} />
           <h1>ملخص الأسبوع {week} — <span className="num">{gh?.code}</span></h1>
-          <p>{crop?.name_ar}، {formatDate(date)}</p>
+          <p>{crop?.name_ar}، {weekSpan(date)}</p>
         </div>
         <Link to="/" className="btn"><Icon name="house" size={20} /> الرئيسية</Link>
       </div>

@@ -6,7 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp } from '../app/context';
 import { db } from '../lib/db';
 import { alive } from '../lib/repo';
-import { formatDate, todayLocal, weekKey } from '../lib/dates';
+import { todayLocal, weekKey, weekSpan, weekTitle } from '../lib/dates';
 import { lastWeeks, phiByGreenhouse, pressureGrid } from '../lib/ipm';
 import { activeTarget, BALANCE_LABEL, summarize, type WeekSummary } from '../lib/balance';
 import { activeCycle, usePests } from '../lib/hooks';
@@ -139,7 +139,7 @@ export function Dashboard() {
     <main className="page dash">
       <Link to="/" className="back"><Icon name="back" size={18} /> الرئيسية</Link>
       <div className="page-head">
-        <div><h1>لوحة المتابعة</h1><p>الأسبوع {thisWeek.week} — {formatDate(today)}</p></div>
+        <div><h1>لوحة المتابعة</h1><p>الأسبوع {thisWeek.week}، {weekSpan(today)}</p></div>
         <div className="row">
           {idx && idx.list.length > 0 && (
             <select className="select" style={{ width: 'auto', minWidth: 170 }} value={zoneF} onChange={(e) => setZoneF(e.target.value)} aria-label="المكان">
@@ -180,7 +180,7 @@ export function Dashboard() {
         <LatestFirst>
           <table className="heat">
             <thead>
-              <tr><th scope="col">الصوبة</th>{weeks.map((w) => <th key={w.key} scope="col">{w.week}</th>)}</tr>
+              <tr><th scope="col">الصوبة</th>{weeks.map((w) => <th key={w.key} scope="col" title={weekTitle(w.start)}>{w.week}</th>)}</tr>
             </thead>
             <tbody>
               {v.ghs.map((g) => (
@@ -194,7 +194,7 @@ export function Dashboard() {
                       : 'لم تُفحص';
                     return (
                       <td key={w.key}>
-                        <button className="hcell" data-v={c ? c.max : 'none'} title={`${v.labels.get(g.id)} — الأسبوع ${w.week}\n${tip}`}
+                        <button className="hcell" data-v={c ? c.max : 'none'} title={`${v.labels.get(g.id)}، ${weekTitle(w.start)}\n${tip}`}
                           aria-label={`${v.labels.get(g.id)} الأسبوع ${w.week}: ${tip}`} onClick={() => nav(`/scout/gh/${g.id}`)}>
                           {c ? (c.observations ? c.max : '✓') : ''}
                           {c && c.hotspots > 0 && <i />}
@@ -234,7 +234,7 @@ export function Dashboard() {
         <p className="muted" style={{ fontSize: 'var(--fs-sm)', marginBottom: 12 }}>حكم كل أسبوع من مقارنة الاستطالة وسمك الساق وارتفاع العنقود المزهر بالقيم المستهدفة.</p>
         <LatestFirst>
           <table className="heat bal">
-            <thead><tr><th>الصوبة</th>{weeks.map((w) => <th key={w.key} scope="col">{w.week}</th>)}</tr></thead>
+            <thead><tr><th>الصوبة</th>{weeks.map((w) => <th key={w.key} scope="col" title={weekTitle(w.start)}>{w.week}</th>)}</tr></thead>
             <tbody>
               {v.rows.filter((r) => r.cycle).map((r) => (
                 <tr key={r.g.id}>

@@ -8,7 +8,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp } from '../app/context';
 import { db } from '../lib/db';
 import { alive, create, softDelete, update } from '../lib/repo';
-import { formatDate, isoWeek, todayLocal, weekKey } from '../lib/dates';
+import { formatDate, isoWeek, todayLocal, weekKey, weekSpan } from '../lib/dates';
 import { addDays, pressureGrid, severityByRow } from '../lib/ipm';
 import { usePeople, usePests } from '../lib/hooks';
 import { addPhoto, removePhoto, usePhotos } from '../lib/photos';
@@ -68,7 +68,7 @@ export function ScoutPick() {
       <div className="page-head">
         <div>
           <h1>الفحص الحشري</h1>
-          <p>الأسبوع {week}{data ? `، فُحصت ${scouted} من ${data.ghs.length} صوبة` : ''}</p>
+          <p>الأسبوع {week} ({weekSpan(today, false)}){data ? `، فُحصت ${scouted} من ${data.ghs.length} صوبة` : ''}</p>
         </div>
       </div>
       {data?.ghs.length === 0 && <div className="panel empty"><h3>لا توجد صوب</h3><p>يضيفها مدير المزرعة من شاشة إدارة الصوب.</p></div>}

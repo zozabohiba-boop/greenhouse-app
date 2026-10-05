@@ -37,6 +37,45 @@ export function formatDate(dateStr: string | null | undefined): string {
   return `${d} ${AR_MONTHS[m - 1]} ${y}`;
 }
 
+/** بداية (الإثنين) ونهاية (الأحد) أسبوع ISO الذي يقع فيه التاريخ */
+export function weekBounds(dateStr: string): { start: string; end: string } {
+  const [y, m, d] = dateStr.slice(0, 10).split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  const dow = date.getUTCDay() || 7;
+  const iso = (t: Date) => t.toISOString().slice(0, 10);
+  const start = new Date(date);
+  start.setUTCDate(date.getUTCDate() + 1 - dow);
+  const end = new Date(start);
+  end.setUTCDate(start.getUTCDate() + 6);
+  return { start: iso(start), end: iso(end) };
+}
+
+/**
+ * مدى الأسبوع بالكلمات: "من 5 إلى 11 أكتوبر 2026"
+ * (بالكلمات لا بشَرطة لأن اتجاه "5 – 11" يلتبس في النص العربي)
+ */
+export function weekSpan(dateStr: string, withYear = true): string {
+  const { start, end } = weekBounds(dateStr);
+  const [y1, m1, d1] = start.split('-').map(Number);
+  const [y2, m2, d2] = end.split('-').map(Number);
+  const yr = (y: number) => (withYear ? ` ${y}` : '');
+  if (y1 !== y2) return `من ${d1} ${AR_MONTHS[m1 - 1]} ${y1} إلى ${d2} ${AR_MONTHS[m2 - 1]} ${y2}`;
+  if (m1 !== m2) return `من ${d1} ${AR_MONTHS[m1 - 1]} إلى ${d2} ${AR_MONTHS[m2 - 1]}${yr(y2)}`;
+  return `من ${d1} إلى ${d2} ${AR_MONTHS[m2 - 1]}${yr(y2)}`;
+}
+
+const AR_DAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+/** "الإثنين 5 أكتوبر" */
+export function formatDay(dateStr: string): string {
+  const [y, m, d] = dateStr.slice(0, 10).split('-').map(Number);
+  return `${AR_DAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]} ${d} ${AR_MONTHS[m - 1]}`;
+}
+
+/** "الأسبوع 41: من 5 إلى 11 أكتوبر 2026" — للتلميحات */
+export function weekTitle(dateStr: string): string {
+  return `الأسبوع ${isoWeek(dateStr).week}: ${weekSpan(dateStr)}`;
+}
+
 export function formatTime(iso: string | null | undefined): string {
   if (!iso) return '—';
   const d = new Date(iso);

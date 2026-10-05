@@ -55,6 +55,10 @@ try {
   await page.locator('h1', { hasText: 'الأسبوع' }).waitFor({ timeout: 15000 });
   ok(await page.locator('.topbar', { hasText: 'المزرعة الرئيسية' }).isVisible(), 'المزرعة الوحيدة تُختار تلقائيًا والدور ظاهر');
   ok(await page.locator('.topbar', { hasText: 'مدير النظام' }).isVisible(), 'دور مدير النظام ظاهر في الشريط العلوي');
+  {
+    const sub = (await page.locator('.page-head p').first().textContent()) ?? '';
+    ok(/^من \d+ (\S+ )?إلى \d+ \S+ \d{4}، اليوم \S+ \d+ \S+$/.test(sub.trim()), `الرئيسية: مدى الأسبوع بالتاريخ (${sub.trim()})`);
+  }
   await page.screenshot({ path: `${SHOTS}/02-home-empty.png` });
 
   // ── 2. صوبة جديدة ─────────────────────────────────────────────────
@@ -498,7 +502,7 @@ try {
 
   // ── 20. بيانات الموقع + الطقس ──────────────────────────────────────
   await page.goto(APP + '#/');
-  ok(await page.locator('.wx-strip', { hasText: 'حدّد موقع المزرعة' }).isVisible(), 'الرئيسية تطلب تحديد موقع المزرعة للطقس');
+  ok(await page.locator('.wx-strip', { hasText: 'حدّد موقع المزرعة' }).waitFor({ timeout: 10000 }).then(() => true, () => false), 'الرئيسية تطلب تحديد موقع المزرعة للطقس');
   await page.click('.wx-strip');
   await page.locator('label:has-text("خط العرض") input').fill('https://www.google.com/maps/@29.3081,30.8421,15z');
   ok(await page.locator('.coords .chip.ok', { hasText: '29.3081, 30.8421' }).isVisible(), 'قراءة الإحداثيات من رابط خرائط جوجل');

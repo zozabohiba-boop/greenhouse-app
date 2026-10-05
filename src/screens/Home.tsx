@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp } from '../app/context';
 import { db } from '../lib/db';
-import { cropAgeWeeks, formatDate, isoWeek, todayLocal } from '../lib/dates';
+import { cropAgeWeeks, formatDay, isoWeek, todayLocal, weekSpan } from '../lib/dates';
 import { Icon } from '../components/Icon';
 import { alive } from '../lib/repo';
 import { phiByGreenhouse, pressureGrid } from '../lib/ipm';
@@ -93,7 +93,7 @@ export function Home() {
       <div className="page-head">
         <div>
           <h1>الأسبوع {week}</h1>
-          <p>{formatDate(today)}</p>
+          <p>{weekSpan(today)}، اليوم {formatDay(today)}</p>
         </div>
         <Link to="/dashboard" className="btn"><Icon name="chart" size={20} /> لوحة المتابعة</Link>
       </div>
