@@ -5,6 +5,7 @@ import { alive } from '../lib/repo';
 import { isoWeek, todayLocal, weekSpan } from '../lib/dates';
 import { activeTarget, BALANCE_LABEL, summarize, type WeekSummary } from '../lib/balance';
 import { Icon } from '../components/Icon';
+import { targetWarnings } from '../lib/crops';
 import { PlaceLine } from '../components/ZoneBrowser';
 import { FIELDS } from './fields';
 import type { Row } from '../lib/schema';
@@ -64,6 +65,9 @@ export function RegisterSummary() {
         </div>
         <Link to="/" className="btn"><Icon name="house" size={20} /> الرئيسية</Link>
       </div>
+      {target && targetWarnings(crop?.code, crop?.name_ar, target).map((w) => (
+        <div key={w} className="banner warn"><Icon name="alert" /> {w}</div>
+      ))}
 
       {!cur ? (
         <div className="panel empty"><h3>لا توجد قياسات لهذا الأسبوع بعد</h3><Link className="btn primary" to={`/register/${cycleId}`}>ابدأ التسجيل</Link></div>

@@ -45,11 +45,20 @@ export function usePests(farmId: string | null) {
   }, [farmId]);
 }
 
+/**
+ * المادة الخاصة بالمزرعة "تغطي" مادة الكتالوج العام بنفس الاسم
+ * (مثلًا لإضافة فترة الأمان المكتوبة على العبوة المسجلة محليًا).
+ */
+export function shadowProducts<T extends { id: string; name: string; farm_id: string | null; deleted_at?: string | null }>(all: T[], farmId: string | null): T[] {
+  const mine = new Set(all.filter((p) => alive(p) && p.farm_id === farmId && farmId).map((p) => p.name.trim()));
+  return all.filter((p) => alive(p) && (p.farm_id === farmId || (p.farm_id == null && !mine.has(p.name.trim()))));
+}
+
 export function useProducts(farmId: string | null, includeInactive = false) {
   return useLiveQuery(async () => {
     const all = await db.products.toArray();
-    return all
-      .filter((p) => alive(p) && (includeInactive || p.is_active) && (p.farm_id == null || p.farm_id === farmId))
+    return shadowProducts(all, farmId)
+      .filter((p) => includeInactive || p.is_active)
       .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
   }, [farmId, includeInactive]);
 }

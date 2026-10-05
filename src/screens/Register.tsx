@@ -10,7 +10,7 @@ import { Sheet } from '../components/Sheet';
 import { useGreenhouseBoard } from './Home';
 import { useZones } from '../lib/zones';
 import { PlaceLine, ZoneBrowser } from '../components/ZoneBrowser';
-import { FIELDS, FIELD_BY_KEY, GROUPS, checkField, hasAny, type Draft, type MKey } from './fields';
+import { FIELDS, FIELD_BY_KEY, checkField, groupsFor, hasAny, type Draft, type FieldDef, type MKey } from './fields';
 import type { Row } from '../lib/schema';
 
 type M = Row<'plant_measurements'>;
@@ -126,6 +126,12 @@ export function RegisterEntry() {
   const [dateSheet, setDateSheet] = useState(false);
 
   const plants = data && 'plants' in data ? data.plants! : [];
+  const cropCode = data && 'crop' in data ? data.crop?.code ?? null : null;
+  const groups = useMemo(() => groupsFor(cropCode), [cropCode]);
+  const shown = useMemo<FieldDef[]>(() => groups.flatMap((g) => g.fields), [groups]);
+  const shownRef = useRef(shown);
+  shownRef.current = shown;
+  if (!shown.some((f) => f.key === fieldRef.current)) fieldRef.current = shown[0].key;
   const dataRef = useRef(data);
   dataRef.current = data;
   const plantsRef = useRef(plants);
@@ -196,15 +202,16 @@ export function RegisterEntry() {
     const cur = list[idxRef.current];
     if (cur) void savePlant(cur.id);
     idxRef.current = Math.max(0, Math.min(list.length - 1, i));
-    fieldRef.current = FIELDS[0].key;
+    fieldRef.current = shownRef.current[0].key;
     bump();
   }, [savePlant]);
 
   const setField = (k: MKey) => { fieldRef.current = k; bump(); };
 
   const nextField = useCallback(() => {
-    const i = FIELDS.findIndex((f) => f.key === fieldRef.current);
-    if (i < FIELDS.length - 1) { fieldRef.current = FIELDS[i + 1].key; bump(); }
+    const list = shownRef.current;
+    const i = list.findIndex((f) => f.key === fieldRef.current);
+    if (i < list.length - 1) { fieldRef.current = list[i + 1].key; bump(); }
     else if (idxRef.current < plantsRef.current.length - 1) goPlant(idxRef.current + 1);
     else { const cur = plantsRef.current[idxRef.current]; if (cur) void savePlant(cur.id); toast('آخر نبات — راجع الملخص'); }
   }, [goPlant, savePlant, toast]);
@@ -216,7 +223,11 @@ export function RegisterEntry() {
     const def = FIELD_BY_KEY[fk];
     const d = draftOf(cur.id);
     let v = d[fk] ?? '';
-    if (k === 'back') v = v.slice(0, -1);
+    if (k === 'prev') {
+      const pm = dataRef.current && 'prevByPlant' in dataRef.current ? dataRef.current.prevByPlant!.get(cur.id) : null;
+      if (pm?.[fk] == null) return;
+      v = String(pm[fk]);
+    } else if (k === 'back') v = v.slice(0, -1);
     else if (k === 'clear') v = '';
     else if (k === '.') { if (def.decimals === 0 || v.includes('.')) return; v = v === '' ? '0.' : v + '.'; }
     else {
@@ -281,7 +292,7 @@ export function RegisterEntry() {
     return <main className="page"><div className="panel empty"><h3>لا توجد نباتات مرجعية نشطة</h3><Link className="btn" to={`/setup/cycles/${cycleId}`}>تحديد النباتات</Link></div></main>;
   }
   const doneCount = plants.filter((p) => hasAny(draftOf(p.id))).length;
-  const cur = FIELD_BY_KEY[field];
+  const cur = shown.find((f) => f.key === field) ?? FIELD_BY_KEY[field];
   const isToday = date === todayLocal();
 
   return (
@@ -331,7 +342,7 @@ export function RegisterEntry() {
             {dirty ? <span className="chip warn" style={{ marginInlineStart: 'auto' }}>غير محفوظ</span> : hasAny(draft) && <span className="chip ok" style={{ marginInlineStart: 'auto' }}>محفوظ على الجهاز</span>}
           </div>
           <div className="meas-groups">
-            {GROUPS.map((g) => (
+            {groups.map((g) => (
               <div key={g.title} className="meas-group">
                 <h3>{g.title}</h3>
                 <div className="meas-grid">
@@ -375,6 +386,11 @@ export function RegisterEntry() {
               <button className="btn" onClick={() => press('clear')}>مسح الحقل</button>
               <button className="btn primary" onClick={() => nextField()}>التالي</button>
             </div>
+            {prev?.[field] != null && (
+              <button className="btn ghost block same-prev" onClick={() => { press('prev'); nextField(); }}>
+                مثل الأسبوع الماضي (<span className="num">{String(prev[field])}</span>) والتالي
+              </button>
+            )}
             <div className="nav">
               <button className="btn" disabled={idx === 0} onClick={() => goPlant(idx - 1)}>النبات السابق</button>
               <button className="btn" disabled={idx === plants.length - 1} onClick={() => goPlant(idx + 1)}>النبات التالي</button>
@@ -389,7 +405,7 @@ export function RegisterEntry() {
           onPick={async (d) => {
             await flushAll();
             drafts.current.clear(); versions.current.clear(); dirtySet.current.clear();
-            idxRef.current = 0; fieldRef.current = FIELDS[0].key;
+            idxRef.current = 0; fieldRef.current = shown[0].key;
             setSp(d === todayLocal() ? {} : { d }, { replace: true }); setDateSheet(false);
           }} />
       )}

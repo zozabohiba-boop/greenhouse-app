@@ -98,3 +98,46 @@ export function checkField(f: FieldDef, draft: Draft, prev?: Partial<Row<'plant_
 export function hasAny(m: Partial<Record<MKey, unknown>> | null | undefined): boolean {
   return !!m && FIELDS.some((f) => m[f.key] != null && m[f.key] !== '');
 }
+
+// ── حقول كل محصول ───────────────────────────────────────────────
+// الطماطم: كل الحقول (نظام العناقيد). الفلفل والباذنجان والخيار والكنتالوب والفراولة
+// ليس لها عناقيد مرقمة، فتظهر لها الحقول المناسبة فقط وبأسماء مفهومة.
+interface Profile { keys: MKey[]; labels?: Partial<Record<MKey, string>>; units?: Partial<Record<MKey, string>> }
+const FRUITING: Profile = {
+  keys: ['weekly_growth_cm', 'stem_diameter_mm', 'plant_height_cm', 'flowering_truss_height_cm', 'open_flowers_count',
+    'set_truss_fruits', 'fruits_on_plant', 'leaf_count_total'],
+  labels: {
+    flowering_truss_height_cm: 'بُعد الزهرة المتفتحة عن القمة',
+    set_truss_fruits: 'ثمار عاقدة جديدة هذا الأسبوع',
+  },
+};
+const CUCURBIT: Profile = {
+  keys: ['weekly_growth_cm', 'stem_diameter_mm', 'plant_height_cm', 'open_flowers_count', 'set_truss_fruits',
+    'fruits_on_plant', 'leaf_count_total', 'leaf_count_remaining'],
+  labels: {
+    open_flowers_count: 'أزهار أنثى متفتحة',
+    set_truss_fruits: 'ثمار عاقدة جديدة هذا الأسبوع',
+  },
+};
+const PROFILES: Record<string, Profile> = {
+  pepper: FRUITING,
+  eggplant: FRUITING,
+  cucumber: CUCURBIT,
+  melon: CUCURBIT,
+  strawberry: {
+    keys: ['stem_diameter_mm', 'leaf_count_total', 'open_flowers_count', 'set_truss_fruits', 'fruits_on_plant'],
+    labels: { stem_diameter_mm: 'قطر التاج', set_truss_fruits: 'ثمار عاقدة جديدة هذا الأسبوع' },
+  },
+};
+
+/** مجموعات الحقول المناسبة للمحصول (الطماطم أو غير المعروف = كل الحقول) */
+export function groupsFor(cropCode: string | null | undefined): Group[] {
+  const prof = cropCode ? PROFILES[cropCode] : undefined;
+  if (!prof) return GROUPS;
+  return GROUPS.map((g) => ({
+    title: g.title,
+    fields: g.fields
+      .filter((f) => prof.keys.includes(f.key))
+      .map((f) => ({ ...f, label: prof.labels?.[f.key] ?? f.label, unit: prof.units?.[f.key] ?? f.unit })),
+  })).filter((g) => g.fields.length);
+}

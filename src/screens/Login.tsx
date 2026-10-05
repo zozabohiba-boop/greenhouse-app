@@ -26,11 +26,8 @@ export function Login() {
     <main className="login">
       <form className="panel card form" onSubmit={submit}>
         <div className="mark">
-          <img src="./icons/icon-192.png" alt="" />
-          <div>
-            <h1 dir="ltr" lang="en">Greenhouse Assistant</h1>
-            <p className="muted">تسجيل المحصول والفحص الحشري</p>
-          </div>
+          <h1><img src="./icons/logo-full.png" alt="Greenhouse Assistant" width={360} height={220} /></h1>
+          <p className="muted">متابعة المحصول والفحص الحشري والتوصيات الفنية للصوب</p>
         </div>
         <Field label="البريد الإلكتروني">
           <input className="input ltr" type="email" autoComplete="username" inputMode="email" required

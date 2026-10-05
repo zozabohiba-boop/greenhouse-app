@@ -8,7 +8,7 @@ import { useApp } from '../app/context';
 import { db } from '../lib/db';
 import { alive, create, createMany, softDelete, update } from '../lib/repo';
 import { formatDate, todayLocal } from '../lib/dates';
-import { addDays, consecutiveMoa, moaHistory, phiByGreenhouse } from '../lib/ipm';
+import { addDays, moaHistory, phiByGreenhouse } from '../lib/ipm';
 import { activeCycle, useGreenhouses, usePeople, usePests, useProducts } from '../lib/hooks';
 import { ghLabels, indexZones, useGhLabels, useZones } from '../lib/zones';
 import { GhMultiPick, GhOptions } from '../components/ZoneBrowser';
@@ -19,6 +19,7 @@ import {
 } from '../lib/labels';
 import { Field, numStr, toNum } from '../components/Field';
 import { Icon } from '../components/Icon';
+import { doseText, repeatedMoa } from '../lib/advice';
 import { Sheet } from '../components/Sheet';
 import { PhotoStrip } from '../components/Photos';
 import type { Row } from '../lib/schema';
@@ -222,7 +223,10 @@ export function ActivityDetail() {
           <h1>{ACTIVITY_TYPE_LABEL[a.activity_type]}{op ? ` — ${op.name_ar}` : ''}</h1>
           <p>{formatDate(a.performed_on)}{a.start_time ? `، ${a.start_time.slice(0, 5)}` : ''}{a.end_time ? ` – ${a.end_time.slice(0, 5)}` : ''}</p>
         </div>
-        {editable && <Link to={`/activities/${a.id}/edit`} className="btn"><Icon name="edit" size={20} /> تعديل</Link>}
+        <div className="row">
+          {can.record && <Link to={`/activities/new?copy=${a.id}`} className="btn"><Icon name="sync" size={20} /> كرّر المعاملة</Link>}
+          {editable && <Link to={`/activities/${a.id}/edit`} className="btn"><Icon name="edit" size={20} /> تعديل</Link>}
+        </div>
       </div>
 
       {until && (
@@ -306,23 +310,28 @@ interface Line {
 
 export function ActivityForm() {
   const { id } = useParams();
+  const [sp] = useSearchParams();
+  const copyId = id ? null : sp.get('copy');
   const { can, user } = useApp();
   const existing = useLiveQuery(async () => {
-    if (!id) return null;
-    const a = await db.activities.get(id);
+    const src = id ?? copyId;
+    if (!src) return null;
+    const a = await db.activities.get(src);
     if (!alive(a)) return null;
     const ags = (await db.activity_greenhouses.where('activity_id').equals(a.id).toArray()).filter(alive);
     const aps = (await db.activity_products.where('activity_id').equals(a.id).toArray()).filter(alive);
     return { a, ags, aps };
-  }, [id]);
+  }, [id, copyId]);
   if (!can.record) return <Navigate to="/activities" replace />;
-  if (id && existing === undefined) return null;
+  if ((id || copyId) && existing === undefined) return null;
   if (id && !existing) return <Navigate to="/activities" replace />;
+  if (copyId) return <ActivityFormInner key={`copy-${copyId}`} existing={null} template={existing ?? null} />;
   if (existing && existing.a.created_by !== user?.id && !can.supervise) return <Navigate to={`/activities/${id}`} replace />;
   return <ActivityFormInner key={id ?? 'new'} existing={existing ?? null} />;
 }
 
-function ActivityFormInner({ existing }: { existing: { a: Activity; ags: Row<'activity_greenhouses'>[]; aps: Row<'activity_products'>[] } | null }) {
+type ActBundle = { a: Activity; ags: Row<'activity_greenhouses'>[]; aps: Row<'activity_products'>[] };
+function ActivityFormInner({ existing, template = null }: { existing: ActBundle | null; template?: ActBundle | null }) {
   const { farmId, can, toast } = useApp();
   const nav = useNavigate();
   const [sp] = useSearchParams();
@@ -336,27 +345,29 @@ function ActivityFormInner({ existing }: { existing: { a: Activity; ags: Row<'ac
   const openRecs = useLiveQuery(async () => (await db.recommendations.where('farm_id').equals(farmId!).toArray())
     .filter((r) => alive(r) && (r.status === 'open' || r.status === 'in_progress' || r.id === existing?.a.recommendation_id)), [farmId]);
   const today = todayLocal();
-  const a = existing?.a;
+  // تكرار معاملة: نفس المحتوى بتاريخ اليوم، كسجل جديد
+  const src = existing ?? template;
+  const a = src?.a;
 
   const recParam = sp.get('rec');
   const [type, setType] = useState<AType>(a?.activity_type ?? (sp.get('type') as AType) ?? 'chemical_spray');
   const [f, setF] = useState({
-    performed_on: a?.performed_on ?? today,
-    start_time: a?.start_time?.slice(0, 5) ?? '',
-    end_time: a?.end_time?.slice(0, 5) ?? '',
+    performed_on: existing ? a!.performed_on : today,
+    start_time: existing ? a!.start_time?.slice(0, 5) ?? '' : '',
+    end_time: existing ? a!.end_time?.slice(0, 5) ?? '' : '',
     method: a?.method ?? DEFAULT_METHOD[type],
-    rows_scope: existing?.ags[0]?.rows_scope ?? '',
+    rows_scope: src?.ags[0]?.rows_scope ?? '',
     water_volume_l: numStr(a?.water_volume_l),
     target_pest_id: a?.target_pest_id ?? sp.get('pest') ?? '',
     operation_type_id: a?.operation_type_id ?? '',
     performed_by_name: a?.performed_by_name ?? '',
     reason: a?.reason ?? '',
     notes: a?.notes ?? '',
-    recommendation_id: a?.recommendation_id ?? recParam ?? '',
+    recommendation_id: (existing ? a!.recommendation_id : null) ?? recParam ?? '',
   });
-  const [ghIds, setGhIds] = useState<Set<string>>(() => new Set(existing ? existing.ags.map((x) => x.greenhouse_id) : sp.get('gh') ? [sp.get('gh')!] : []));
-  const [lines, setLines] = useState<Line[]>(() => existing?.aps.length
-    ? existing.aps.map((x) => ({ key: x.id, id: x.id, product_id: x.product_id, dose: numStr(x.dose), dose_unit: x.dose_unit ?? '', total_quantity: numStr(x.total_quantity), total_unit: x.total_unit ?? '', batch_no: x.batch_no ?? '' }))
+  const [ghIds, setGhIds] = useState<Set<string>>(() => new Set(src ? src.ags.map((x) => x.greenhouse_id) : sp.get('gh') ? [sp.get('gh')!] : []));
+  const [lines, setLines] = useState<Line[]>(() => src?.aps.length
+    ? src.aps.map((x) => ({ key: x.id, id: existing ? x.id : undefined, product_id: x.product_id, dose: numStr(x.dose), dose_unit: x.dose_unit ?? '', total_quantity: numStr(x.total_quantity), total_unit: x.total_unit ?? '', batch_no: x.batch_no ?? '' }))
     : [blankLine()]);
   const [files, setFiles] = useState<{ id: string; file: File; url: string }[]>([]);
   const [err, setErr] = useState<string | null>(null);
@@ -382,7 +393,7 @@ function ActivityFormInner({ existing }: { existing: { a: Activity; ags: Row<'ac
       for (const p of chosen) {
         const moa = p.moa_code?.trim();
         if (!moa) continue;
-        const n = consecutiveMoa(hist, moa, f.performed_on);
+        const n = repeatedMoa(moa, hist, f.performed_on);
         if (n >= 2) out.push(`${code.get(gid)}: المجموعة ${moa} (${p.name}) استُخدمت في آخر ${n} معاملات متتالية — بدّل لمجموعة مختلفة لتأخير المقاومة.`);
       }
     }
@@ -547,7 +558,11 @@ function ActivityFormInner({ existing }: { existing: { a: Activity; ags: Row<'ac
                       <select className="select" value={l.product_id} aria-label="المادة" onChange={(e) => {
                         if (e.target.value === '__new') return setNewProduct(l.key);
                         const np = prodById.get(e.target.value);
-                        setLines(lines.map((x) => x.key === l.key ? { ...x, product_id: e.target.value, dose_unit: x.dose_unit || np?.default_dose_unit || '' } : x));
+                        setLines(lines.map((x) => x.key === l.key ? {
+                          ...x, product_id: e.target.value,
+                          dose: x.dose || (np?.default_dose != null ? String(Number(np.default_dose)) : ''),
+                          dose_unit: x.dose_unit || np?.default_dose_unit || '',
+                        } : x));
                       }}>
                         <option value="">اختر المادة…</option>
                         {allowedTypes.map((t) => {
@@ -662,65 +677,92 @@ function lineValues(l: Line) {
 export function ProductList() {
   const { farmId, can } = useApp();
   const products = useProducts(farmId, true);
-  const [edit, setEdit] = useState<Product | 'new' | null>(null);
+  const [edit, setEdit] = useState<{ existing?: Product; base?: Product } | null>(null);
   const [type, setType] = useState<string>('');
+  const [kind, setKind] = useState<'' | 'bio' | 'chem'>('');
+  const [q, setQ] = useState('');
   if (!can.advise) return <Navigate to="/activities" replace />;
-  const list = (products ?? []).filter((p) => !type || p.product_type === type);
+  const term = q.trim().toLowerCase();
+  const list = (products ?? []).filter((p) => (!type || p.product_type === type)
+    && (!kind || (kind === 'bio') === !!p.is_bio)
+    && (!term || [p.name, p.active_ingredient, p.bio_species, p.targets, p.moa_code].some((x) => x?.toLowerCase().includes(term))));
   const types = [...new Set((products ?? []).map((p) => p.product_type))];
   return (
     <main className="page">
       <Link to="/activities" className="back"><Icon name="back" size={18} /> سجل المعاملات</Link>
       <div className="page-head">
-        <div><h1>المواد</h1><p>المبيدات والأسمدة والأعداء الحيوية — بفترات الأمان ومجموعات المقاومة</p></div>
-        <button className="btn primary" onClick={() => setEdit('new')}><Icon name="plus" /> مادة جديدة</button>
+        <div><h1>المواد</h1><p>{products?.length ?? 0} مادة: مبيدات ومركبات حيوية وأسمدة وأعداء حيوية، بالجرعات ومجموعات المقاومة</p></div>
+        <button className="btn primary" onClick={() => setEdit({})}><Icon name="plus" /> مادة جديدة</button>
       </div>
       <div className="filters">
+        <label className="search-box" style={{ flex: '1 1 220px' }}>
+          <Icon name="search" size={20} />
+          <input className="input" placeholder="ابحث بالاسم أو المادة الفعالة أو الآفة" value={q} onChange={(e) => setQ(e.target.value)} aria-label="بحث في المواد" />
+        </label>
+        <div className="seg" role="group" aria-label="المصدر">
+          {([['', 'الكل'], ['bio', 'حيوي وطبيعي'], ['chem', 'كيميائي وأسمدة']] as const).map(([k, l]) => (
+            <button type="button" key={k} aria-pressed={kind === k} onClick={() => setKind(k)}>{l}</button>
+          ))}
+        </div>
         <select className="select" style={{ width: 'auto' }} value={type} onChange={(e) => setType(e.target.value)} aria-label="النوع">
           <option value="">كل الأنواع</option>
           {types.map((t) => <option key={t} value={t}>{PRODUCT_TYPE_LABEL[t]}</option>)}
         </select>
       </div>
       <div className="panel scroll-x">
-        <table className="tbl">
-          <thead><tr><th>الاسم التجاري</th><th>النوع</th><th>المادة الفعالة</th><th>المجموعة</th><th>فترة الأمان</th><th>منع الدخول</th><th /></tr></thead>
+        <table className="tbl prod-tbl">
+          <thead><tr><th>المادة</th><th>النوع</th><th>المادة الفعالة</th><th>المجموعة</th><th>الجرعة</th><th>فترة الأمان</th><th /></tr></thead>
           <tbody>
             {list.map((p) => (
               <tr key={p.id} style={!p.is_active ? { opacity: 0.5 } : undefined}>
-                <td><b>{p.name}</b>{p.farm_id == null && <small className="faint" style={{ display: 'block' }}>كتالوج عام</small>}</td>
+                <td>
+                  <b>{p.name}</b>{p.is_bio && <span className="chip ok" style={{ marginInlineStart: 6 }}>حيوي</span>}
+                  {p.targets && <small className="muted" style={{ display: 'block' }}>{p.targets}</small>}
+                  {p.farm_id == null && <small className="faint" style={{ display: 'block' }}>كتالوج عام</small>}
+                </td>
                 <td>{PRODUCT_TYPE_LABEL[p.product_type]}</td>
                 <td>{p.active_ingredient ?? p.bio_species ?? '—'}{p.concentration ? ` ${p.concentration}` : ''}</td>
                 <td className="n">{p.moa_code ?? '—'}</td>
+                <td className="n">{doseText(p) ?? '—'}</td>
                 <td className="n">{p.phi_days != null ? `${p.phi_days} يوم` : '—'}</td>
-                <td className="n">{p.rei_hours != null ? `${p.rei_hours} ساعة` : '—'}</td>
-                <td>{p.farm_id && <button className="btn ghost" onClick={() => setEdit(p)}><Icon name="edit" size={18} /> تعديل</button>}</td>
+                <td>
+                  {p.farm_id
+                    ? <button className="btn ghost" onClick={() => setEdit({ existing: p })}><Icon name="edit" size={18} /> تعديل</button>
+                    : <button className="btn ghost" title="انسخها للمزرعة لتسجيل فترة الأمان والجرعة حسب العبوة المسجلة" onClick={() => setEdit({ base: p })}><Icon name="edit" size={18} /> خصّص</button>}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {list.length === 0 && <div className="panel empty" style={{ marginTop: 12 }}><h3>لا توجد مواد</h3><p>أضف المبيدات والأسمدة المستخدمة في المزرعة بفترات الأمان المكتوبة على العبوة.</p></div>}
-      {edit && <ProductSheet farmId={farmId!} existing={edit === 'new' ? undefined : edit} onClose={() => setEdit(null)} onSaved={() => setEdit(null)} />}
+      {list.length === 0 && <div className="panel empty" style={{ marginTop: 12 }}><h3>لا توجد مواد مطابقة</h3><p>غيّر البحث أو أضف المادة بفترة الأمان المكتوبة على العبوة.</p></div>}
+      {edit && <ProductSheet farmId={farmId!} existing={edit.existing} base={edit.base} onClose={() => setEdit(null)} onSaved={() => setEdit(null)} />}
     </main>
   );
 }
 
-export function ProductSheet({ farmId, existing, defaultType, allowedTypes, onClose, onSaved }: {
-  farmId: string; existing?: Product; defaultType?: Product['product_type']; allowedTypes?: Product['product_type'][];
+export function ProductSheet({ farmId, existing, base, defaultType, allowedTypes, onClose, onSaved }: {
+  farmId: string; existing?: Product; base?: Product; defaultType?: Product['product_type']; allowedTypes?: Product['product_type'][];
   onClose: () => void; onSaved: (p: Product) => void;
 }) {
   const { toast } = useApp();
+  // base = نسخة من مادة الكتالوج العام تُحفظ للمزرعة (تغطي الأصل بنفس الاسم)
+  const src = existing ?? base;
   const [f, setF] = useState({
-    name: existing?.name ?? '',
-    product_type: existing?.product_type ?? defaultType ?? 'insecticide',
-    active_ingredient: existing?.active_ingredient ?? '',
-    concentration: existing?.concentration ?? '',
-    moa_code: existing?.moa_code ?? '',
-    phi_days: numStr(existing?.phi_days),
-    rei_hours: numStr(existing?.rei_hours),
-    bio_species: existing?.bio_species ?? '',
-    default_dose_unit: existing?.default_dose_unit ?? '',
-    manufacturer: existing?.manufacturer ?? '',
-    notes: existing?.notes ?? '',
+    name: src?.name ?? '',
+    product_type: src?.product_type ?? defaultType ?? 'insecticide',
+    active_ingredient: src?.active_ingredient ?? '',
+    concentration: src?.concentration ?? '',
+    moa_code: src?.moa_code ?? '',
+    phi_days: numStr(src?.phi_days),
+    rei_hours: numStr(src?.rei_hours),
+    bio_species: src?.bio_species ?? '',
+    default_dose_unit: src?.default_dose_unit ?? '',
+    default_dose: numStr(src?.default_dose),
+    is_bio: src?.is_bio ?? false,
+    targets: src?.targets ?? '',
+    manufacturer: src?.manufacturer ?? '',
+    notes: src?.notes ?? '',
     is_active: existing?.is_active ?? true,
   });
   const [err, setErr] = useState<string | null>(null);
@@ -730,7 +772,8 @@ export function ProductSheet({ farmId, existing, defaultType, allowedTypes, onCl
   const types = allowedTypes?.length ? allowedTypes : (Object.keys(PRODUCT_TYPE_LABEL) as Product['product_type'][]);
 
   return (
-    <Sheet title={existing ? 'تعديل مادة' : 'مادة جديدة'} onClose={onClose}>
+    <Sheet title={existing ? 'تعديل مادة' : base ? `تخصيص ${base.name} للمزرعة` : 'مادة جديدة'} onClose={onClose}>
+      {base && <p className="banner info">تُحفظ نسخة خاصة بالمزرعة تحل محل مادة الكتالوج العام في القوائم والتوصيات. سجّل فترة الأمان والجرعة من ملصق العبوة المسجلة.</p>}
       <form className="form" onSubmit={async (e) => {
         e.preventDefault();
         const name = f.name.trim();
@@ -739,13 +782,17 @@ export function ProductSheet({ farmId, existing, defaultType, allowedTypes, onCl
         const rei = toNum(f.rei_hours);
         if (phi != null && (phi < 0 || !Number.isInteger(phi) || phi > 365)) return setErr('فترة الأمان بالأيام (رقم صحيح من 0 إلى 365)');
         if (rei != null && (rei < 0 || !Number.isInteger(rei) || rei > 720)) return setErr('فترة منع الدخول بالساعات (رقم صحيح)');
-        const dup = (await db.products.toArray()).find((p) => alive(p) && p.id !== existing?.id && (p.farm_id == null || p.farm_id === farmId) && p.name.trim() === name);
+        const dose = toNum(f.default_dose);
+        if (dose != null && dose < 0) return setErr('الجرعة لا يمكن أن تكون سالبة');
+        const dup = (await db.products.toArray()).find((p) => alive(p) && p.id !== existing?.id && p.name.trim() === name
+          && (p.farm_id === farmId || (p.farm_id == null && !base)));
         if (dup) return setErr('يوجد مادة بنفس الاسم');
         const values = {
           name, product_type: f.product_type, active_ingredient: f.active_ingredient.trim() || null, concentration: f.concentration.trim() || null,
           moa_code: f.moa_code.trim().toUpperCase() || null, phi_days: phi, rei_hours: rei, bio_species: f.bio_species.trim() || null,
           default_dose_unit: (f.default_dose_unit || null) as Product['default_dose_unit'], manufacturer: f.manufacturer.trim() || null,
           notes: f.notes.trim() || null, is_active: f.is_active,
+          default_dose: dose, is_bio: bio || f.is_bio, targets: f.targets.trim() || null,
         };
         if (existing) {
           await update('products', existing.id, values);
@@ -779,6 +826,7 @@ export function ProductSheet({ farmId, existing, defaultType, allowedTypes, onCl
               <Field label="منع الدخول (ساعة)"><input className="input ltr" inputMode="numeric" value={f.rei_hours} onChange={(e) => set('rei_hours', e.target.value)} /></Field>
             </>
           )}
+          <Field label="الجرعة المعتادة" hint="تُملأ تلقائيًا عند التسجيل"><input className="input ltr" inputMode="decimal" value={f.default_dose} onChange={(e) => set('default_dose', e.target.value)} /></Field>
           <Field label="وحدة الجرعة المعتادة">
             <select className="select" value={f.default_dose_unit} onChange={(e) => set('default_dose_unit', e.target.value)}>
               <option value="">—</option>
@@ -787,6 +835,13 @@ export function ProductSheet({ farmId, existing, defaultType, allowedTypes, onCl
           </Field>
           <Field label="الشركة"><input className="input" value={f.manufacturer} onChange={(e) => set('manufacturer', e.target.value)} /></Field>
         </div>
+        <Field label="الآفات المستهدفة / الاستخدام"><input className="input" value={f.targets} onChange={(e) => set('targets', e.target.value)} /></Field>
+        {!bio && (
+          <label className="toggle">
+            <input type="checkbox" checked={f.is_bio} onChange={(e) => set('is_bio', e.target.checked)} />
+            <span><b>منتج حيوي أو طبيعي</b><small>يظهر ضمن الخيارات الحيوية في التوصيات</small></span>
+          </label>
+        )}
         <Field label="ملاحظات"><textarea className="textarea" value={f.notes} onChange={(e) => set('notes', e.target.value)} /></Field>
         {existing && (
           <label className="toggle">

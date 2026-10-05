@@ -11,7 +11,7 @@ PG="psql -h /tmp -p 5544 -U postgres -v ON_ERROR_STOP=1 -q"
 cp supabase/migrations/*.sql e2e/*.sql /tmp/ 2>/dev/null || true
 chmod 644 /tmp/*.sql
 su postgres -s /bin/bash -c "dropdb -h /tmp -p 5544 --if-exists --force e2e && createdb -h /tmp -p 5544 e2e"
-su postgres -s /bin/bash -c "$PG -d e2e -f /tmp/supabase_stub.sql -f /tmp/001_schema.sql -f /tmp/002_seed_catalogs.sql -f /tmp/003_invitations_sync.sql -f /tmp/004_storage.sql -f /tmp/006_profiles_email.sql -f /tmp/007_team_admin.sql -f /tmp/008_recommendation_done.sql -f /tmp/009_site_files_weather.sql -f /tmp/seed.sql"
+su postgres -s /bin/bash -c "$PG -d e2e -f /tmp/supabase_stub.sql -f /tmp/001_schema.sql -f /tmp/002_seed_catalogs.sql -f /tmp/003_invitations_sync.sql -f /tmp/004_storage.sql -f /tmp/006_profiles_email.sql -f /tmp/007_team_admin.sql -f /tmp/008_recommendation_done.sql -f /tmp/009_site_files_weather.sql -f /tmp/010_knowledge.sql -f /tmp/seed.sql"
 cat > /tmp/postgrest.conf <<CONF
 db-uri = "postgres://authenticator:auth@127.0.0.1:5544/e2e"
 db-schemas = "public"

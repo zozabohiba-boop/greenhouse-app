@@ -32,15 +32,19 @@ export const WRITABLE: Partial<Record<TableName, Spec>> = {
   pests: {
     columns: {
       id: null, farm_id: null, code: '', name_ar: '', name_en: '', scientific_name: null,
-      category: 'other', default_count_unit: 'presence', sort_order: 100, is_active: true, ...SYNC_COLS,
+      category: 'other', default_count_unit: 'presence', sort_order: 100, is_active: true,
+      action_severity: null, crops: null, guidance: null, ...SYNC_COLS,
     },
   },
   products: {
     columns: {
       id: null, farm_id: null, name: '', product_type: 'other', active_ingredient: null, concentration: null,
       moa_code: null, phi_days: null, rei_hours: null, bio_species: null, default_dose_unit: null,
-      manufacturer: null, notes: null, is_active: true, ...SYNC_COLS,
+      manufacturer: null, notes: null, is_active: true, is_bio: false, default_dose: null, targets: null, ...SYNC_COLS,
     },
+  },
+  pest_controls: {
+    columns: { id: null, farm_id: null, pest_id: null, product_id: null, approach: 'natural', priority: 100, note: null, ...SYNC_COLS },
   },
   operation_types: {
     columns: { id: null, farm_id: null, code: '', name_ar: '', name_en: '', category: 'other', sort_order: 100, ...SYNC_COLS },
@@ -164,7 +168,7 @@ export const WRITABLE: Partial<Record<TableName, Spec>> = {
  * لذلك الترتيب هنا هو الضامن لسلامة المفاتيح الأجنبية.
  */
 export const PUSH_ORDER: TableName[] = [
-  'varieties', 'pests', 'products', 'operation_types',
+  'varieties', 'pests', 'products', 'pest_controls', 'operation_types',
   'farm_profiles', 'farm_zones', 'greenhouses', 'crop_cycles', 'reference_plants', 'balance_targets',
   'crop_registration_sessions', 'plant_measurements',
   'scouting_sessions', 'scouting_observations',

@@ -1,10 +1,10 @@
 import { useEffect, type ReactNode } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useApp, ROLE_LABEL } from '../app/context';
+import { useApp } from '../app/context';
 import { db } from '../lib/db';
 import { useSync } from '../components/Sync';
 import { syncNow } from '../lib/sync';
-import { Icon } from '../components/Icon';
+import { ProjectsBoard } from './Projects';
 
 /** يضمن اختيار مزرعة قبل أي شاشة. لو المستخدم عضو في مزرعة واحدة تُختار تلقائيًا */
 export function FarmGate({ children }: { children: ReactNode }) {
@@ -26,6 +26,7 @@ export function FarmGate({ children }: { children: ReactNode }) {
 
   if (farmId && options?.some((o) => o.f!.id === farmId)) return <>{children}</>;
   if (!options) return null;
+  if (options.length === 1) return null; // يُختار تلقائيًا في الـ effect
 
   if (options.length === 0) {
     return (
@@ -58,20 +59,5 @@ export function FarmGate({ children }: { children: ReactNode }) {
     );
   }
 
-  return (
-    <main className="page">
-      <div className="page-head"><div><h1>اختر الموقع</h1><p>حسابك مرتبط بأكثر من موقع</p></div></div>
-      <ul className="list panel">
-        {options.map(({ m, f }) => (
-          <li key={f!.id}>
-            <button className="list-item btn ghost block" onClick={() => setFarmId(f!.id)}>
-              <Icon name="house" />
-              <span className="grow" style={{ textAlign: 'start' }}><b>{f!.name}</b></span>
-              <span className="chip">{ROLE_LABEL[m.role]}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </main>
-  );
+  return <ProjectsBoard canCreate={options.some((o) => o.m.role === 'admin')} />;
 }

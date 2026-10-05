@@ -14,6 +14,8 @@ import { GhOptions } from '../components/ZoneBrowser';
 import { PRIORITY_LABEL, REC_STATUS_LABEL, SEVERITY } from '../lib/labels';
 import { Field } from '../components/Field';
 import { Icon } from '../components/Icon';
+import { useAdviceData } from '../components/Advice';
+import { adviceText, buildAdvice } from '../lib/advice';
 import type { Row } from '../lib/schema';
 
 type Rec = Row<'recommendations'>;
@@ -137,23 +139,25 @@ export function RecForm() {
   if ((existing?.observation_id || sp.get('obs')) && ctx === undefined) return null;
   if (existing && existing.author_id !== user?.id && existing.created_by !== user?.id && !can.supervise) return <Navigate to="/recs" replace />;
   return <RecFormInner key={`${existing?.id ?? 'new'}-${ctx?.o.id ?? ''}`} existing={existing ?? null} ghs={ghs ?? []} ctx={ctx ?? null}
-    defaults={{ gh: sp.get('gh') ?? '', obs: sp.get('obs') }} onDone={(msg) => { toast(msg); nav('/recs', { replace: true }); }} farmId={farmId!} />;
+    defaults={{ gh: sp.get('gh') ?? '', obs: sp.get('obs'), body: sp.get('body') ?? '' }} onDone={(msg) => { toast(msg); nav('/recs', { replace: true }); }} farmId={farmId!} />;
 }
 
 function RecFormInner({ existing, ghs, ctx, defaults, onDone, farmId }: {
   existing: Rec | null; ghs: { g: Row<'greenhouses'> }[]; ctx: { o: Row<'scouting_observations'>; pest?: string } | null;
-  defaults: { gh: string; obs: string | null }; onDone: (m: string) => void; farmId: string;
+  defaults: { gh: string; obs: string | null; body: string }; onDone: (m: string) => void; farmId: string;
 }) {
   const today = todayLocal();
   const idx = useZones(farmId);
   const [f, setF] = useState({
     greenhouse_id: existing?.greenhouse_id ?? defaults.gh,
     title: existing?.title ?? (ctx?.pest ? `مكافحة ${ctx.pest}` : ''),
-    body: existing?.body ?? '',
+    body: existing?.body ?? defaults.body,
     priority: existing?.priority ?? (ctx && ctx.o.severity >= 3 ? 'high' : 'normal') as Rec['priority'],
     due_on: existing?.due_on ?? '',
   });
   const [err, setErr] = useState<string | null>(null);
+  const adv = useAdviceData(farmId, ctx?.o.pest_id, f.greenhouse_id || undefined);
+  const advice = adv ? buildAdvice({ ...adv, severity: ctx?.o.severity ?? null, farmId, today }) : null;
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!f.title.trim()) return setErr('عنوان التوصية مطلوب');
@@ -199,8 +203,13 @@ function RecFormInner({ existing, ghs, ctx, defaults, onDone, farmId }: {
         </div>
         <Field label="التوصية"><input className="input" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="مثلًا: رش أكاروسي للخطوط 3–8" /></Field>
         <Field label="التفاصيل" hint="المادة والجرعة المقترحة، النطاق، أي احتياطات">
-          <textarea className="textarea" rows={5} value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} />
+          <textarea className="textarea" rows={f.body.split('\n').length > 4 ? 9 : 5} value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} />
         </Field>
+        {ctx && advice && advice.groups.length > 0 && (
+          <button type="button" className="btn ghost" onClick={() => setF({ ...f, body: adviceText({ name_ar: ctx.pest ?? 'الآفة' }, ctx.o.severity, advice) })}>
+            <Icon name="sync" size={20} /> {f.body.trim() ? 'استبدل التفاصيل بالخيارات المقترحة' : 'املأ التفاصيل من الخيارات المقترحة'}
+          </button>
+        )}
         {err && <p className="form-error">{err}</p>}
         <div className="form-actions">
           <button className="btn primary" type="submit"><Icon name="check" /> {existing ? 'حفظ' : 'إرسال التوصية'}</button>

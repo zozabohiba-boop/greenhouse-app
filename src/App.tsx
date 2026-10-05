@@ -15,6 +15,7 @@ import { Dashboard } from './screens/Dashboard';
 import { FilesHome } from './screens/Files';
 import { WeatherScreen } from './screens/Weather';
 import { FarmProfile } from './screens/Farm';
+import { ProjectsBoard } from './screens/Projects';
 
 function Protected() {
   const { user } = useApp();
@@ -50,6 +51,7 @@ function Protected() {
           <Route path="files" element={<FilesHome />} />
           <Route path="weather" element={<WeatherScreen />} />
           <Route path="farm" element={<FarmProfile />} />
+          <Route path="projects" element={<ProjectsBoard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

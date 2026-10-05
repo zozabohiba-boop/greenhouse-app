@@ -8,7 +8,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp } from '../app/context';
 import { db } from '../lib/db';
 import { alive, create, softDelete, update } from '../lib/repo';
-import { formatDate, isoWeek, todayLocal, weekKey, weekSpan } from '../lib/dates';
+import { formatDate, isoWeek, todayLocal, weekBounds, weekKey, weekSpan } from '../lib/dates';
 import { addDays, pressureGrid, severityByRow } from '../lib/ipm';
 import { usePeople, usePests } from '../lib/hooks';
 import { addPhoto, removePhoto, usePhotos } from '../lib/photos';
@@ -22,6 +22,8 @@ import { PhotoStrip } from '../components/Photos';
 import { byCode } from './Home';
 import { useZones } from '../lib/zones';
 import { GhPlace, PlaceLine, ZoneBrowser } from '../components/ZoneBrowser';
+import { AdvicePanel } from '../components/Advice';
+import { activeCycle } from '../lib/hooks';
 import type { Row } from '../lib/schema';
 
 type Session = Row<'scouting_sessions'>;
@@ -117,6 +119,7 @@ export function ScoutGreenhouse() {
   const people = usePeople();
   const idx = useZones(farmId);
   const [start, setStart] = useState(false);
+  const [busy, setBusy] = useState(false);
   const data = useLiveQuery(async () => {
     const g = await db.greenhouses.get(ghId!);
     if (!alive(g)) return null;
@@ -135,6 +138,8 @@ export function ScoutGreenhouse() {
   const mineToday = sessions.find((s) => s.scouted_on === today && s.created_by === user?.id);
 
   async function begin(date: string, plants: number | null) {
+    if (busy) return;
+    setBusy(true);
     const s = await create('scouting_sessions', {
       farm_id: farmId!, greenhouse_id: g.id, crop_cycle_id: cycle?.id ?? null, scouted_on: date,
       plants_inspected: plants, started_at: new Date().toISOString(),
@@ -154,7 +159,12 @@ export function ScoutGreenhouse() {
         </div>
         {can.record && (mineToday
           ? <Link to={`/scout/s/${mineToday.id}`} className="btn primary lg"><Icon name="bug" /> أكمل جولة اليوم</Link>
-          : <button className="btn primary lg" onClick={() => setStart(true)}><Icon name="plus" /> ابدأ جولة فحص</button>)}
+          : (
+            <div className="row">
+              <button className="btn" onClick={() => setStart(true)}>بتاريخ سابق</button>
+              <button className="btn primary lg" disabled={busy} onClick={() => begin(today, sessions[0]?.plants_inspected ?? null)}><Icon name="plus" /> ابدأ فحص اليوم</button>
+            </div>
+          ))}
       </div>
 
       {sessions.length === 0 ? (
@@ -228,6 +238,7 @@ export function ScoutSession() {
   const [q, setQ] = useState('');
   const [info, setInfo] = useState(false);
   const [addPest, setAddPest] = useState(false);
+  const [next, setNext] = useState<{ g: Row<'greenhouses'>; left: number } | null>(null);
 
   const data = useLiveQuery(async () => {
     const s = await db.scouting_sessions.get(id!);
@@ -243,17 +254,29 @@ export function ScoutSession() {
       : [];
     const prevMax = new Map<string, number>();
     for (const o of prevObs) prevMax.set(o.pest_id, Math.max(prevMax.get(o.pest_id) ?? 0, o.severity));
-    return { s, g, obs, prevMax };
+    // محصول الصوبة — لترتيب الآفات المعتادة عليه أولًا
+    const cycles = await db.crop_cycles.where('greenhouse_id').equals(s.greenhouse_id).toArray();
+    const cycle = (s.crop_cycle_id ? cycles.find((c) => c.id === s.crop_cycle_id) : undefined) ?? activeCycle(cycles, s.greenhouse_id);
+    const crop = cycle ? await db.crops.get(cycle.crop_id) : undefined;
+    return { s, g, obs, prevMax, crop: crop ? { code: crop.code, name: crop.name_ar } : null };
   }, [id]);
 
   const photos = usePhotos('scouting_observations', data?.obs.map((o) => o.id) ?? []);
 
-  const groups = useMemo(() => {
+  const cropCode = data?.crop?.code ?? null;
+  const recent = data ? data.prevMax : null;
+  const { groups, other } = useMemo(() => {
     const term = q.trim().toLowerCase();
     const list = (pests ?? []).filter((p) => !term || p.name_ar.includes(term) || p.name_en.toLowerCase().includes(term)
       || (p.scientific_name ?? '').toLowerCase().includes(term));
-    return PEST_GROUPS.map((gr) => ({ ...gr, pests: list.filter((p) => gr.cats.includes(p.category)) })).filter((gr) => gr.pests.length);
-  }, [pests, q]);
+    const fits = (p: Pest) => !cropCode || !p.crops?.length || p.crops.includes(cropCode);
+    const seen = (p: Pest) => !term && (recent?.get(p.id) ?? 0) > 0;
+    const main = list.filter((p) => term || (fits(p) && !seen(p)));
+    const out = PEST_GROUPS.map((gr) => ({ ...gr, pests: main.filter((p) => gr.cats.includes(p.category)) })).filter((gr) => gr.pests.length);
+    const recentList = list.filter(seen).sort((a, b) => (recent!.get(b.id) ?? 0) - (recent!.get(a.id) ?? 0));
+    if (recentList.length) out.unshift({ title: 'ظهرت في الجولات الأخيرة', cats: [], pests: recentList } as (typeof out)[number]);
+    return { groups: out, other: term ? [] : list.filter((p) => !fits(p) && !seen(p)) };
+  }, [pests, q, cropCode, recent]);
 
   if (data === undefined || !pests) return null;
   if (data === null) return <main className="page"><div className="panel empty"><h3>الجولة غير موجودة</h3></div></main>;
@@ -271,7 +294,9 @@ export function ScoutSession() {
   async function finish() {
     if (!s.completed_at) await update('scouting_sessions', s.id, { completed_at: new Date().toISOString() });
     toast(obs.length ? `تم حفظ الجولة — ${obs.length} ملاحظة` : 'تم تسجيل الصوبة نظيفة');
-    nav(`/scout/gh/${s.greenhouse_id}`);
+    const nx = await nextToScout(s.farm_id, s.greenhouse_id, s.scouted_on);
+    if (nx) setNext(nx);
+    else nav(`/scout/gh/${s.greenhouse_id}`);
   }
 
   return (
@@ -397,7 +422,19 @@ export function ScoutSession() {
                 </div>
               </div>
             ))}
-            {groups.length === 0 && <p className="muted" style={{ padding: 16 }}>لا توجد نتائج.</p>}
+            {other.length > 0 && (
+              <details className="pest-group pest-other">
+                <summary>آفات غير معتادة على {data.crop?.name ?? 'هذا المحصول'} ({other.length})</summary>
+                <div className="pest-grid">
+                  {other.map((p) => (
+                    <button key={p.id} className="pest-btn" data-v={sessionMax.get(p.id) ?? ''} onClick={() => setPicked({ pest: p })}>
+                      <b>{p.name_ar}</b><small>{p.scientific_name ?? ''}</small>
+                    </button>
+                  ))}
+                </div>
+              </details>
+            )}
+            {groups.length === 0 && other.length === 0 && <p className="muted" style={{ padding: 16 }}>لا توجد نتائج.</p>}
             {can.advise && (
               <button className="btn ghost block" onClick={() => setAddPest(true)}><Icon name="plus" /> آفة غير موجودة في القائمة</button>
             )}
@@ -412,20 +449,57 @@ export function ScoutSession() {
           pest={picked.pest}
           existing={picked.obs}
           defaultRow={currentRow}
+          ghId={s.greenhouse_id}
           spans={g?.spans_count ?? null}
           readOnly={!editable || (!!picked.obs && picked.obs.created_by !== user?.id && !can.supervise)}
           onClose={() => setPicked(null)}
         />
       )}
       {info && <SessionInfo s={s} editable={editable} onClose={() => setInfo(false)} />}
+      {next && (
+        <Sheet title="الصوبة التالية" onClose={() => nav(`/scout/gh/${s.greenhouse_id}`)}>
+          <div className="form">
+            <p>باقي <b className="num">{next.left}</b> صوبة في نفس المكان لم تُفحص هذا الأسبوع.</p>
+            <div className="form-actions">
+              <button className="btn primary lg" onClick={async () => {
+                const cycles = await db.crop_cycles.where('greenhouse_id').equals(next.g.id).toArray();
+                const ns = await create('scouting_sessions', {
+                  farm_id: s.farm_id, greenhouse_id: next.g.id, crop_cycle_id: activeCycle(cycles, next.g.id)?.id ?? null,
+                  scouted_on: todayLocal(), plants_inspected: s.plants_inspected, started_at: new Date().toISOString(),
+                });
+                setNext(null);
+                nav(`/scout/s/${ns.id}`, { replace: true });
+              }}><Icon name="bug" /> ابدأ فحص <span className="num">{next.g.code}</span></button>
+              <button className="btn" onClick={() => nav(`/scout${next.g.zone_id ? `?z=${next.g.zone_id}` : ''}`)}>قائمة الصوب</button>
+            </div>
+          </div>
+        </Sheet>
+      )}
       {addPest && <AddPestSheet farmId={farmId!} onClose={() => setAddPest(false)} onAdded={(p) => { setAddPest(false); setPicked({ pest: p }); }} />}
     </main>
   );
 }
 
+/** الصوبة التالية في نفس المكان (القطاع/الصف) التي لم تُفحص هذا الأسبوع */
+export async function nextToScout(farmId: string, ghId: string, date: string): Promise<{ g: Row<'greenhouses'>; left: number } | null> {
+  const cur = await db.greenhouses.get(ghId);
+  if (!cur) return null;
+  const { start, end } = weekBounds(date);
+  const [ghs, sessions] = await Promise.all([
+    db.greenhouses.where('farm_id').equals(farmId).toArray(),
+    db.scouting_sessions.where('farm_id').equals(farmId).toArray(),
+  ]);
+  const done = new Set(sessions.filter((x) => alive(x) && x.scouted_on >= start && x.scouted_on <= end).map((x) => x.greenhouse_id));
+  const siblings = ghs.filter((g) => alive(g) && (g.zone_id ?? null) === (cur.zone_id ?? null)).sort(byCode);
+  const i = siblings.findIndex((g) => g.id === cur.id);
+  const ordered = [...siblings.slice(i + 1), ...siblings.slice(0, Math.max(0, i))];
+  const left = ordered.filter((g) => !done.has(g.id));
+  return left.length ? { g: left[0], left: left.length } : null;
+}
+
 // ── ملاحظة: آفة واحدة ───────────────────────────────────────────────
-function ObsSheet({ session, pest, existing, defaultRow, spans, readOnly, onClose }: {
-  session: Session; pest: Pest; existing?: Obs; defaultRow: number | null; spans: number | null; readOnly: boolean; onClose: () => void;
+function ObsSheet({ session, pest, existing, defaultRow, ghId, spans, readOnly, onClose }: {
+  session: Session; pest: Pest; existing?: Obs; defaultRow: number | null; ghId: string; spans: number | null; readOnly: boolean; onClose: () => void;
 }) {
   const { farmId, can, toast } = useApp();
   const nav = useNavigate();
@@ -449,6 +523,9 @@ function ObsSheet({ session, pest, existing, defaultRow, spans, readOnly, onClos
   const saved = usePhotos('scouting_observations', existing ? [existing.id] : []).get(existing?.id ?? '') ?? [];
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((x) => ({ ...x, [k]: v }));
   const trap = f.method === 'sticky_trap' || f.method === 'pheromone_trap';
+  // الملاحظة الجديدة: الشدة + صورة تكفي، والتفاصيل مطوية. الملاحظة المسجلة بتفاصيل تفتح مفرودة.
+  const [moreOpen, setMoreOpen] = useState(() => !!existing && (existing.count_value != null || existing.method !== 'plant_inspection'
+    || !!existing.life_stage || existing.plants_inspected != null || !!existing.notes || existing.span_no != null));
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -507,6 +584,13 @@ function ObsSheet({ session, pest, existing, defaultRow, spans, readOnly, onClos
           ))}
         </fieldset>
 
+        <AdvicePanel pestId={pest.id} ghId={ghId} severity={f.severity} obsId={existing?.id} />
+
+        <details className="obs-more" open={moreOpen} onToggle={(e) => setMoreOpen((e.target as HTMLDetailsElement).open)}>
+          <summary>
+            تفاصيل إضافية (اختياري)
+            <small className="muted">{[f.row_no && `خط ${f.row_no}`, f.method !== 'plant_inspection' && SCOUT_METHOD_LABEL[f.method], f.count_value && `عدد ${f.count_value}`, f.is_hotspot && 'بؤرة'].filter(Boolean).join('، ')}</small>
+          </summary>
         <fieldset disabled={readOnly} className="form" style={{ border: 0, padding: 0, margin: 0 }}>
           <div className="seg" role="group" aria-label="طريقة الفحص">
             {(Object.keys(SCOUT_METHOD_LABEL) as Obs['method'][]).map((m) => (
@@ -545,6 +629,7 @@ function ObsSheet({ session, pest, existing, defaultRow, spans, readOnly, onClos
           </label>
           <Field label="ملاحظات"><textarea className="textarea" value={f.notes} onChange={(e) => set('notes', e.target.value)} /></Field>
         </fieldset>
+        </details>
 
         <div>
           <p className="field-label">صور</p>

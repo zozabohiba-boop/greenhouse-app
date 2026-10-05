@@ -38,6 +38,7 @@ export class GreenhouseDB extends Dexie {
   varieties!: Table<Local<Row<'varieties'>>, string>;
   pests!: Table<Local<Row<'pests'>>, string>;
   products!: Table<Local<Row<'products'>>, string>;
+  pest_controls!: Table<Local<Row<'pest_controls'>>, string>;
   operation_types!: Table<Local<Row<'operation_types'>>, string>;
   greenhouses!: Table<Local<Row<'greenhouses'>>, string>;
   crop_cycles!: Table<Local<Row<'crop_cycles'>>, string>;
@@ -99,6 +100,10 @@ export class GreenhouseDB extends Dexie {
       farm_profiles: 'id, farm_id, _dirty',
       documents: 'id, farm_id, greenhouse_id, zone_id, _dirty',
       greenhouses: 'id, farm_id, zone_id, _dirty',
+    });
+    // v4: قاعدة المعرفة — خيارات المكافحة لكل آفة
+    this.version(4).stores({
+      pest_controls: 'id, farm_id, pest_id, product_id, _dirty',
     });
   }
 

@@ -8,6 +8,7 @@ import { cropAgeWeeks, formatDate, todayLocal } from '../lib/dates';
 import { CYCLE_STATUS_LABEL, SUBSTRATE_LABEL } from '../lib/labels';
 import { Field, numStr, toNum } from '../components/Field';
 import { Icon } from '../components/Icon';
+import { CROP_REF, targetWarnings } from '../lib/crops';
 import { Sheet } from '../components/Sheet';
 import { byCode } from './Home';
 import { ZoneBrowser, GhPlace, useZoneParam } from '../components/ZoneBrowser';
@@ -692,6 +693,9 @@ export function CycleDetail() {
           <span>القيم المستهدفة لتوازن النبات</span>
           <button className="btn" onClick={() => setTgt('new')}><Icon name="plus" /> {current ? 'قيم لمرحلة جديدة' : 'تحديد القيم'}</button>
         </h2>
+        {current && targetWarnings(crop?.code, crop?.name_ar, current).map((w) => (
+          <div key={w} className="banner warn"><Icon name="alert" /> {w}</div>
+        ))}
         <div className="panel panel-pad">
           {targets.length === 0 ? (
             <p className="muted">لم تُحدد بعد. بدونها يظهر حكم التوازن "غير محدد". يحددها الاستشاري حسب الصنف ومرحلة النمو.</p>
@@ -716,7 +720,7 @@ export function CycleDetail() {
         </div>
 
         {gen && <GeneratePlants cycle={c} existing={plants} rowsCount={g?.rows_count ?? null} onClose={() => setGen(false)} />}
-        {tgt && <TargetSheet cycle={c} target={tgt === 'new' ? null : tgt} onClose={() => setTgt(null)} />}
+        {tgt && <TargetSheet cycle={c} crop={crop ?? null} target={tgt === 'new' ? null : tgt} onClose={() => setTgt(null)} />}
         {finish && (
           <Sheet title="إنهاء الدورة الزراعية" onClose={() => setFinish(false)}>
             <p className="muted" style={{ marginBottom: 16 }}>بعد الإنهاء تتوقف الدورة عن الظهور في التسجيل الأسبوعي، وتبقى بياناتها للتحليل. يمكنك بعدها إضافة دورة جديدة للصوبة.</p>
@@ -796,7 +800,7 @@ function GeneratePlants({ cycle, existing, rowsCount, onClose }: { cycle: Row<'c
   );
 }
 
-function TargetSheet({ cycle, target, onClose }: { cycle: Row<'crop_cycles'>; target: Row<'balance_targets'> | null; onClose: () => void }) {
+function TargetSheet({ cycle, crop, target, onClose }: { cycle: Row<'crop_cycles'>; crop: Row<'crops'> | null; target: Row<'balance_targets'> | null; onClose: () => void }) {
   const { toast } = useApp();
   const [f, setF] = useState({
     valid_from: target?.valid_from ?? todayLocal(),
@@ -817,6 +821,12 @@ function TargetSheet({ cycle, target, onClose }: { cycle: Row<'crop_cycles'>; ta
       </div>
     </div>
   );
+  const ref = crop ? CROP_REF[crop.code]?.target : undefined;
+  const warns = targetWarnings(crop?.code, crop?.name_ar, {
+    weekly_growth_min_cm: toNum(f.weekly_growth_min_cm), weekly_growth_max_cm: toNum(f.weekly_growth_max_cm),
+    stem_diameter_min_mm: toNum(f.stem_diameter_min_mm), stem_diameter_max_mm: toNum(f.stem_diameter_max_mm),
+    flowering_height_min_cm: toNum(f.flowering_height_min_cm), flowering_height_max_cm: toNum(f.flowering_height_max_cm),
+  });
   async function save() {
     const v = {
       valid_from: f.valid_from,
@@ -846,11 +856,24 @@ function TargetSheet({ cycle, target, onClose }: { cycle: Row<'crop_cycles'>; ta
     <Sheet title="القيم المستهدفة" onClose={onClose}>
       <div className="form">
         <p className="muted">فوق الحد الأعلى = اتجاه خضري، تحت الحد الأدنى = اتجاه ثمري. ارتفاع العنقود المزهر يُقاس من القمة النامية.</p>
+        {ref && (
+          <div className="banner info" style={{ display: 'block' }}>
+            <b>قيم مرجعية لمحصول {crop?.name_ar}:</b> الاستطالة {ref.growth?.min}–{ref.growth?.max} سم، سمك الساق {ref.stem?.min}–{ref.stem?.max} مم، بُعد الزهرة عن القمة {ref.flowering?.min}–{ref.flowering?.max} سم.
+            <small style={{ display: 'block', marginTop: 4, fontWeight: 400 }}>{ref.source}</small>
+            <button type="button" className="btn" style={{ marginTop: 8 }} onClick={() => setF({
+              ...f,
+              weekly_growth_min_cm: numStr(ref.growth?.min), weekly_growth_max_cm: numStr(ref.growth?.max),
+              stem_diameter_min_mm: numStr(ref.stem?.min), stem_diameter_max_mm: numStr(ref.stem?.max),
+              flowering_height_min_cm: numStr(ref.flowering?.min), flowering_height_max_cm: numStr(ref.flowering?.max),
+            })}>استخدم القيم المرجعية</button>
+          </div>
+        )}
         <Field label="تبدأ من تاريخ"><input className="input ltr" type="date" value={f.valid_from} onChange={set('valid_from')} /></Field>
         {pair('الاستطالة الأسبوعية', 'weekly_growth_min_cm', 'weekly_growth_max_cm', 'سم')}
         {pair('سمك الساق', 'stem_diameter_min_mm', 'stem_diameter_max_mm', 'مم')}
         {pair('ارتفاع العنقود المزهر', 'flowering_height_min_cm', 'flowering_height_max_cm', 'سم')}
         <Field label="ملاحظات"><input className="input" value={f.notes} onChange={set('notes')} /></Field>
+        {warns.map((w) => <p key={w} className="banner warn" style={{ marginBottom: 0 }}>{w}</p>)}
         {err && <p className="form-error" role="alert">{err}</p>}
         <div className="form-actions"><button className="btn primary" onClick={save}>حفظ</button><button className="btn" onClick={onClose}>إلغاء</button></div>
       </div>

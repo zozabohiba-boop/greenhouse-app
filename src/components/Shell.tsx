@@ -37,7 +37,7 @@ export function Shell() {
 }
 
 function Menu({ onClose }: { onClose: () => void }) {
-  const { user, signOut, setFarmId, can } = useApp();
+  const { user, signOut, can } = useApp();
   const nav = useNavigate();
   const [err, setErr] = useState<string | null>(null);
   const [pw, setPw] = useState(false);
@@ -53,8 +53,8 @@ function Menu({ onClose }: { onClose: () => void }) {
         <li><button className="list-item btn ghost block" onClick={() => go('/files')}><Icon name="folder" /> <span className="grow" style={{ textAlign: 'start' }}>الملفات والتقارير</span></button></li>
         <li><button className="list-item btn ghost block" onClick={() => go('/weather')}><Icon name="sun" /> <span className="grow" style={{ textAlign: 'start' }}>الطقس والمناخ</span></button></li>
         {can.invite && <li><button className="list-item btn ghost block" onClick={() => go('/team')}><Icon name="users" /> <span className="grow" style={{ textAlign: 'start' }}>فريق العمل والدعوات</span></button></li>}
-        {(farms ?? 0) > 1 && <li><button className="list-item btn ghost block" onClick={() => { setFarmId(null); go('/'); }}><Icon name="sync" /> <span className="grow" style={{ textAlign: 'start' }}>تغيير الموقع</span></button></li>}
-        {can.admin && <li><button className="list-item btn ghost block" onClick={() => setNewFarm(true)}><Icon name="plus" /> <span className="grow" style={{ textAlign: 'start' }}>موقع جديد</span></button></li>}
+        {((farms ?? 0) > 1 || can.admin) && <li><button className="list-item btn ghost block" onClick={() => go('/projects')}><Icon name="map" /> <span className="grow" style={{ textAlign: 'start' }}>كل المشاريع{(farms ?? 0) > 1 ? ` (${farms})` : ''}</span></button></li>}
+        {can.admin && <li><button className="list-item btn ghost block" onClick={() => setNewFarm(true)}><Icon name="plus" /> <span className="grow" style={{ textAlign: 'start' }}>مشروع جديد</span></button></li>}
         <li><button className="list-item btn ghost block" onClick={() => setPw(true)}><Icon name="edit" /> <span className="grow" style={{ textAlign: 'start' }}>تغيير كلمة المرور</span></button></li>
         <li><button className="list-item btn ghost block" style={{ color: 'var(--tomato)' }} onClick={async () => {
           const e = await signOut();

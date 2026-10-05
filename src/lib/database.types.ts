@@ -1130,15 +1130,88 @@ export type Database = {
         }
         Relationships: []
       }
+      pest_controls: {
+        Row: {
+          approach: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          farm_id: string | null
+          id: string
+          note: string | null
+          pest_id: string
+          priority: number
+          product_id: string
+          server_updated_at: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          approach: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          farm_id?: string | null
+          id?: string
+          note?: string | null
+          pest_id: string
+          priority?: number
+          product_id: string
+          server_updated_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          approach?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          farm_id?: string | null
+          id?: string
+          note?: string | null
+          pest_id?: string
+          priority?: number
+          product_id?: string
+          server_updated_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pest_controls_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pest_controls_pest_id_fkey"
+            columns: ["pest_id"]
+            isOneToOne: false
+            referencedRelation: "pests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pest_controls_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pests: {
         Row: {
+          action_severity: number | null
           category: Database["public"]["Enums"]["pest_category"]
           code: string
           created_at: string
           created_by: string | null
+          crops: string[] | null
           default_count_unit: Database["public"]["Enums"]["count_unit"]
           deleted_at: string | null
           farm_id: string | null
+          guidance: string | null
           id: string
           is_active: boolean
           name_ar: string
@@ -1150,13 +1223,16 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          action_severity?: number | null
           category: Database["public"]["Enums"]["pest_category"]
           code: string
           created_at?: string
           created_by?: string | null
+          crops?: string[] | null
           default_count_unit?: Database["public"]["Enums"]["count_unit"]
           deleted_at?: string | null
           farm_id?: string | null
+          guidance?: string | null
           id?: string
           is_active?: boolean
           name_ar: string
@@ -1168,13 +1244,16 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          action_severity?: number | null
           category?: Database["public"]["Enums"]["pest_category"]
           code?: string
           created_at?: string
           created_by?: string | null
+          crops?: string[] | null
           default_count_unit?: Database["public"]["Enums"]["count_unit"]
           deleted_at?: string | null
           farm_id?: string | null
+          guidance?: string | null
           id?: string
           is_active?: boolean
           name_ar?: string
@@ -1329,11 +1408,13 @@ export type Database = {
           concentration: string | null
           created_at: string
           created_by: string | null
+          default_dose: number | null
           default_dose_unit: Database["public"]["Enums"]["dose_unit"] | null
           deleted_at: string | null
           farm_id: string | null
           id: string
           is_active: boolean
+          is_bio: boolean
           manufacturer: string | null
           moa_code: string | null
           name: string
@@ -1342,6 +1423,7 @@ export type Database = {
           product_type: Database["public"]["Enums"]["product_type"]
           rei_hours: number | null
           server_updated_at: string
+          targets: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -1351,11 +1433,13 @@ export type Database = {
           concentration?: string | null
           created_at?: string
           created_by?: string | null
+          default_dose?: number | null
           default_dose_unit?: Database["public"]["Enums"]["dose_unit"] | null
           deleted_at?: string | null
           farm_id?: string | null
           id?: string
           is_active?: boolean
+          is_bio?: boolean
           manufacturer?: string | null
           moa_code?: string | null
           name: string
@@ -1364,6 +1448,7 @@ export type Database = {
           product_type: Database["public"]["Enums"]["product_type"]
           rei_hours?: number | null
           server_updated_at?: string
+          targets?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -1373,11 +1458,13 @@ export type Database = {
           concentration?: string | null
           created_at?: string
           created_by?: string | null
+          default_dose?: number | null
           default_dose_unit?: Database["public"]["Enums"]["dose_unit"] | null
           deleted_at?: string | null
           farm_id?: string | null
           id?: string
           is_active?: boolean
+          is_bio?: boolean
           manufacturer?: string | null
           moa_code?: string | null
           name?: string
@@ -1386,6 +1473,7 @@ export type Database = {
           product_type?: Database["public"]["Enums"]["product_type"]
           rei_hours?: number | null
           server_updated_at?: string
+          targets?: string | null
           updated_at?: string
           updated_by?: string | null
         }

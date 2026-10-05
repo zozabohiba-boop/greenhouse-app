@@ -275,9 +275,9 @@ try {
   await sp.locator('.gh', { hasText: 'GH-07' }).locator('.chip', { hasText: 'لم تُفحص هذا الأسبوع' }).waitFor();
   ok(true, 'شاشة الفحص: GH-07 لم تُفحص هذا الأسبوع');
   await sp.click('.gh:has-text("GH-07")');
-  await sp.click('button:has-text("ابدأ جولة فحص")');
-  await sp.click('.sheet button:has-text("ابدأ")');
+  await sp.click('button:has-text("ابدأ فحص اليوم")');
   await sp.locator('.rowmap .rcell').first().waitFor();
+  ok(true, 'بدء الفحص بضغطة واحدة (بدون نافذة)');
   ok((await sp.locator('.rowmap .rcell').count()) === 6, 'خريطة الصوبة بعدد الخطوط (6)');
   await sp.click('button[aria-label="الخط التالي"]');
   await sp.click('button[aria-label="الخط التالي"]');
@@ -285,7 +285,15 @@ try {
   await sp.click('.pest-btn:has-text("العنكبوت الأحمر")');
   const os = sp.locator('.sheet');
   ok((await os.locator('label:has-text("الخط") input').first().inputValue()) === '3', 'الملاحظة تاخد الخط الحالي تلقائيًا');
+  ok(!(await os.locator('label:has-text("وحدة العد")').isVisible()), 'التفاصيل الإضافية مطوية في الملاحظة الجديدة');
+  await os.locator('.sev-pick button[data-v="1"]').click();
+  await os.locator('.advice.ok').waitFor();
+  ok(true, 'شدة خفيفة: أقل من حد التدخل');
   await os.locator('.sev-pick button[data-v="3"]').click();
+  await os.locator('.advice.warn .advice-group li', { hasText: 'Phytoseiulus persimilis' }).waitFor();
+  ok(await os.locator('.advice-group[data-approach="chemical"] li', { hasText: 'كاني مايت' }).isVisible(), 'شدة شديدة: خيارات المكافحة تظهر (حيوي ثم طبيعي ثم كيميائي)');
+  ok(await os.locator('.advice-guide').isVisible(), 'الإجراءات الزراعية للآفة ظاهرة');
+  await os.locator('.obs-more summary').click();
   await os.locator('label:has-text("العدد") input').fill('12');
   await os.locator('.chips-pick button:has-text("بالغات")').click();
   await os.locator('.toggle:has-text("بؤرة إصابة") input').check();
@@ -338,8 +346,13 @@ try {
   await page.click('.obs-item:has-text("العنكبوت الأحمر")');
   await page.locator('.sheet .thumb img').first().waitFor({ timeout: 10000 });
   ok(true, 'المدير يرى صورة الإصابة اللي صورها المهندس');
-  await page.click('.sheet button:has-text("اكتب توصية")');
+  ok(await page.locator('.sheet .obs-more[open]').isVisible(), 'الملاحظة المسجلة بتفاصيل تفتح مفرودة');
+  await page.click('.sheet button:has-text("حوّلها لتوصية")');
   ok((await page.locator('label:has-text("التوصية") input').inputValue()) === 'مكافحة العنكبوت الأحمر', 'التوصية تتعبى من الملاحظة');
+  {
+    const body = await page.locator('label:has-text("التفاصيل") textarea').inputValue();
+    ok(body.includes('تجاوزت حد التدخل') && body.includes('Phytoseiulus persimilis') && body.includes('إجراءات زراعية'), 'تفاصيل التوصية مكتوبة تلقائيًا من قاعدة المعرفة');
+  }
   ok((await page.locator('.seg button[aria-pressed="true"]').textContent()) === 'مهمة', 'الأولوية "مهمة" تلقائيًا لشدة 3');
   await page.fill('label:has-text("التفاصيل") textarea', 'رش أكاروسي موضعي للخطوط 2–4');
   await page.click('button:has-text("إرسال التوصية")');
@@ -539,7 +552,7 @@ try {
   // ── 21. موقع جديد ───────────────────────────────────────────────────
   await page.goto(APP + '#/');
   await page.click('button[aria-label="القائمة"]');
-  await page.click('.sheet button:has-text("موقع جديد")');
+  await page.click('.sheet button:has-text("مشروع جديد")');
   await page.fill('.sheet label:has-text("اسم الموقع") input', 'موقع تجريبي 2');
   await page.click('.sheet button:has-text("إنشاء الموقع")');
   await page.locator('.topbar', { hasText: 'موقع تجريبي 2' }).waitFor({ timeout: 15000 });
@@ -548,10 +561,71 @@ try {
   await page.goto(APP + '#/');
   ok(await page.locator('.zone-card').count() === 0 && await page.locator('.gh').count() === 0, 'الموقع الجديد فارغ ومستقل عن الأول');
   await page.click('button[aria-label="القائمة"]');
-  await page.click('.sheet button:has-text("تغيير الموقع")');
-  await page.click('button:has-text("المزرعة الرئيسية")');
+  await page.click('.sheet button:has-text("كل المشاريع")');
+  await page.locator('.proj-card').nth(1).waitFor({ timeout: 10000 });
+  ok(await page.locator('.proj-card').count() === 2, 'شاشة المشاريع تعرض المشروعين');
+  ok(await page.locator('.proj-card', { hasText: 'المزرعة الرئيسية' }).locator('.chip', { hasText: 'فحص' }).isVisible(), 'كارت المشروع يعرض حالة الفحص هذا الأسبوع');
+  await page.screenshot({ path: `${SHOTS}/28-projects.png` });
+  await page.click('.proj-card:has-text("المزرعة الرئيسية")');
   await page.locator('.topbar', { hasText: 'المزرعة الرئيسية' }).waitFor();
-  ok(true, 'التنقل بين المواقع من القائمة');
+  ok(true, 'التنقل بين المشاريع من شاشة المشاريع');
+
+  // ── 22. قاعدة المعرفة + الإدخال السريع ─────────────────────────────
+  ok(sql('select count(*) from pest_controls') === '209' && sql("select count(*) from products where farm_id is null") === '150', 'قاعدة المعرفة: 150 مادة و209 ربط آفة ← مكافحة');
+  await page.goto(APP + '#/products');
+  const search = page.locator('input[aria-label="بحث في المواد"]');
+  await search.fill('سبينوساد');
+  await page.locator('.prod-tbl tbody tr', { hasText: 'تريسر' }).waitFor();
+  ok(await page.locator('.prod-tbl tbody tr').count() === 1 && await page.locator('.prod-tbl tr', { hasText: 'تريسر' }).locator('td', { hasText: '0.3 مل/لتر' }).isVisible(), 'المواد: البحث بالمادة الفعالة + الجرعة من برنامج المكافحة');
+  await search.fill('');
+  await page.click('.filters .seg button:has-text("حيوي وطبيعي")');
+  const bioRows = await page.locator('.prod-tbl tbody tr').count();
+  ok(bioRows > 80, `فلتر الحيوي والطبيعي (${bioRows} مادة)`);
+  await page.click('.filters .seg button:has-text("الكل")');
+  await search.fill('كاني مايت');
+  await page.click('.prod-tbl tr:has-text("كاني مايت") button:has-text("خصّص")');
+  await page.locator('.sheet label:has-text("فترة الأمان") input').fill('3');
+  await page.click('.sheet button:has-text("حفظ")');
+  await page.locator('.prod-tbl tr', { hasText: 'كاني مايت' }).locator('td', { hasText: '3 يوم' }).waitFor();
+  ok(await page.locator('.prod-tbl tbody tr').count() === 1, 'تخصيص مادة عامة: نسخة المزرعة بفترة الأمان تحل محل الأصل');
+
+  await page.goto(APP + '#/activities/new');
+  await page.locator('select[aria-label="المادة"]').first().selectOption({ label: 'كاني مايت — أسيكينوسيل' });
+  ok(await page.locator('.line label:has-text("الجرعة") input').first().inputValue() === '0.5', 'المعاملة: الجرعة تتملى تلقائيًا من المادة');
+
+  const actsBefore = Number(sql('select count(*) from activities where deleted_at is null'));
+  await page.goto(APP + '#/activities');
+  await page.locator('.list-item').first().click();
+  await page.click('a:has-text("كرّر المعاملة")');
+  await page.locator('h1', { hasText: 'معاملة' }).first().waitFor();
+  ok(await page.locator('input[type=date]').first().inputValue() === new Date().toLocaleDateString('en-CA'), 'تكرار المعاملة: بتاريخ اليوم');
+  ok(await page.locator('.gh-pick button[aria-pressed="true"]').count() >= 1 && await page.locator('select[aria-label="المادة"]').first().inputValue() !== '', 'تكرار المعاملة: نفس الصوب والمواد');
+  await page.click('button:has-text("حفظ المعاملة")');
+  await page.locator('h1', { hasText: 'رش' }).first().waitFor({ timeout: 10000 }).catch(() => {});
+  await waitSynced(page, 20000);
+  ok(Number(sql('select count(*) from activities where deleted_at is null')) === actsBefore + 1, 'المعاملة المكررة وصلت السيرفر كسجل جديد');
+
+  // الفحص: الصوبة التالية في نفس الصف
+  const gh1 = sql("select g.id from greenhouses g join farm_zones z on z.id = g.zone_id where z.name = 'A' and g.code = '1'");
+  await page.goto(APP + `#/scout/gh/${gh1}`);
+  await page.click('button:has-text("ابدأ فحص اليوم")');
+  await page.locator('.pest-btn').first().waitFor();
+  await page.click('button:has-text("إنهاء الجولة")');
+  await page.locator('.sheet', { hasText: 'الصوبة التالية' }).waitFor();
+  ok(await page.locator('.sheet', { hasText: 'باقي 3 صوبة' }).isVisible(), 'بعد إنهاء الفحص: يقترح الصوبة التالية في نفس الصف');
+  await page.click('.sheet button:has-text("ابدأ فحص")');
+  await page.locator('h1', { hasText: 'فحص 2' }).waitFor();
+  ok(true, 'بدء فحص الصوبة التالية بضغطة');
+
+  // المستهدف غير المنطقي للفلفل
+  await page.goto(APP + `#/setup/greenhouses/${gh1}/cycles/new`);
+  await page.locator('label:has-text("المحصول") select').selectOption({ label: 'فلفل' });
+  await page.click('button:has-text("إضافة الدورة")');
+  await page.click('button:has-text("تحديد القيم")');
+  await page.locator('input[aria-label="الاستطالة الأسبوعية الحد الأدنى"]').fill('60');
+  await page.locator('input[aria-label="الاستطالة الأسبوعية الحد الأعلى"]').fill('75');
+  ok(await page.locator('.sheet .banner.warn', { hasText: 'أعلى من المعتاد لمحصول فلفل' }).isVisible(), 'تنبيه: استطالة 60–75 سم غير منطقية للفلفل');
+  await page.keyboard.press('Escape');
 
   // ── 13. موبايل ────────────────────────────────────────────────────
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'ar-EG', hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
