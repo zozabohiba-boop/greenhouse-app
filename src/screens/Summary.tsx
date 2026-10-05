@@ -124,7 +124,7 @@ export function RegisterSummary() {
               </thead>
               <tbody>
                 {summaries.slice(-12).reverse().map((x) => (
-                  <tr key={x.key} style={x === cur ? { background: 'var(--leaf-soft)' } : undefined}>
+                  <tr key={x.key} style={x === cur ? { background: 'var(--brand-soft)' } : undefined}>
                     <td className="n">{x.week}</td>
                     <td className="n">{x.s.plants}</td>
                     <td className="n">{x.s.weeklyGrowth ?? '—'}</td>
