@@ -45,9 +45,23 @@ export const WRITABLE: Partial<Record<TableName, Spec>> = {
   operation_types: {
     columns: { id: null, farm_id: null, code: '', name_ar: '', name_en: '', category: 'other', sort_order: 100, ...SYNC_COLS },
   },
+  farm_profiles: {
+    columns: {
+      id: null, farm_id: null, owner_name: null, manager_name: null, contact_phone: null, address: null,
+      latitude: null, longitude: null, elevation_m: null, total_area_feddan: null, water_source: null,
+      water_ec_ds_m: null, water_ph: null, soil_type: null, irrigation_system: null, climate_control: null,
+      cover_transmission_pct: 70, notes: null, ...SYNC_COLS,
+    },
+  },
+  farm_zones: {
+    columns: {
+      id: null, farm_id: null, parent_id: null, kind: 'sector', name: '', sort_order: 100, area_m2: null,
+      notes: null, ...SYNC_COLS,
+    },
+  },
   greenhouses: {
     columns: {
-      id: null, farm_id: null, code: '', name: null, greenhouse_type: null, area_m2: null, spans_count: null,
+      id: null, farm_id: null, zone_id: null, code: '', name: null, greenhouse_type: null, area_m2: null, spans_count: null,
       rows_count: null, row_length_m: null, cover_material: null, notes: null, ...SYNC_COLS,
     },
   },
@@ -137,6 +151,12 @@ export const WRITABLE: Partial<Record<TableName, Spec>> = {
       caption: null, taken_at: null, device_id: null, ...SYNC_COLS,
     },
   },
+  documents: {
+    columns: {
+      id: null, farm_id: null, zone_id: null, greenhouse_id: null, category: 'other', title: '', file_name: '',
+      mime_type: null, size_bytes: null, storage_path: '', doc_date: null, notes: null, device_id: null, ...SYNC_COLS,
+    },
+  },
 };
 
 /**
@@ -145,11 +165,11 @@ export const WRITABLE: Partial<Record<TableName, Spec>> = {
  */
 export const PUSH_ORDER: TableName[] = [
   'varieties', 'pests', 'products', 'operation_types',
-  'greenhouses', 'crop_cycles', 'reference_plants', 'balance_targets',
+  'farm_profiles', 'farm_zones', 'greenhouses', 'crop_cycles', 'reference_plants', 'balance_targets',
   'crop_registration_sessions', 'plant_measurements',
   'scouting_sessions', 'scouting_observations',
   'recommendations', 'activities', 'activity_greenhouses', 'activity_products',
-  'attachments',
+  'attachments', 'documents',
 ];
 
 /** جداول تُسحب بمؤشر server_updated_at (تزايدي) */

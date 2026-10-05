@@ -15,6 +15,7 @@ import { Icon } from '../components/Icon';
 import { phiText } from './Activities';
 import { SevChip } from './Scout';
 import { byCode } from './Home';
+import { flatTree, ghLabels, ghsUnder, sortByTree, useZones, zoneTitle } from '../lib/zones';
 import type { Row } from '../lib/schema';
 
 const RANGES = [4, 8, 12] as const;
@@ -26,6 +27,8 @@ export function Dashboard() {
   const [n, setN] = useState<(typeof RANGES)[number]>(8);
   const [pestFilter, setPestFilter] = useState('');
   const [chartGh, setChartGh] = useState<string | null>(null);
+  const [zoneF, setZoneF] = useState('');
+  const idx = useZones(farmId);
   const pests = usePests(farmId);
   const weeks = useMemo(() => lastWeeks(today, n), [today, n]);
   const thisWeek = weeks[weeks.length - 1];
@@ -42,8 +45,12 @@ export function Dashboard() {
   }, [farmId]);
 
   const v = useMemo(() => {
-    if (!raw) return null;
-    const ghs = (raw.ghs as Row<'greenhouses'>[]).filter(alive).sort(byCode);
+    if (!raw || !idx) return null;
+    const allGhs = sortByTree(idx, (raw.ghs as Row<'greenhouses'>[]).filter(alive).sort(byCode));
+    const zone = zoneF && idx.byId.has(zoneF) ? zoneF : '';
+    const ghs = zone ? ghsUnder(idx, zone, allGhs) : allGhs;
+    const ghSet = new Set(ghs.map((g) => g.id));
+    const labels = ghLabels(idx, allGhs);
     const cycles = (raw.cycles as Row<'crop_cycles'>[]).filter(alive);
     const cropName = new Map((raw.crops as Row<'crops'>[]).map((c) => [c.id, c.name_ar]));
     const from = weeks[0].start;
@@ -51,7 +58,8 @@ export function Dashboard() {
     const sIds = new Set(sessions.map((s) => s.id));
     const obs = (raw.obs as Row<'scouting_observations'>[]).filter((o) => alive(o) && sIds.has(o.session_id));
     const grid = pressureGrid(sessions, obs, pestFilter || null);
-    const phi = phiByGreenhouse(raw.acts as any, raw.ags as any, raw.aps as any, raw.prods as any, today);
+    const phiAll = phiByGreenhouse(raw.acts as any, raw.ags as any, raw.aps as any, raw.prods as any, today);
+    const phi = new Map([...phiAll].filter(([gid]) => ghSet.has(gid)));
 
     // توازن النبات أسبوعيًا لكل صوبة (الدورة القائمة)
     const meas = (raw.meas as Row<'plant_measurements'>[]).filter(alive);
@@ -104,7 +112,7 @@ export function Dashboard() {
     const withCycle = rows.filter((r) => r.cycle && r.plantCount > 0);
     const registered = withCycle.filter((r) => r.measuredThisWeek >= r.plantCount).length;
     const scouted = ghs.filter((g) => grid.has(`${g.id}|${thisWeek.key}`)).length;
-    const recs = (raw.recs as Row<'recommendations'>[]).filter((r) => alive(r) && (r.status === 'open' || r.status === 'in_progress'));
+    const recs = (raw.recs as Row<'recommendations'>[]).filter((r) => alive(r) && (r.status === 'open' || r.status === 'in_progress') && (!zone || (r.greenhouse_id != null && ghSet.has(r.greenhouse_id))));
     const executed = new Set((raw.acts as Row<'activities'>[]).filter((a) => alive(a) && a.recommendation_id).map((a) => a.recommendation_id));
     const openRecs = recs.filter((r) => !executed.has(r.id));
     const overdue = openRecs.filter((r) => r.due_on && r.due_on < today).length;
@@ -120,8 +128,8 @@ export function Dashboard() {
       }
     }
     const topPests = [...pestSpread.entries()].filter(([, x]) => x.max > 0).sort((a, b) => b[1].cells - a[1].cells || b[1].max - a[1].max).slice(0, 6);
-    return { ghs, rows, grid, phi, withCycle, registered, scouted, openRecs, overdue, topPests };
-  }, [raw, weeks, pestFilter, today, thisWeek.key]);
+    return { ghs, rows, grid, phi, withCycle, registered, scouted, openRecs, overdue, topPests, labels };
+  }, [raw, idx, zoneF, weeks, pestFilter, today, thisWeek.key]);
 
   if (!v) return null;
   const pestName = new Map((pests ?? []).map((p) => [p.id, p.name_ar]));
@@ -132,8 +140,16 @@ export function Dashboard() {
       <Link to="/" className="back"><Icon name="back" size={18} /> الرئيسية</Link>
       <div className="page-head">
         <div><h1>لوحة المتابعة</h1><p>الأسبوع {thisWeek.week} — {formatDate(today)}</p></div>
-        <div className="seg" role="group" aria-label="الفترة">
-          {RANGES.map((r) => <button key={r} aria-pressed={n === r} onClick={() => setN(r)}>{r} أسابيع</button>)}
+        <div className="row">
+          {idx && idx.list.length > 0 && (
+            <select className="select" style={{ width: 'auto', minWidth: 170 }} value={zoneF} onChange={(e) => setZoneF(e.target.value)} aria-label="المكان">
+              <option value="">كل الموقع</option>
+              {flatTree(idx).map(({ z, depth }) => <option key={z.id} value={z.id}>{'— '.repeat(depth)}{zoneTitle(z)}</option>)}
+            </select>
+          )}
+          <div className="seg" role="group" aria-label="الفترة">
+            {RANGES.map((r) => <button key={r} aria-pressed={n === r} onClick={() => setN(r)}>{r} أسابيع</button>)}
+          </div>
         </div>
       </div>
 
@@ -147,7 +163,7 @@ export function Dashboard() {
       {v.phi.size > 0 && (
         <div className="phi-board" style={{ marginTop: 14 }}>
           {[...v.phi.entries()].map(([gid, s]) => (
-            <div key={gid} className="phi-card"><Icon name="shield" size={22} /><span><b className="num">{v.ghs.find((g) => g.id === gid)?.code}</b><small>{phiText(s.until, today)} — {s.product}</small></span></div>
+            <div key={gid} className="phi-card"><Icon name="shield" size={22} /><span><b className="lbl">{v.labels.get(gid)}</b><small>{phiText(s.until, today)} — {s.product}</small></span></div>
           ))}
         </div>
       )}
@@ -169,7 +185,7 @@ export function Dashboard() {
             <tbody>
               {v.ghs.map((g) => (
                 <tr key={g.id}>
-                  <th scope="row"><span className="num">{g.code}</span></th>
+                  <th scope="row"><span className="lbl">{v.labels.get(g.id)}</span></th>
                   {weeks.map((w) => {
                     const c = v.grid.get(`${g.id}|${w.key}`);
                     const tip = c
@@ -178,8 +194,8 @@ export function Dashboard() {
                       : 'لم تُفحص';
                     return (
                       <td key={w.key}>
-                        <button className="hcell" data-v={c ? c.max : 'none'} title={`${g.code} — الأسبوع ${w.week}\n${tip}`}
-                          aria-label={`${g.code} الأسبوع ${w.week}: ${tip}`} onClick={() => nav(`/scout/gh/${g.id}`)}>
+                        <button className="hcell" data-v={c ? c.max : 'none'} title={`${v.labels.get(g.id)} — الأسبوع ${w.week}\n${tip}`}
+                          aria-label={`${v.labels.get(g.id)} الأسبوع ${w.week}: ${tip}`} onClick={() => nav(`/scout/gh/${g.id}`)}>
                           {c ? (c.observations ? c.max : '✓') : ''}
                           {c && c.hotspots > 0 && <i />}
                         </button>
@@ -222,13 +238,13 @@ export function Dashboard() {
             <tbody>
               {v.rows.filter((r) => r.cycle).map((r) => (
                 <tr key={r.g.id}>
-                  <th scope="row"><span className="num">{r.g.code}</span> <small className="faint">{r.crop}</small></th>
+                  <th scope="row"><span className="lbl">{v.labels.get(r.g.id)}</span> <small className="faint">{r.crop}</small></th>
                   {weeks.map((w) => {
                     const s = r.balance.get(w.key);
                     return (
                       <td key={w.key}>
                         <button className="bcell" data-b={s?.status ?? 'none'} title={s ? `${BALANCE_LABEL[s.status]} — ${s.plants} نبات` : 'لا يوجد تسجيل'}
-                          onClick={() => r.cycle && nav(`/register/${r.cycle.id}/summary?d=${w.start}`)} aria-label={`${r.g.code} الأسبوع ${w.week}: ${s ? BALANCE_LABEL[s.status] : 'لا يوجد تسجيل'}`}>
+                          onClick={() => r.cycle && nav(`/register/${r.cycle.id}/summary?d=${w.start}`)} aria-label={`${v.labels.get(r.g.id)} الأسبوع ${w.week}: ${s ? BALANCE_LABEL[s.status] : 'لا يوجد تسجيل'}`}>
                           {s ? BAL_SHORT[s.status] : ''}
                         </button>
                       </td>
@@ -249,9 +265,9 @@ export function Dashboard() {
       {chartRow && chartRow.cycle && (
         <section className="panel panel-pad" style={{ marginTop: 22 }}>
           <div className="row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
-            <h2 className="h2">منحنيات النمو — <span className="num">{chartRow.g.code}</span></h2>
+            <h2 className="h2">منحنيات النمو — <span className="lbl">{v.labels.get(chartRow.g.id)}</span></h2>
             <select className="select" style={{ width: 'auto' }} value={chartRow.g.id} onChange={(e) => setChartGh(e.target.value)} aria-label="الصوبة">
-              {v.rows.filter((r) => r.cycle).map((r) => <option key={r.g.id} value={r.g.id}>{r.g.code} — {r.crop}</option>)}
+              {v.rows.filter((r) => r.cycle).map((r) => <option key={r.g.id} value={r.g.id}>{v.labels.get(r.g.id)} — {r.crop}</option>)}
             </select>
           </div>
           <div className="charts">
@@ -270,7 +286,7 @@ export function Dashboard() {
           <tbody>
             {v.rows.map((r) => (
               <tr key={r.g.id}>
-                <td><Link to={`/activities?gh=${r.g.id}`} className="num"><b>{r.g.code}</b></Link></td>
+                <td><Link to={`/activities?gh=${r.g.id}`} className="lbl"><b>{v.labels.get(r.g.id)}</b></Link></td>
                 <td className="n">{r.count.chemical_spray || '—'}</td>
                 <td className="n">{r.count.fertigation_injection || '—'}</td>
                 <td className="n">{r.count.bio_release || '—'}</td>

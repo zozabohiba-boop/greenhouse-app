@@ -59,21 +59,22 @@ export async function blobPending(ids: string[]): Promise<Set<string>> {
 
 export class UploadNetworkError extends Error {}
 
-/** رفع الصور المعلّقة — يُستدعى من محرك المزامنة قبل رفع جدول المرفقات */
-export async function uploadPendingBlobs(): Promise<number> {
-  const pending = await db.blobs.where('pending').equals(1).toArray();
+/** رفع الملفات المعلّقة لجدول معيّن — يُستدعى من محرك المزامنة قبل رفع سجلات الجدول */
+export async function uploadPendingBlobs(table: 'attachments' | 'documents' = 'attachments'): Promise<number> {
+  const pending = (await db.blobs.where('pending').equals(1).toArray()).filter((b) => (b.table ?? 'attachments') === table);
+  const what = table === 'documents' ? 'الملف' : 'الصورة';
   let n = 0;
   for (const b of pending) {
     if (b.error) continue;
-    const att = await db.attachments.get(b.id);
-    if (att?.deleted_at) {
-      // اتمسحت قبل ما تترفع — لا داعي لرفعها
+    const rec = await db.tableOf(table).get(b.id);
+    if (rec?.deleted_at) {
+      // اتمسح قبل ما يترفع — لا داعي لرفعه
       await db.blobs.delete(b.id);
       continue;
     }
     let res;
     try {
-      res = await supabase.storage.from(BUCKET).upload(b.path, b.blob, { contentType: b.mime, upsert: false });
+      res = await supabase.storage.from(b.bucket ?? BUCKET).upload(b.path, b.blob, { contentType: b.mime, upsert: false });
     } catch (e) {
       throw new UploadNetworkError(String((e as Error).message ?? e));
     }
@@ -86,12 +87,14 @@ export async function uploadPendingBlobs(): Promise<number> {
       throw new UploadNetworkError(err.message);
     } else {
       const msg = code === '403' || /row-level|policy|Unauthorized/i.test(err.message)
-        ? 'تعذر رفع الصورة: ليس لديك صلاحية'
-        : code === '413' || /too large|size/i.test(err.message)
-          ? 'تعذر رفع الصورة: الحجم كبير جدًا'
-          : `تعذر رفع الصورة: ${err.message}`;
+        ? `تعذر رفع ${what}: ليس لديك صلاحية`
+        : code === '413' || /too large|size|exceeded/i.test(err.message)
+          ? `تعذر رفع ${what}: الحجم أكبر من المسموح (50 ميجا)`
+          : /mime|type/i.test(err.message)
+            ? `تعذر رفع ${what}: نوع الملف غير مسموح`
+            : `تعذر رفع ${what}: ${err.message}`;
       await db.blobs.update(b.id, { error: msg });
-      await db.attachments.update(b.id, { _error: msg });
+      await db.tableOf(table).update(b.id, { _error: msg });
     }
   }
   return n;

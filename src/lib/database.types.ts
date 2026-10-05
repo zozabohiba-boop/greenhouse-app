@@ -593,6 +593,94 @@ export type Database = {
         }
         Relationships: []
       }
+      documents: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          device_id: string | null
+          doc_date: string | null
+          farm_id: string
+          file_name: string
+          greenhouse_id: string | null
+          id: string
+          mime_type: string | null
+          notes: string | null
+          server_updated_at: string
+          size_bytes: number | null
+          storage_path: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          zone_id: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          device_id?: string | null
+          doc_date?: string | null
+          farm_id: string
+          file_name: string
+          greenhouse_id?: string | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          server_updated_at?: string
+          size_bytes?: number | null
+          storage_path: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          zone_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          device_id?: string | null
+          doc_date?: string | null
+          farm_id?: string
+          file_name?: string
+          greenhouse_id?: string | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          server_updated_at?: string
+          size_bytes?: number | null
+          storage_path?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_greenhouse_id_farm_id_fkey"
+            columns: ["greenhouse_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "greenhouses"
+            referencedColumns: ["id", "farm_id"]
+          },
+          {
+            foreignKeyName: "documents_zone_id_farm_id_fkey"
+            columns: ["zone_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "farm_zones"
+            referencedColumns: ["id", "farm_id"]
+          },
+        ]
+      }
       farm_invitations: {
         Row: {
           accepted_at: string | null
@@ -660,6 +748,168 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "farms"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      farm_profiles: {
+        Row: {
+          address: string | null
+          climate_control: string | null
+          contact_phone: string | null
+          cover_transmission_pct: number
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          elevation_m: number | null
+          farm_id: string
+          id: string
+          irrigation_system: string | null
+          latitude: number | null
+          longitude: number | null
+          manager_name: string | null
+          notes: string | null
+          owner_name: string | null
+          server_updated_at: string
+          soil_type: string | null
+          total_area_feddan: number | null
+          updated_at: string
+          updated_by: string | null
+          water_ec_ds_m: number | null
+          water_ph: number | null
+          water_source: string | null
+        }
+        Insert: {
+          address?: string | null
+          climate_control?: string | null
+          contact_phone?: string | null
+          cover_transmission_pct?: number
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          elevation_m?: number | null
+          farm_id: string
+          id: string
+          irrigation_system?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          manager_name?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          server_updated_at?: string
+          soil_type?: string | null
+          total_area_feddan?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          water_ec_ds_m?: number | null
+          water_ph?: number | null
+          water_source?: string | null
+        }
+        Update: {
+          address?: string | null
+          climate_control?: string | null
+          contact_phone?: string | null
+          cover_transmission_pct?: number
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          elevation_m?: number | null
+          farm_id?: string
+          id?: string
+          irrigation_system?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          manager_name?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          server_updated_at?: string
+          soil_type?: string | null
+          total_area_feddan?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          water_ec_ds_m?: number | null
+          water_ph?: number | null
+          water_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farm_profiles_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: true
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "farm_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farm_zones: {
+        Row: {
+          area_m2: number | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          farm_id: string
+          id: string
+          kind: string
+          name: string
+          notes: string | null
+          parent_id: string | null
+          server_updated_at: string
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          area_m2?: number | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          farm_id: string
+          id?: string
+          kind?: string
+          name: string
+          notes?: string | null
+          parent_id?: string | null
+          server_updated_at?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          area_m2?: number | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          farm_id?: string
+          id?: string
+          kind?: string
+          name?: string
+          notes?: string | null
+          parent_id?: string | null
+          server_updated_at?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farm_zones_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "farm_zones_parent_id_farm_id_fkey"
+            columns: ["parent_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "farm_zones"
+            referencedColumns: ["id", "farm_id"]
           },
         ]
       }
@@ -732,6 +982,7 @@ export type Database = {
           spans_count: number | null
           updated_at: string
           updated_by: string | null
+          zone_id: string | null
         }
         Insert: {
           area_m2?: number | null
@@ -751,6 +1002,7 @@ export type Database = {
           spans_count?: number | null
           updated_at?: string
           updated_by?: string | null
+          zone_id?: string | null
         }
         Update: {
           area_m2?: number | null
@@ -770,6 +1022,7 @@ export type Database = {
           spans_count?: number | null
           updated_at?: string
           updated_by?: string | null
+          zone_id?: string | null
         }
         Relationships: [
           {
@@ -778,6 +1031,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "farms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greenhouses_zone_fk"
+            columns: ["zone_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "farm_zones"
+            referencedColumns: ["id", "farm_id"]
           },
         ]
       }
@@ -1579,6 +1839,38 @@ export type Database = {
           },
         ]
       }
+      weather_cache: {
+        Row: {
+          farm_id: string
+          fetched_at: string
+          latitude: number
+          longitude: number
+          payload: Json
+        }
+        Insert: {
+          farm_id: string
+          fetched_at?: string
+          latitude: number
+          longitude: number
+          payload: Json
+        }
+        Update: {
+          farm_id?: string
+          fetched_at?: string
+          latitude?: number
+          longitude?: number
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weather_cache_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: true
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       v_activity_log: {
@@ -1831,6 +2123,10 @@ export type Database = {
       apply_invitation_for_email: {
         Args: { p_email: string }
         Returns: undefined
+      }
+      create_farm: {
+        Args: { p_location?: string; p_name: string }
+        Returns: string
       }
       server_now: { Args: never; Returns: string }
     }

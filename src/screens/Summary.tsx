@@ -5,6 +5,7 @@ import { alive } from '../lib/repo';
 import { formatDate, isoWeek, todayLocal } from '../lib/dates';
 import { activeTarget, BALANCE_LABEL, summarize, type WeekSummary } from '../lib/balance';
 import { Icon } from '../components/Icon';
+import { PlaceLine } from '../components/ZoneBrowser';
 import { FIELDS } from './fields';
 import type { Row } from '../lib/schema';
 
@@ -57,6 +58,7 @@ export function RegisterSummary() {
       <Link to={`/register/${cycleId}${date !== todayLocal() ? `?d=${date}` : ''}`} className="back"><Icon name="back" size={18} /> الرجوع للتسجيل</Link>
       <div className="page-head">
         <div>
+          <PlaceLine zoneId={gh?.zone_id} />
           <h1>ملخص الأسبوع {week} — <span className="num">{gh?.code}</span></h1>
           <p>{crop?.name_ar}، {formatDate(date)}</p>
         </div>

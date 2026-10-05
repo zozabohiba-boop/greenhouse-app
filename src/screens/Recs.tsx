@@ -9,6 +9,8 @@ import { db } from '../lib/db';
 import { alive, create, update } from '../lib/repo';
 import { formatDate, todayLocal } from '../lib/dates';
 import { useGreenhouses, usePeople } from '../lib/hooks';
+import { ghLabels, indexZones, useZones } from '../lib/zones';
+import { GhOptions } from '../components/ZoneBrowser';
 import { PRIORITY_LABEL, REC_STATUS_LABEL, SEVERITY } from '../lib/labels';
 import { Field } from '../components/Field';
 import { Icon } from '../components/Icon';
@@ -34,7 +36,7 @@ export function RecList() {
     for (const a of acts) if (alive(a) && a.recommendation_id) executed.set(a.recommendation_id, a);
     return {
       recs: recs.filter(alive),
-      ghCode: new Map(ghs.map((g) => [g.id, g.code])),
+      ghCode: ghLabels(indexZones(await db.farm_zones.where('farm_id').equals(farmId!).toArray()), ghs.filter(alive)),
       executed,
       obs: new Map(obs.map((o) => [o.id, o])),
       pest: new Map(pests.map((p) => [p.id, p.name_ar])),
@@ -78,7 +80,7 @@ export function RecList() {
             <article key={r.id} className="panel rec" data-p={r.priority}>
               <header className="row">
                 <span className={`chip ${PRIO_CLASS[r.priority]}`}>{PRIORITY_LABEL[r.priority]}</span>
-                {r.greenhouse_id && <span className="chip num">{data.ghCode.get(r.greenhouse_id)}</span>}
+                {r.greenhouse_id && <span className="chip lbl">{data.ghCode.get(r.greenhouse_id)}</span>}
                 <span className={`chip ${st === 'done' ? 'ok' : st === 'cancelled' ? '' : st === 'in_progress' ? 'info' : ''}`}>{REC_STATUS_LABEL[st]}</span>
                 {r.due_on && <span className={`chip ${overdue ? 'bad' : ''}`}><Icon name="clock" size={13} /> {overdue ? 'متأخرة — ' : ''}{formatDate(r.due_on)}</span>}
               </header>
@@ -143,6 +145,7 @@ function RecFormInner({ existing, ghs, ctx, defaults, onDone, farmId }: {
   defaults: { gh: string; obs: string | null }; onDone: (m: string) => void; farmId: string;
 }) {
   const today = todayLocal();
+  const idx = useZones(farmId);
   const [f, setF] = useState({
     greenhouse_id: existing?.greenhouse_id ?? defaults.gh,
     title: existing?.title ?? (ctx?.pest ? `مكافحة ${ctx.pest}` : ''),
@@ -183,7 +186,7 @@ function RecFormInner({ existing, ghs, ctx, defaults, onDone, farmId }: {
           <Field label="الصوبة">
             <select className="select" value={f.greenhouse_id} onChange={(e) => setF({ ...f, greenhouse_id: e.target.value })}>
               <option value="">كل المزرعة</option>
-              {ghs.map(({ g }) => <option key={g.id} value={g.id}>{g.code}</option>)}
+              <GhOptions idx={idx} ghs={ghs.map((x) => x.g)} />
             </select>
           </Field>
           <Field label="موعد التنفيذ"><input className="input" type="date" value={f.due_on} min={existing ? undefined : today} onChange={(e) => setF({ ...f, due_on: e.target.value })} /></Field>

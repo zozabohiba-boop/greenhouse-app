@@ -7,6 +7,9 @@ import { Icon } from '../components/Icon';
 import { alive } from '../lib/repo';
 import { phiByGreenhouse, pressureGrid } from '../lib/ipm';
 import { SevChip } from './Scout';
+import { useZones } from '../lib/zones';
+import { ZoneBrowser } from '../components/ZoneBrowser';
+import { WeatherStrip } from './Weather';
 
 export const byCode = (a: { code: string }, b: { code: string }) =>
   a.code.localeCompare(b.code, 'en', { numeric: true });
@@ -50,6 +53,9 @@ export function useGreenhouseBoard(farmId: string | null) {
         ).filter(alive).length;
       }
       out.push({
+        id: g.id,
+        code: g.code,
+        zone_id: g.zone_id,
         g,
         cycle,
         crop: cycle ? cropName.get(cycle.crop_id) : undefined,
@@ -67,6 +73,7 @@ export function useGreenhouseBoard(farmId: string | null) {
 export function Home() {
   const { farmId, can } = useApp();
   const board = useGreenhouseBoard(farmId);
+  const idx = useZones(farmId);
   const today = todayLocal();
   const { week } = isoWeek(today);
   const recs = useLiveQuery(async () => {
@@ -90,6 +97,8 @@ export function Home() {
         </div>
         <Link to="/dashboard" className="btn"><Icon name="chart" size={20} /> لوحة المتابعة</Link>
       </div>
+
+      <WeatherStrip />
 
       <div className="actions">
         {can.record ? (
@@ -122,6 +131,11 @@ export function Home() {
           <b>التوصيات</b>
           <small>{recs ? `${recs} توصية مفتوحة` : 'لا توجد توصيات مفتوحة'}</small>
         </Link>
+        <Link to="/files" className="action">
+          <span className="ico"><Icon name="folder" size={28} /></span>
+          <b>الملفات والتقارير</b>
+          <small>تقارير الزيارات والتحاليل والبرامج</small>
+        </Link>
         {!can.record && (
           <Link to="/activities" className="action">
             <span className="ico"><Icon name="spray" size={28} /></span>
@@ -134,7 +148,7 @@ export function Home() {
       <h2 className="section-title">
         <span>الصوب</span>
         {can.manage && (
-          <Link to="/setup" className="btn"><Icon name="settings" size={20} /> إدارة الصوب</Link>
+          <Link to="/setup" className="btn"><Icon name="layers" size={20} /> هيكل الموقع</Link>
         )}
       </h2>
 
@@ -142,12 +156,28 @@ export function Home() {
         <div className="panel empty">
           <h3>لا توجد صوب بعد</h3>
           <p>{can.manage ? 'ابدأ بإضافة الصوب، ثم الدورة الزراعية والنباتات المرجعية لكل صوبة.' : 'سيظهر هنا ما يضيفه مدير المزرعة من صوب.'}</p>
-          {can.manage && <Link to="/setup/greenhouses/new" className="btn primary"><Icon name="plus" /> أضف أول صوبة</Link>}
+          {can.manage && <Link to="/setup" className="btn primary"><Icon name="plus" /> أضف أول صوبة</Link>}
         </div>
       )}
 
-      <div className="gh-list">
-        {board?.map(({ g, cycle, crop, variety, plants, measured, pest, phi }) => {
+      {board && idx && board.length > 0 && (
+        <ZoneBrowser
+          idx={idx}
+          items={board}
+          summary={(items) => {
+            const active = items.filter((x) => x.cycle && x.plants > 0);
+            const done = active.filter((x) => x.measured >= x.plants).length;
+            const sc = items.filter((x) => x.pest).length;
+            const ph = items.filter((x) => x.phi).length;
+            return (
+              <>
+                {active.length > 0 && <span className={`chip ${done === active.length ? 'ok' : done ? 'warn' : 'bad'}`}>تسجيل {done}/{active.length}</span>}
+                <span className={`chip ${sc === items.length ? 'ok' : sc ? 'warn' : ''}`}>فحص {sc}/{items.length}</span>
+                {ph > 0 && <span className="chip bad"><Icon name="shield" size={14} /> {ph} فترة أمان</span>}
+              </>
+            );
+          }}
+          render={({ g, cycle, crop, variety, plants, measured, pest, phi }) => {
           let chip = <span className="chip">لا توجد دورة قائمة</span>;
           if (cycle && plants === 0) chip = <span className="chip warn">لم تُحدد نباتات مرجعية</span>;
           else if (cycle && measured >= plants) chip = <span className="chip ok"><Icon name="check" size={14} /> سُجّل هذا الأسبوع</span>;
@@ -177,8 +207,9 @@ export function Home() {
           ) : (
             <div key={g.id} className="gh">{body}</div>
           );
-        })}
-      </div>
+        }}
+        />
+      )}
     </main>
   );
 }

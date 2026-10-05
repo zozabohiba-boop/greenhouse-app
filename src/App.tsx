@@ -12,6 +12,9 @@ import { ScoutGreenhouse, ScoutPick, ScoutSession } from './screens/Scout';
 import { ActivityDetail, ActivityForm, ActivityList, ProductList } from './screens/Activities';
 import { RecForm, RecList } from './screens/Recs';
 import { Dashboard } from './screens/Dashboard';
+import { FilesHome } from './screens/Files';
+import { WeatherScreen } from './screens/Weather';
+import { FarmProfile } from './screens/Farm';
 
 function Protected() {
   const { user } = useApp();
@@ -44,6 +47,9 @@ function Protected() {
           <Route path="recs/new" element={<RecForm />} />
           <Route path="recs/:id/edit" element={<RecForm />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="files" element={<FilesHome />} />
+          <Route path="weather" element={<WeatherScreen />} />
+          <Route path="farm" element={<FarmProfile />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

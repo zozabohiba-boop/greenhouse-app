@@ -32,6 +32,47 @@ function session(email, ttl = 3600) {
     user: userObj(email),
   };
 }
+
+/** توقعات طقس ثابتة للاختبار: اليوم حار جاف (إجهاد حراري)، بعد غد رطوبة ليلية عالية */
+export function fakeForecast(lat, lon, now = Date.now()) {
+  const off = 3 * 3600;
+  const local = new Date(now + off * 1000);
+  const day0 = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate());
+  const hourly = { time: [], temperature_2m: [], relative_humidity_2m: [], dew_point_2m: [], vapour_pressure_deficit: [], wind_speed_10m: [], wind_gusts_10m: [], wind_direction_10m: [], shortwave_radiation: [], precipitation: [], precipitation_probability: [], cloud_cover: [], et0_fao_evapotranspiration: [] };
+  const daily = { time: [], temperature_2m_max: [], temperature_2m_min: [], relative_humidity_2m_max: [], relative_humidity_2m_min: [], precipitation_sum: [], precipitation_probability_max: [], wind_speed_10m_max: [], wind_gusts_10m_max: [], wind_direction_10m_dominant: [], shortwave_radiation_sum: [], et0_fao_evapotranspiration: [], uv_index_max: [], sunrise: [], sunset: [] };
+  const svp = (t) => 0.6108 * Math.exp((17.27 * t) / (t + 237.3));
+  for (let d = 0; d < 7; d++) {
+    const date = new Date(day0 + d * 86400000).toISOString().slice(0, 10);
+    const hot = d === 0;
+    const humid = d === 2;
+    const tLo = hot ? 24 : 16, tHi = hot ? 39 : 27;
+    const ts = [], rhs = [];
+    for (let h = 0; h < 24; h++) {
+      const sun = Math.max(0, Math.sin(((h - 6) / 13) * Math.PI));
+      const t = tLo + (tHi - tLo) * sun;
+      const rh = humid ? (sun > 0.1 ? 70 : 96) : hot ? 70 - 55 * sun : 75 - 20 * sun;
+      ts.push(t); rhs.push(rh);
+      hourly.time.push(`${date}T${String(h).padStart(2, '0')}:00`);
+      hourly.temperature_2m.push(Math.round(t * 10) / 10);
+      hourly.relative_humidity_2m.push(Math.round(rh));
+      hourly.dew_point_2m.push(Math.round((humid && sun <= 0.1 ? t - 0.5 : t - 9) * 10) / 10);
+      hourly.vapour_pressure_deficit.push(Math.round(svp(t) * (1 - rh / 100) * 100) / 100);
+      hourly.wind_speed_10m.push(9); hourly.wind_gusts_10m.push(22); hourly.wind_direction_10m.push(320);
+      hourly.shortwave_radiation.push(Math.round(900 * sun));
+      hourly.precipitation.push(0); hourly.precipitation_probability.push(5); hourly.cloud_cover.push(10);
+      hourly.et0_fao_evapotranspiration.push(Math.round(0.6 * sun * 100) / 100);
+    }
+    daily.time.push(date);
+    daily.temperature_2m_max.push(tHi); daily.temperature_2m_min.push(tLo);
+    daily.relative_humidity_2m_max.push(Math.round(Math.max(...rhs))); daily.relative_humidity_2m_min.push(Math.round(Math.min(...rhs)));
+    daily.precipitation_sum.push(0); daily.precipitation_probability_max.push(5);
+    daily.wind_speed_10m_max.push(12); daily.wind_gusts_10m_max.push(24); daily.wind_direction_10m_dominant.push(320);
+    daily.shortwave_radiation_sum.push(hot ? 28 : 22); daily.et0_fao_evapotranspiration.push(hot ? 7.2 : 5.1); daily.uv_index_max.push(9);
+    daily.sunrise.push(`${date}T06:05`); daily.sunset.push(`${date}T17:40`);
+  }
+  return { latitude: lat, longitude: lon, elevation: 30, timezone: 'Africa/Cairo', utc_offset_seconds: off, hourly, daily };
+}
+
 const cors = {
   'access-control-allow-origin': '*',
   'access-control-allow-headers': '*',
@@ -45,7 +86,7 @@ function send(res, status, body) {
 const readBody = (req) => new Promise((r) => { let d = ''; req.on('data', (c) => (d += c)); req.on('end', () => r(d)); });
 
 export function startGateway({ port = 54321, rest = 'http://127.0.0.1:3001' } = {}) {
-  const stats = { rest: 0, auth: 0, storage: 0, objects: () => objects.size };
+  const stats = { rest: 0, auth: 0, storage: 0, weather: 0, objects: () => objects.size, keys: () => [...objects.keys()] };
   const objects = new Map();
   const server = http.createServer(async (req, res) => {
     if (req.method === 'OPTIONS') return send(res, 204);
@@ -97,6 +138,15 @@ export function startGateway({ port = 54321, rest = 'http://127.0.0.1:3001' } = 
       } catch (e) {
         return send(res, 502, { message: String(e) });
       }
+    }
+    // دالة الطقس (محاكاة Edge Function weather): العضوية والإحداثيات عبر PostgREST بهوية المستخدم
+    if (url.pathname === '/functions/v1/weather' && req.method === 'POST') {
+      stats.weather = (stats.weather ?? 0) + 1;
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const r = await fetch(`${rest}/farm_profiles?id=eq.${body.farm_id}&select=latitude,longitude`, { headers: { authorization: req.headers.authorization || '' } });
+      const rows = r.ok ? await r.json() : [];
+      if (!rows.length || rows[0].latitude == null) return send(res, 400, { error: 'no_location' });
+      return send(res, 200, { fetched_at: new Date().toISOString(), payload: fakeForecast(Number(rows[0].latitude), Number(rows[0].longitude)), cached: false });
     }
     // تخزين الصور (محاكاة Supabase Storage في الذاكرة)
     if (url.pathname.startsWith('/storage/v1/object/')) {

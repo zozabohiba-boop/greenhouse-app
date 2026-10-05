@@ -8,6 +8,8 @@ import { cropAgeWeeks, formatDate, isoWeek, todayLocal } from '../lib/dates';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
 import { useGreenhouseBoard } from './Home';
+import { useZones } from '../lib/zones';
+import { PlaceLine, ZoneBrowser } from '../components/ZoneBrowser';
 import { FIELDS, FIELD_BY_KEY, GROUPS, checkField, hasAny, type Draft, type MKey } from './fields';
 import type { Row } from '../lib/schema';
 
@@ -17,6 +19,7 @@ type M = Row<'plant_measurements'>;
 export function RegisterPick() {
   const { farmId, can } = useApp();
   const board = useGreenhouseBoard(farmId);
+  const idx = useZones(farmId);
   if (!can.record) return <Navigate to="/" replace />;
   const ready = board?.filter((b) => b.cycle && b.plants > 0) ?? [];
   const { week } = isoWeek(todayLocal());
@@ -31,24 +34,32 @@ export function RegisterPick() {
           {can.manage && <Link className="btn primary" to="/setup">إعداد الصوب</Link>}
         </div>
       )}
-      <div className="gh-list">
-        {ready.map(({ g, cycle, crop, variety, plants, measured }) => (
-          <Link key={g.id} to={`/register/${cycle!.id}`} className="gh">
-            <span className="code">{g.code}</span>
-            <span className="meta">
-              <b>{crop}{variety ? ` — ${variety}` : ''}</b>
-              <span>الأسبوع {cropAgeWeeks(cycle!.planting_date) + 1} من الشتل</span>
-            </span>
-            {measured >= plants ? (
-              <span className="chip ok"><Icon name="check" size={14} /> مكتمل</span>
-            ) : measured > 0 ? (
-              <span className="chip warn">{measured} من {plants}</span>
-            ) : (
-              <span className="chip">{plants} نبات</span>
-            )}
-          </Link>
-        ))}
-      </div>
+      {idx && ready.length > 0 && (
+        <ZoneBrowser
+          idx={idx}
+          items={ready}
+          summary={(items) => {
+            const done = items.filter((x) => x.measured >= x.plants).length;
+            return <span className={`chip ${done === items.length ? 'ok' : done ? 'warn' : 'bad'}`}>سُجّل {done} من {items.length}</span>;
+          }}
+          render={({ g, cycle, crop, variety, plants, measured }) => (
+            <Link to={`/register/${cycle!.id}`} className="gh">
+              <span className="code">{g.code}</span>
+              <span className="meta">
+                <b>{crop}{variety ? ` — ${variety}` : ''}</b>
+                <span>الأسبوع {cropAgeWeeks(cycle!.planting_date) + 1} من الشتل</span>
+              </span>
+              {measured >= plants ? (
+                <span className="chip ok"><Icon name="check" size={14} /> مكتمل</span>
+              ) : measured > 0 ? (
+                <span className="chip warn">{measured} من {plants}</span>
+              ) : (
+                <span className="chip">{plants} نبات</span>
+              )}
+            </Link>
+          )}
+        />
+      )}
     </main>
   );
 }
@@ -275,9 +286,10 @@ export function RegisterEntry() {
 
   return (
     <main className="page" style={{ maxWidth: 1280 }}>
-      <Link to="/register" className="back"><Icon name="back" size={18} /> اختيار صوبة</Link>
+      <Link to={`/register${gh?.zone_id ? `?z=${gh.zone_id}` : ''}`} className="back"><Icon name="back" size={18} /> اختيار صوبة</Link>
       <div className="page-head">
         <div>
+          <PlaceLine zoneId={gh?.zone_id} />
           <h1><span className="num">{gh?.code}</span> — {crop?.name_ar}</h1>
           <p>
             الأسبوع {week}، {isToday ? 'اليوم' : formatDate(date)}{' '}

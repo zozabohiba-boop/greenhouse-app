@@ -88,10 +88,20 @@ const isTransient = (err: PostgrestError | null) =>
 async function pushTable(table: TableName): Promise<number> {
   const t = db.tableOf(table);
   let dirty: any[] = (await t.where('_dirty').equals(1).toArray()).filter((r) => !r._error);
-  if (table === 'attachments' && dirty.length) {
-    // الصورة نفسها تترفع الأول، وسجلها يستنى لحد ما ملفها يوصل
+  if (table === 'farm_zones' && dirty.length > 1) {
+    // الأب قبل الابن داخل نفس الجدول (لو اتعزل سجل سجل)
+    const all = new Map((await t.toArray()).map((z: any) => [z.id, z]));
+    const depth = (z: any) => {
+      let d = 0;
+      for (let p = z.parent_id; p && d < 10; p = all.get(p)?.parent_id) d++;
+      return d;
+    };
+    dirty.sort((a, b) => depth(a) - depth(b));
+  }
+  if ((table === 'attachments' || table === 'documents') && dirty.length) {
+    // الملف نفسه يترفع الأول، وسجله يستنى لحد ما ملفه يوصل
     try {
-      await uploadPendingBlobs();
+      await uploadPendingBlobs(table);
     } catch (e) {
       if (e instanceof UploadNetworkError) throw new RetryableError(e.message);
       throw e;
@@ -326,7 +336,7 @@ export async function discardRejected(table: TableName, id: string) {
   const t = db.tableOf(table);
   const r = await t.get(id);
   if (!r) return;
-  if (table === 'attachments') await db.blobs.delete(id);
+  if (table === 'attachments' || table === 'documents') await db.blobs.delete(id);
   if (!r.server_updated_at) await t.delete(id);
   else {
     await t.update(id, { _dirty: 0, _error: null });

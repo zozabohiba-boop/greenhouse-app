@@ -60,7 +60,7 @@ export function FarmGate({ children }: { children: ReactNode }) {
 
   return (
     <main className="page">
-      <div className="page-head"><div><h1>اختر المزرعة</h1><p>حسابك مرتبط بأكثر من مزرعة</p></div></div>
+      <div className="page-head"><div><h1>اختر الموقع</h1><p>حسابك مرتبط بأكثر من موقع</p></div></div>
       <ul className="list panel">
         {options.map(({ m, f }) => (
           <li key={f!.id}>

@@ -20,6 +20,8 @@ import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
 import { PhotoStrip } from '../components/Photos';
 import { byCode } from './Home';
+import { useZones } from '../lib/zones';
+import { GhPlace, PlaceLine, ZoneBrowser } from '../components/ZoneBrowser';
 import type { Row } from '../lib/schema';
 
 type Session = Row<'scouting_sessions'>;
@@ -38,6 +40,7 @@ export function SevChip({ v, hotspot }: { v: number; hotspot?: boolean }) {
 // ── اختيار الصوبة ───────────────────────────────────────────────────
 export function ScoutPick() {
   const { farmId, can } = useApp();
+  const idx = useZones(farmId);
   const today = todayLocal();
   const { year, week } = isoWeek(today);
   const data = useLiveQuery(async () => {
@@ -69,25 +72,39 @@ export function ScoutPick() {
         </div>
       </div>
       {data?.ghs.length === 0 && <div className="panel empty"><h3>لا توجد صوب</h3><p>يضيفها مدير المزرعة من شاشة إدارة الصوب.</p></div>}
-      <div className="gh-list">
-        {data?.ghs.map((g) => {
-          const c = data.grid.get(`${g.id}|${weekKey(year, week)}`);
-          const last = data.last.get(g.id);
-          return (
-            <Link key={g.id} to={`/scout/gh/${g.id}`} className="gh">
-              <span className="code">{g.code}</span>
-              <span className="meta">
-                <b>{g.name || 'صوبة'}</b>
-                <span>{last ? `آخر فحص ${formatDate(last)}` : 'لم تُفحص من قبل'}</span>
-              </span>
-              {c ? (
-                c.observations === 0 ? <span className="chip ok"><Icon name="check" size={14} /> نظيفة هذا الأسبوع</span>
-                  : <span className="row" style={{ gap: 6 }}><SevChip v={c.max} hotspot={c.hotspots > 0} /><span className="chip">{c.pests.size} آفة</span></span>
-              ) : <span className="chip bad">لم تُفحص هذا الأسبوع</span>}
-            </Link>
-          );
-        })}
-      </div>
+      {data && idx && data.ghs.length > 0 && (
+        <ZoneBrowser
+          idx={idx}
+          items={data.ghs}
+          summary={(items) => {
+            const n = items.filter((g) => data.grid.has(`${g.id}|${weekKey(year, week)}`)).length;
+            const worst = Math.max(0, ...items.map((g) => data.grid.get(`${g.id}|${weekKey(year, week)}`)?.max ?? 0));
+            return (
+              <>
+                <span className={`chip ${n === items.length ? 'ok' : n ? 'warn' : 'bad'}`}>فُحصت {n} من {items.length}</span>
+                {worst > 0 && <SevChip v={worst} />}
+              </>
+            );
+          }}
+          render={(g) => {
+            const c = data.grid.get(`${g.id}|${weekKey(year, week)}`);
+            const last = data.last.get(g.id);
+            return (
+              <Link to={`/scout/gh/${g.id}`} className="gh">
+                <span className="code">{g.code}</span>
+                <span className="meta">
+                  <b>{g.name || 'صوبة'}</b>
+                  <span>{last ? `آخر فحص ${formatDate(last)}` : 'لم تُفحص من قبل'}</span>
+                </span>
+                {c ? (
+                  c.observations === 0 ? <span className="chip ok"><Icon name="check" size={14} /> نظيفة هذا الأسبوع</span>
+                    : <span className="row" style={{ gap: 6 }}><SevChip v={c.max} hotspot={c.hotspots > 0} /><span className="chip">{c.pests.size} آفة</span></span>
+                ) : <span className="chip bad">لم تُفحص هذا الأسبوع</span>}
+              </Link>
+            );
+          }}
+        />
+      )}
     </main>
   );
 }
@@ -98,6 +115,7 @@ export function ScoutGreenhouse() {
   const { farmId, user, can, toast } = useApp();
   const nav = useNavigate();
   const people = usePeople();
+  const idx = useZones(farmId);
   const [start, setStart] = useState(false);
   const data = useLiveQuery(async () => {
     const g = await db.greenhouses.get(ghId!);
@@ -127,9 +145,10 @@ export function ScoutGreenhouse() {
 
   return (
     <main className="page">
-      <Link to="/scout" className="back"><Icon name="back" size={18} /> كل الصوب</Link>
+      <Link to={`/scout${g.zone_id ? `?z=${g.zone_id}` : ''}`} className="back"><Icon name="back" size={18} /> كل الصوب</Link>
       <div className="page-head">
         <div>
+          <GhPlace idx={idx} zoneId={g.zone_id} />
           <h1>فحص <span className="num">{g.code}</span></h1>
           <p>{g.name ? `${g.name}، ` : ''}{g.rows_count ? `${g.rows_count} خط` : 'عدد الخطوط غير محدد'}</p>
         </div>
@@ -260,6 +279,7 @@ export function ScoutSession() {
       <Link to={`/scout/gh/${s.greenhouse_id}`} className="back"><Icon name="back" size={18} /> جولات الصوبة</Link>
       <div className="page-head">
         <div>
+          <PlaceLine zoneId={g?.zone_id} />
           <h1>فحص <span className="num">{g?.code}</span> — {formatDate(s.scouted_on)}</h1>
           <p>
             {obs.length ? `${obs.length} ملاحظة` : 'لم تُسجل إصابات بعد'}

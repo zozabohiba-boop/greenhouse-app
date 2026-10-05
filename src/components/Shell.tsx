@@ -8,6 +8,7 @@ import { Sheet } from './Sheet';
 import { Icon } from './Icon';
 import { UpdatePrompt } from './UpdatePrompt';
 import { ChangePassword } from '../screens/Team';
+import { NewFarmSheet } from '../screens/Farm';
 
 export function Shell() {
   const { farm, role, user } = useApp();
@@ -40,15 +41,20 @@ function Menu({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
   const [err, setErr] = useState<string | null>(null);
   const [pw, setPw] = useState(false);
+  const [newFarm, setNewFarm] = useState(false);
   const farms = useLiveQuery(() => db.farm_members.where('user_id').equals(user?.id ?? '').count(), [user?.id]);
   const go = (to: string) => { onClose(); nav(to); };
   return (
     <Sheet title="القائمة" onClose={onClose}>
       <p className="muted" style={{ marginBottom: 12 }}>{user?.email}</p>
       <ul className="list panel">
-        <li><button className="list-item btn ghost block" onClick={() => go('/setup')}><Icon name="house" /> <span className="grow" style={{ textAlign: 'start' }}>الصوب والدورات الزراعية</span></button></li>
+        <li><button className="list-item btn ghost block" onClick={() => go('/farm')}><Icon name="pin" /> <span className="grow" style={{ textAlign: 'start' }}>بيانات الموقع</span></button></li>
+        {can.manage && <li><button className="list-item btn ghost block" onClick={() => go('/setup')}><Icon name="layers" /> <span className="grow" style={{ textAlign: 'start' }}>هيكل الموقع والصوب</span></button></li>}
+        <li><button className="list-item btn ghost block" onClick={() => go('/files')}><Icon name="folder" /> <span className="grow" style={{ textAlign: 'start' }}>الملفات والتقارير</span></button></li>
+        <li><button className="list-item btn ghost block" onClick={() => go('/weather')}><Icon name="sun" /> <span className="grow" style={{ textAlign: 'start' }}>الطقس والمناخ</span></button></li>
         {can.invite && <li><button className="list-item btn ghost block" onClick={() => go('/team')}><Icon name="users" /> <span className="grow" style={{ textAlign: 'start' }}>فريق العمل والدعوات</span></button></li>}
-        {(farms ?? 0) > 1 && <li><button className="list-item btn ghost block" onClick={() => { setFarmId(null); go('/'); }}><Icon name="sync" /> <span className="grow" style={{ textAlign: 'start' }}>تغيير المزرعة</span></button></li>}
+        {(farms ?? 0) > 1 && <li><button className="list-item btn ghost block" onClick={() => { setFarmId(null); go('/'); }}><Icon name="sync" /> <span className="grow" style={{ textAlign: 'start' }}>تغيير الموقع</span></button></li>}
+        {can.admin && <li><button className="list-item btn ghost block" onClick={() => setNewFarm(true)}><Icon name="plus" /> <span className="grow" style={{ textAlign: 'start' }}>موقع جديد</span></button></li>}
         <li><button className="list-item btn ghost block" onClick={() => setPw(true)}><Icon name="edit" /> <span className="grow" style={{ textAlign: 'start' }}>تغيير كلمة المرور</span></button></li>
         <li><button className="list-item btn ghost block" style={{ color: 'var(--tomato)' }} onClick={async () => {
           const e = await signOut();
@@ -58,6 +64,7 @@ function Menu({ onClose }: { onClose: () => void }) {
       {err && <p className="form-error" style={{ marginTop: 12 }}>{err}</p>}
       <p className="faint" style={{ marginTop: 14, fontSize: 'var(--fs-xs)' }}>الإصدار {__APP_VERSION__}</p>
       {pw && <ChangePassword onClose={() => setPw(false)} />}
+      {newFarm && <NewFarmSheet onClose={() => { setNewFarm(false); onClose(); }} />}
     </Sheet>
   );
 }

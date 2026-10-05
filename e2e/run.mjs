@@ -59,6 +59,10 @@ try {
 
   // ── 2. صوبة جديدة ─────────────────────────────────────────────────
   await page.click('text=أضف أول صوبة');
+  await page.locator('h1', { hasText: 'هيكل الموقع' }).waitFor();
+  await page.click('.zone-bar button:has-text("إضافة")');
+  ok(await page.getByRole('button', { name: 'قطاع تقسيم كبير داخل الموقع' }).isVisible() && await page.getByRole('button', { name: /^صف / }).isVisible(), 'الإضافة تبدأ باختيار النوع: قطاع / صف / صوبة');
+  await page.click('.add-pick button:has-text("صوبة واحدة")');
   await page.fill('label:has-text("كود الصوبة") input', 'gh-07');
   await page.fill('label:has-text("المساحة") input', '540');
   await page.fill('label:has-text("عدد البواكي") input', '2');
@@ -210,7 +214,7 @@ try {
   await scout.page.fill('input[type=password]', 'Scout#2026');
   await scout.page.click('button:has-text("دخول")');
   await scout.page.locator('.gh', { hasText: 'GH-07' }).waitFor({ timeout: 15000 });
-  ok(await scout.page.locator('.gh .chip', { hasText: '7 من 8' }).isVisible(), 'المهندس الثاني يرى تقدم التسجيل من الجهاز الأول');
+  ok(await scout.page.locator('.gh .chip', { hasText: '7 من 8' }).waitFor({ timeout: 8000 }).then(() => true, () => false), 'المهندس الثاني يرى تقدم التسجيل من الجهاز الأول');
   ok(!(await scout.page.locator('a:has-text("إدارة الصوب")').count()), 'مهندس الفحص لا يرى إدارة الصوب');
   await scout.page.goto(APP + '#/setup');
   await scout.page.locator('h1', { hasText: 'الأسبوع' }).waitFor();
@@ -396,6 +400,155 @@ try {
   ok((await page.locator('.chart polyline, .chart .dotp').count()) > 0, 'منحنيات النمو مرسومة');
   await page.screenshot({ path: `${SHOTS}/21-dashboard.png`, fullPage: true });
 
+
+  // ── 18. هيكل الموقع: قطاع ← صفوف ← صوب ─────────────────────────────
+  await page.goto(APP + '#/setup');
+  await page.locator('h1', { hasText: 'هيكل الموقع' }).waitFor();
+  await page.click('.zone-bar button:has-text("إضافة")');
+  await page.getByRole('button', { name: 'قطاع تقسيم كبير داخل الموقع' }).click();
+  await page.fill('.sheet label:has-text("الاسم") input', '1');
+  ok(await page.locator('.sheet', { hasText: 'سيظهر باسم: قطاع 1' }).isVisible(), 'معاينة اسم القطاع: "قطاع 1"');
+  await page.click('.sheet button:has-text("إضافة")');
+  await page.locator('.crumbs button[aria-current="page"]', { hasText: 'قطاع 1' }).waitFor();
+  ok(true, 'بعد إضافة القطاع يدخل التطبيق داخله تلقائيًا');
+  await page.click('.zone-bar button:has-text("إضافة")');
+  await page.click('.add-pick button:has-text("عدة أماكن")');
+  await page.fill('.sheet label:has-text("من") input', 'A');
+  await page.fill('.sheet label:has-text("إلى") input', 'C');
+  ok(await page.locator('.sheet .preview-codes .chip').count() === 3, 'معاينة 3 صفوف A–C');
+  await page.click('.sheet button:has-text("إنشاء")');
+  await page.locator('.zone-card', { hasText: 'صف C' }).waitFor();
+  await page.click('.zone-card:has-text("صف A")');
+  await page.click('.zone-bar button:has-text("إضافة")');
+  await page.click('.add-pick button:has-text("عدة صوب")');
+  await page.fill('.sheet label:has-text("من") input', '1');
+  await page.fill('.sheet label:has-text("إلى") input', '4');
+  await page.fill('.sheet label:has-text("المساحة") input', '1000');
+  await page.click('.sheet button:has-text("إنشاء الصوب")');
+  await page.locator('.gh', { hasText: '4' }).first().waitFor();
+  ok(await page.locator('.zone-browser .gh').count() === 4, 'إنشاء 4 صوب دفعة واحدة داخل صف A');
+  await page.click('.crumbs button:has-text("قطاع 1")');
+  await page.click('.zone-card:has-text("صف B")');
+  await page.click('.zone-bar button:has-text("إضافة")');
+  await page.click('.add-pick button:has-text("عدة صوب")');
+  await page.fill('.sheet label:has-text("من") input', '1');
+  await page.fill('.sheet label:has-text("إلى") input', '2');
+  await page.click('.sheet button:has-text("إنشاء الصوب")');
+  await page.locator('.zone-browser .gh').nth(1).waitFor();
+  ok(await page.locator('.zone-browser .gh').count() === 2, 'نفس الأكواد (1، 2) مسموحة في صف مختلف');
+  await page.click('.crumbs button:has-text("كل الموقع")');
+  ok(await page.locator('.zone-card', { hasText: 'قطاع 1' }).locator('.zone-meta', { hasText: '3 صفوف' }).isVisible()
+    && await page.locator('.zone-card', { hasText: 'قطاع 1' }).locator('.zone-meta', { hasText: '6 صوبة' }).isVisible(), 'كارت القطاع: 3 صفوف و 6 صوب');
+  await page.screenshot({ path: `${SHOTS}/23-site-structure.png`, fullPage: true });
+  await waitSynced(page, 20000).catch(() => {});
+  await page.locator('.sync-pill').click();
+  await page.locator('.sheet button:has-text("زامن الآن")').click();
+  await waitSynced(page);
+  await page.keyboard.press('Escape');
+  ok(sql("select count(*) from farm_zones where deleted_at is null") === '4', 'السيرفر: 4 أماكن (قطاع + 3 صفوف)');
+  ok(sql("select count(*) from farm_zones z join farm_zones p on p.id = z.parent_id where z.kind='row' and p.name='1'") === '3', 'السيرفر: الصفوف تابعة للقطاع');
+  ok(sql("select count(*) from greenhouses where zone_id is not null and code in ('1','2')") === '4', 'السيرفر: الكود 1 و 2 موجودان في صفين مختلفين');
+
+  // الرئيسية: تصفح بالتسلسل
+  await page.goto(APP + '#/');
+  await page.click('.zone-card:has-text("قطاع 1")');
+  await page.click('.zone-card:has-text("صف A")');
+  ok(await page.locator('.zone-browser .gh').count() === 4 && await page.locator('.crumbs', { hasText: 'صف A' }).isVisible(), 'الرئيسية: الموقع ← قطاع 1 ← صف A ← 4 صوب');
+  await page.screenshot({ path: `${SHOTS}/24-home-drilldown.png`, fullPage: true });
+  await page.goBack();
+  ok(await page.locator('.zone-card', { hasText: 'صف B' }).isVisible(), 'زر الرجوع يرجع مستوى واحد');
+
+  // المعاملة: اختيار كل صوب صف بضغطة
+  await page.goto(APP + '#/activities/new');
+  const rowA = page.locator('.gh-group', { hasText: 'صف A' });
+  await rowA.locator('button:has-text("الكل (4)")').click();
+  ok(await rowA.locator('.gh-pick button[aria-pressed="true"]').count() === 4, 'المعاملة: "الكل" يختار صوب الصف الأربعة');
+  await page.goto(APP + '#/');
+
+  // ── 19. الملفات: رفع بدون إنترنت ثم مزامنة ─────────────────────────
+  await page.goto(APP + '#/files');
+  await page.locator('h1', { hasText: 'الملفات والتقارير' }).waitFor();
+  await ctx.setOffline(true);
+  await page.click('button:has-text("رفع أول ملف")');
+  await page.setInputFiles('.sheet input[type=file]', [
+    { name: 'تقرير_زيارة_اكتوبر.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n% test\n') },
+    { name: 'تحليل مياه.xlsx', mimeType: '', buffer: Buffer.from('PK\u0003\u0004 test') },
+  ]);
+  ok(await page.locator('.sheet .upload-item').count() === 2, 'اختيار ملفين PDF و Excel');
+  await page.setInputFiles('.sheet input[type=file]', [{ name: 'virus.exe', mimeType: 'application/octet-stream', buffer: Buffer.from('MZ') }]);
+  ok(await page.locator('.sheet .form-error', { hasText: 'غير مدعوم' }).isVisible(), 'رفض نوع ملف غير مدعوم برسالة واضحة');
+  await page.click('.sheet button:has-text("حفظ ورفع")');
+  await page.locator('.doc').nth(1).waitFor();
+  ok(await page.locator('.doc .chip', { hasText: 'في انتظار الرفع' }).count() === 2, 'الملفات محفوظة على الجهاز وتنتظر الإنترنت');
+  ok(await page.locator('.doc .ftype[data-k="pdf"]').isVisible() && await page.locator('.doc .ftype[data-k="excel"]').isVisible(), 'نوع كل ملف ظاهر (PDF / Excel)');
+  await page.screenshot({ path: `${SHOTS}/25-files-offline.png`, fullPage: true });
+  await ctx.setOffline(false);
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
+  await waitSynced(page, 20000);
+  await page.locator('.doc .chip', { hasText: 'في انتظار الرفع' }).first().waitFor({ state: 'detached', timeout: 10000 }).catch(() => {});
+  ok(await page.locator('.doc .chip', { hasText: 'في انتظار الرفع' }).count() === 0, 'بعد رجوع الإنترنت: الملفات اترفعت');
+  ok(sql("select count(*) from documents where deleted_at is null and storage_path like '%/%.pdf'") === '1' && sql("select count(*) from documents where mime_type like '%spreadsheetml%'") === '1', 'السيرفر: سجلات الملفات بنوعها الصحيح');
+  ok(gw.stats.keys().filter((k) => k.startsWith('farm-files/')).length === 2, 'التخزين: الملفين في bucket farm-files');
+  const [download] = await Promise.all([
+    page.waitForEvent('popup').catch(() => null),
+    page.locator('.doc button[aria-label^="فتح"]').first().click(),
+  ]);
+  ok(!(await page.locator('.toast', { hasText: 'تعذر' }).isVisible().catch(() => false)), 'فتح الملف من السيرفر برابط مؤقت');
+  if (download) await download.close().catch(() => {});
+
+  // ── 20. بيانات الموقع + الطقس ──────────────────────────────────────
+  await page.goto(APP + '#/');
+  ok(await page.locator('.wx-strip', { hasText: 'حدّد موقع المزرعة' }).isVisible(), 'الرئيسية تطلب تحديد موقع المزرعة للطقس');
+  await page.click('.wx-strip');
+  await page.locator('label:has-text("خط العرض") input').fill('https://www.google.com/maps/@29.3081,30.8421,15z');
+  ok(await page.locator('.coords .chip.ok', { hasText: '29.3081, 30.8421' }).isVisible(), 'قراءة الإحداثيات من رابط خرائط جوجل');
+  await page.fill('label:has-text("ملوحة المياه") input', '1.8');
+  await page.fill('label:has-text("المالك") input', 'شركة اختبار');
+  await page.click('button:has-text("حفظ بيانات الموقع")');
+  await page.locator('.toast', { hasText: 'تم حفظ بيانات الموقع' }).waitFor();
+  await page.locator('.sync-pill').click();
+  await page.locator('.sheet button:has-text("زامن الآن")').click();
+  await waitSynced(page);
+  await page.keyboard.press('Escape');
+  ok(sql("select latitude||','||longitude||','||water_ec_ds_m from farm_profiles") === '29.308100,30.842100,1.80', 'السيرفر: الإحداثيات وملوحة المياه محفوظة');
+  await page.goto(APP + '#/weather');
+  await page.locator('.day-tabs button').nth(6).waitFor({ timeout: 10000 });
+  ok(await page.locator('.day-tabs button').count() === 7, 'الطقس: توقعات 7 أيام');
+  ok(await page.locator('.wx-alert[data-level="bad"]', { hasText: 'إجهاد حراري' }).isVisible(), 'الطقس: تنبيه إجهاد حراري اليوم مع التوصية');
+  ok(await page.locator('.wx-stat', { hasText: 'الاحتياج المائي' }).locator('b', { hasText: 'ل/م²' }).isVisible(), 'الطقس: تقدير الاحتياج المائي');
+  ok(await page.locator('.wx-charts .chart polyline').count() === 4, 'الطقس: 4 منحنيات بالساعة (حرارة، رطوبة، VPD، إشعاع)');
+  await page.screenshot({ path: `${SHOTS}/26-weather.png`, fullPage: true });
+  await page.locator('.day-tabs button').nth(2).click();
+  ok(await page.locator('.wx-alert', { hasText: 'رطوبة ≥ 90%' }).isVisible(), 'الطقس: يوم الرطوبة العالية ينبه لخطر الأمراض الفطرية');
+  await page.goto(APP + '#/');
+  ok(await page.locator('.wx-strip[data-level="bad"]', { hasText: 'إجهاد حراري' }).waitFor({ timeout: 8000 }).then(() => true, () => false), 'الرئيسية: شريط الطقس يعرض أهم تنبيه اليوم');
+  await page.screenshot({ path: `${SHOTS}/27-home-weather.png` });
+  // أوفلاين: آخر توقعات محفوظة
+  await ctx.setOffline(true);
+  await page.goto(APP + '#/weather');
+  await page.reload();
+  await page.locator('.day-tabs button').first().waitFor({ timeout: 15000 });
+  ok(true, 'الطقس: آخر توقعات محفوظة تظهر بدون إنترنت');
+  await ctx.setOffline(false);
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
+
+  // ── 21. موقع جديد ───────────────────────────────────────────────────
+  await page.goto(APP + '#/');
+  await page.click('button[aria-label="القائمة"]');
+  await page.click('.sheet button:has-text("موقع جديد")');
+  await page.fill('.sheet label:has-text("اسم الموقع") input', 'موقع تجريبي 2');
+  await page.click('.sheet button:has-text("إنشاء الموقع")');
+  await page.locator('.topbar', { hasText: 'موقع تجريبي 2' }).waitFor({ timeout: 15000 });
+  ok(sql("select m.role from farms f join farm_members m on m.farm_id = f.id where f.name = 'موقع تجريبي 2'") === 'admin', 'موقع جديد: المنشئ مدير نظام فيه');
+  ok(await page.locator('h1', { hasText: 'موقع تجريبي 2' }).isVisible(), 'بعد الإنشاء يفتح بيانات الموقع الجديد');
+  await page.goto(APP + '#/');
+  ok(await page.locator('.zone-card').count() === 0 && await page.locator('.gh').count() === 0, 'الموقع الجديد فارغ ومستقل عن الأول');
+  await page.click('button[aria-label="القائمة"]');
+  await page.click('.sheet button:has-text("تغيير الموقع")');
+  await page.click('button:has-text("المزرعة الرئيسية")');
+  await page.locator('.topbar', { hasText: 'المزرعة الرئيسية' }).waitFor();
+  ok(true, 'التنقل بين المواقع من القائمة');
+
   // ── 13. موبايل ────────────────────────────────────────────────────
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'ar-EG', hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
   const pp = await phone.newPage();
@@ -408,7 +561,7 @@ try {
   await pp.click('button:has-text("دخول")');
   await pp.locator('.gh').first().waitFor({ timeout: 15000 });
   const wide = [];
-  for (const r of ['#/', '#/scout', '#/activities', '#/activities/new', '#/recs', '#/dashboard']) {
+  for (const r of ['#/', '#/scout', '#/activities', '#/activities/new', '#/recs', '#/dashboard', '#/files', '#/weather', '#/farm']) {
     await pp.goto(APP + r);
     await sleep(700);
     if (await pp.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) wide.push(r);

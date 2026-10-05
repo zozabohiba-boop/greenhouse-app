@@ -10,6 +10,8 @@ import { alive, create, createMany, softDelete, update } from '../lib/repo';
 import { formatDate, todayLocal } from '../lib/dates';
 import { addDays, consecutiveMoa, moaHistory, phiByGreenhouse } from '../lib/ipm';
 import { activeCycle, useGreenhouses, usePeople, usePests, useProducts } from '../lib/hooks';
+import { ghLabels, indexZones, useGhLabels, useZones } from '../lib/zones';
+import { GhMultiPick, GhOptions } from '../components/ZoneBrowser';
 import { addPhoto, removePhoto, usePhotos } from '../lib/photos';
 import {
   ACTIVITY_ICON, ACTIVITY_TYPE_LABEL, APP_METHOD_LABEL, DOSE_UNIT_LABEL, OP_CATEGORY_LABEL,
@@ -67,12 +69,14 @@ export function ActivityList() {
   const ghFilter = sp.get('gh');
   const [days, setDays] = useState(60);
   const ghs = useGreenhouses(farmId);
+  const idx = useZones(farmId);
+  const labels = useGhLabels(farmId);
   const data = useActivityData(farmId);
   const today = todayLocal();
 
   const view = useMemo(() => {
-    if (!data || !ghs) return null;
-    const ghCode = new Map(ghs.map((x) => [x.g.id, x.g.code]));
+    if (!data || !ghs || !labels) return null;
+    const ghCode = labels;
     const prod = new Map(data.prods.map((p) => [p.id, p]));
     const op = new Map(data.ops.map((o) => [o.id, o]));
     const phi = phiByGreenhouse(data.acts, data.ags, data.aps, data.prods, today);
@@ -93,7 +97,7 @@ export function ActivityList() {
       byDate.get(it.a.performed_on)!.push(it);
     }
     return { byDate, ghCode, phi, count: items.length, older: data.acts.some((a) => a.performed_on < from) };
-  }, [data, ghs, type, ghFilter, days, today]);
+  }, [data, ghs, labels, type, ghFilter, days, today]);
 
   const setParam = (k: string, v: string | null) => {
     const n = new URLSearchParams(sp);
@@ -118,7 +122,7 @@ export function ActivityList() {
             <div key={gid} className="phi-card">
               <Icon name="shield" size={22} />
               <span>
-                <b className="num">{view.ghCode.get(gid)}</b>
+                <b className="lbl">{view.ghCode.get(gid)}</b>
                 <small>{phiText(s.until, today)} — {s.product}</small>
               </span>
             </div>
@@ -133,7 +137,7 @@ export function ActivityList() {
         </div>
         <select className="select" style={{ width: 'auto', minWidth: 150 }} value={ghFilter ?? ''} onChange={(e) => setParam('gh', e.target.value || null)} aria-label="الصوبة">
           <option value="">كل الصوب</option>
-          {ghs?.map(({ g }) => <option key={g.id} value={g.id}>{g.code}</option>)}
+          <GhOptions idx={idx} ghs={(ghs ?? []).map((x) => x.g)} />
         </select>
       </div>
 
@@ -157,7 +161,7 @@ export function ActivityList() {
                     <small className="muted" style={{ display: 'block' }}>
                       {products.length ? products.map(({ ap, p }) => `${p?.name ?? 'مادة'}${ap.dose != null ? ` ${ap.dose} ${ap.dose_unit ? DOSE_UNIT_LABEL[ap.dose_unit] : ''}` : ''}`).join('، ') : a.notes || a.reason || ''}
                     </small>
-                    <span className="gh-chips">{ghIds.map((g) => <span key={g} className="chip num">{view.ghCode.get(g) ?? '؟'}</span>)}</span>
+                    <span className="gh-chips">{ghIds.map((g) => <span key={g} className="chip lbl">{view.ghCode.get(g) ?? '؟'}</span>)}</span>
                   </span>
                   {until && until > today && <span className="chip bad"><Icon name="shield" size={14} /> حتى {formatDate(until).replace(/ \d{4}$/, '')}</span>}
                   {(a as any)._error && <span className="chip bad">مرفوض</span>}
@@ -192,7 +196,8 @@ export function ActivityDetail() {
     const op = a.operation_type_id ? await db.operation_types.get(a.operation_type_id) : undefined;
     const pest = a.target_pest_id ? await db.pests.get(a.target_pest_id) : undefined;
     const rec = a.recommendation_id ? await db.recommendations.get(a.recommendation_id) : undefined;
-    const ghCode = new Map(ghs.map((g) => [g.id, g.code]));
+    const zs = await db.farm_zones.where('farm_id').equals(a.farm_id).toArray();
+    const ghCode = ghLabels(indexZones(zs), ghs.filter((g) => alive(g) && g.farm_id === a.farm_id));
     return {
       a, op, pest, rec,
       ags: ags.filter(alive).map((x) => ({ ...x, code: ghCode.get(x.greenhouse_id) ?? '؟' })),
@@ -228,7 +233,7 @@ export function ActivityDetail() {
       )}
 
       <div className="panel panel-pad detail-grid">
-        <Detail k="الصوب">{ags.map((x) => <span key={x.id} className="chip num" style={{ marginInlineEnd: 4 }}>{x.code}</span>)}{ags[0]?.rows_scope ? <span className="muted"> — {ags[0].rows_scope}</span> : null}</Detail>
+        <Detail k="الصوب">{ags.map((x) => <span key={x.id} className="chip lbl" style={{ marginInlineEnd: 4 }}>{x.code}</span>)}{ags[0]?.rows_scope ? <span className="muted"> — {ags[0].rows_scope}</span> : null}</Detail>
         {a.method && <Detail k="طريقة التطبيق">{APP_METHOD_LABEL[a.method]}</Detail>}
         {a.water_volume_l != null && <Detail k="حجم المحلول"><span className="num">{a.water_volume_l}</span> لتر</Detail>}
         {pest && <Detail k="الآفة المستهدفة">{pest.name_ar}</Detail>}
@@ -322,6 +327,8 @@ function ActivityFormInner({ existing }: { existing: { a: Activity; ags: Row<'ac
   const nav = useNavigate();
   const [sp] = useSearchParams();
   const ghs = useGreenhouses(farmId);
+  const idx = useZones(farmId);
+  const labels = useGhLabels(farmId);
   const pests = usePests(farmId);
   const products = useProducts(farmId);
   const actData = useActivityData(farmId);
@@ -369,7 +376,7 @@ function ActivityFormInner({ existing }: { existing: { a: Activity; ags: Row<'ac
   const moaWarn = useMemo(() => {
     if (!actData || !ghs || (type !== 'chemical_spray' && type !== 'fertigation_injection')) return [];
     const out: string[] = [];
-    const code = new Map(ghs.map((x) => [x.g.id, x.g.code]));
+    const code = labels ?? new Map(ghs.map((x) => [x.g.id, x.g.code]));
     for (const gid of ghIds) {
       const hist = moaHistory(gid, actData.acts, actData.ags, actData.aps, actData.prods, existing?.a.id);
       for (const p of chosen) {
@@ -380,7 +387,7 @@ function ActivityFormInner({ existing }: { existing: { a: Activity; ags: Row<'ac
       }
     }
     return [...new Set(out)];
-  }, [actData, ghs, ghIds, chosen.map((p) => p.id).join(), f.performed_on, type]);
+  }, [actData, ghs, labels, ghIds, chosen.map((p) => p.id).join(), f.performed_on, type]);
 
   const recs = (openRecs ?? []).filter((r) => !r.greenhouse_id || ghIds.size === 0 || ghIds.has(r.greenhouse_id));
 
@@ -481,20 +488,7 @@ function ActivityFormInner({ existing }: { existing: { a: Activity; ags: Row<'ac
 
         <section className="panel panel-pad form">
           <h2 className="form-h">الصوب</h2>
-          <div className="gh-pick">
-            {ghs.map(({ g }) => (
-              <button type="button" key={g.id} aria-pressed={ghIds.has(g.id)} className="num" onClick={() => {
-                const n = new Set(ghIds);
-                if (n.has(g.id)) n.delete(g.id); else n.add(g.id);
-                setGhIds(n);
-              }}>{g.code}</button>
-            ))}
-            {ghs.length > 1 && (
-              <button type="button" className="all" onClick={() => setGhIds(ghIds.size === ghs.length ? new Set() : new Set(ghs.map((x) => x.g.id)))}>
-                {ghIds.size === ghs.length ? 'إلغاء الكل' : 'كل الصوب'}
-              </button>
-            )}
-          </div>
+          <GhMultiPick idx={idx} ghs={ghs.map((x) => x.g)} value={ghIds} onChange={setGhIds} />
           <div className="form-grid">
             <Field label="التاريخ"><input className="input" type="date" max={today} value={f.performed_on} onChange={(e) => set('performed_on', e.target.value)} /></Field>
             <Field label="من الساعة"><input className="input" type="time" value={f.start_time} onChange={(e) => set('start_time', e.target.value)} /></Field>

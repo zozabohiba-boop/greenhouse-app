@@ -14,10 +14,14 @@ export interface MetaRow {
   value: unknown;
 }
 
-/** صورة محفوظة على الجهاز — id = attachment id */
+/** ملف محفوظ على الجهاز لحين رفعه — id = id سجل المرفق أو الملف */
 export interface BlobRow {
   id: string;
   path: string;
+  /** الجدول صاحب الملف (افتراضيًا صور المرفقات) */
+  table?: 'attachments' | 'documents';
+  /** bucket التخزين (افتراضيًا field-photos) */
+  bucket?: string;
   blob: Blob;
   mime: string;
   /** 1 = لم تُرفع بعد */
@@ -48,6 +52,9 @@ export class GreenhouseDB extends Dexie {
   activity_greenhouses!: Table<Local<Row<'activity_greenhouses'>>, string>;
   activity_products!: Table<Local<Row<'activity_products'>>, string>;
   attachments!: Table<Local<Row<'attachments'>>, string>;
+  farm_zones!: Table<Local<Row<'farm_zones'>>, string>;
+  farm_profiles!: Table<Local<Row<'farm_profiles'>>, string>;
+  documents!: Table<Local<Row<'documents'>>, string>;
   meta!: Table<MetaRow, string>;
   blobs!: Table<BlobRow, string>;
 
@@ -85,6 +92,13 @@ export class GreenhouseDB extends Dexie {
       scouting_sessions: 'id, farm_id, greenhouse_id, crop_cycle_id, scouted_on, _dirty',
       scouting_observations: 'id, farm_id, session_id, pest_id, _dirty',
       recommendations: 'id, farm_id, greenhouse_id, status, _dirty',
+    });
+    // v3: هيكل الموقع + بيانات الموقع + الملفات
+    this.version(3).stores({
+      farm_zones: 'id, farm_id, parent_id, _dirty',
+      farm_profiles: 'id, farm_id, _dirty',
+      documents: 'id, farm_id, greenhouse_id, zone_id, _dirty',
+      greenhouses: 'id, farm_id, zone_id, _dirty',
     });
   }
 

@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp } from '../app/context';
 import { db } from '../lib/db';
@@ -10,6 +10,11 @@ import { Field, numStr, toNum } from '../components/Field';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
 import { byCode } from './Home';
+import { ZoneBrowser, GhPlace, useZoneParam } from '../components/ZoneBrowser';
+import { DocSection } from './Files';
+import {
+  flatTree, KIND_LABEL, nameSequence, useZones, validParents, ZONE_KINDS, zoneTitle, type Zone, type ZoneIndex, type ZoneKind,
+} from '../lib/zones';
 import type { Row } from '../lib/schema';
 
 function Back({ to, label }: { to: string; label: string }) {
@@ -24,68 +29,305 @@ function RequireManage({ children }: { children: JSX.Element }) {
   return children;
 }
 
-// ── قائمة الصوب ──────────────────────────────────────────────────────
+// ── هيكل الموقع: قطاعات وصفوف وصوب ─────────────────────────────────
+type SetupSheet =
+  | { mode: 'pick'; zone: Zone | null }
+  | { mode: 'zone'; parent: Zone | null; kind: ZoneKind; existing?: Zone }
+  | { mode: 'zones'; parent: Zone | null; kind: ZoneKind }
+  | { mode: 'ghs'; zone: Zone | null };
+
 export function SetupHome() {
   const { farmId } = useApp();
+  const nav = useNavigate();
+  const idx = useZones(farmId);
+  const [sheet, setSheet] = useState<SetupSheet | null>(null);
   const list = useLiveQuery(async () => {
     const ghs = (await db.greenhouses.where('farm_id').equals(farmId!).toArray()).filter(alive).sort(byCode);
     const cycles = (await db.crop_cycles.where('farm_id').equals(farmId!).toArray()).filter(alive);
     const crops = new Map((await db.crops.toArray()).map((c) => [c.id, c.name_ar]));
     return ghs.map((g) => {
       const active = cycles.find((c) => c.greenhouse_id === g.id && c.status !== 'finished');
-      return { g, active, crop: active ? crops.get(active.crop_id) : undefined };
+      return { id: g.id, code: g.code, zone_id: g.zone_id, g, active, crop: active ? crops.get(active.crop_id) : undefined };
     });
   }, [farmId]);
+  if (!idx || !list) return null;
 
   return (
     <RequireManage>
       <main className="page">
         <Back to="/" label="الرئيسية" />
         <div className="page-head">
-          <div><h1>الصوب والدورات الزراعية</h1><p>هيكل المزرعة الذي يعتمد عليه التسجيل الميداني</p></div>
-          <Link to="/setup/greenhouses/new" className="btn primary"><Icon name="plus" /> صوبة جديدة</Link>
+          <div><h1>هيكل الموقع والصوب</h1><p>قسّم الموقع لقطاعات وقطع وصفوف، وضع كل صوبة في مكانها</p></div>
         </div>
-        {list?.length === 0 && (
-          <div className="panel empty"><h3>لا توجد صوب</h3><p>أضف الصوب بأكوادها كما هي مكتوبة في المزرعة.</p></div>
+        <ZoneBrowser
+          idx={idx}
+          items={list}
+          toolbar={(zone) => (
+            <div className="row">
+              {zone && <button className="btn" onClick={() => setSheet({ mode: 'zone', parent: zone.parent_id ? idx.byId.get(zone.parent_id) ?? null : null, kind: zone.kind as ZoneKind, existing: zone })}><Icon name="edit" size={20} /> تعديل {KIND_LABEL[zone.kind]}</button>}
+              <button className="btn primary" onClick={() => setSheet({ mode: 'pick', zone })}><Icon name="plus" /> إضافة</button>
+            </div>
+          )}
+          summary={(items) => {
+            const n = items.filter((x) => x.active).length;
+            return <span className={`chip ${n ? 'ok' : ''}`}>{n ? `${n} بها دورة قائمة` : 'بدون دورات'}</span>;
+          }}
+          empty={
+            <div className="panel empty">
+              <h3>{idx.list.length ? 'المكان فارغ' : 'ابدأ بتقسيم الموقع'}</h3>
+              <p>{idx.list.length ? 'أضف صفوفًا أو صوبًا داخل هذا المكان.' : 'أضف القطاعات أو الصفوف أولًا، أو أضف الصوب مباشرة لو الموقع صغير.'}</p>
+            </div>
+          }
+          render={({ g, active, crop }) => (
+            <Link to={`/setup/greenhouses/${g.id}`} className="gh">
+              <span className="code">{g.code}</span>
+              <span className="meta">
+                <b>{g.name || 'صوبة'}</b>
+                <span>{g.area_m2 ? `${g.area_m2} م²` : 'المساحة غير محددة'}</span>
+              </span>
+              {active ? <span className="chip ok">{crop} — قائمة</span> : <span className="chip">بدون دورة</span>}
+            </Link>
+          )}
+        />
+
+        {sheet?.mode === 'pick' && (
+          <Sheet title={`إضافة داخل ${sheet.zone ? zoneTitle(sheet.zone) : 'الموقع'}`} onClose={() => setSheet(null)}>
+            <p className="muted" style={{ marginBottom: 12 }}>ماذا تريد أن تضيف؟</p>
+            <div className="add-pick">
+              {ZONE_KINDS.map((k) => (
+                <button key={k.v} onClick={() => setSheet({ mode: 'zone', parent: sheet.zone, kind: k.v })}>
+                  <b><Icon name="layers" size={20} /> {k.label}</b><small>{k.hint}</small>
+                </button>
+              ))}
+              <button onClick={() => setSheet({ mode: 'zones', parent: sheet.zone, kind: 'row' })}>
+                <b><Icon name="layers" size={20} /> عدة أماكن مرة واحدة</b><small>مثل الصفوف من A إلى H</small>
+              </button>
+              <button onClick={() => { setSheet(null); nav(`/setup/greenhouses/new${sheet.zone ? `?zone=${sheet.zone.id}` : ''}`); }}>
+                <b><Icon name="house" size={20} /> صوبة</b><small>صوبة واحدة بكل بياناتها</small>
+              </button>
+              <button onClick={() => setSheet({ mode: 'ghs', zone: sheet.zone })}>
+                <b><Icon name="house" size={20} /> عدة صوب مرة واحدة</b><small>مثل الصوب من 1 إلى 20</small>
+              </button>
+            </div>
+          </Sheet>
         )}
-        {!!list?.length && (
-          <ul className="list panel">
-            {list.map(({ g, active, crop }) => (
-              <li key={g.id}>
-                <Link to={`/setup/greenhouses/${g.id}`} className="list-item">
-                  <b className="num" style={{ minWidth: 70, fontSize: 'var(--fs-lg)' }}>{g.code}</b>
-                  <span className="grow">
-                    {g.name && <span>{g.name}، </span>}
-                    <span className="muted">{g.area_m2 ? `${g.area_m2} م²` : 'المساحة غير محددة'}</span>
-                  </span>
-                  {active ? <span className="chip ok">{crop} — قائمة</span> : <span className="chip">بدون دورة</span>}
-                  <Icon name="chevron" size={20} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        {sheet?.mode === 'zone' && <ZoneSheet idx={idx} farmId={farmId!} parent={sheet.parent} kind={sheet.kind} existing={sheet.existing} ghs={list} onClose={() => setSheet(null)} />}
+        {sheet?.mode === 'zones' && <BulkZonesSheet idx={idx} farmId={farmId!} parent={sheet.parent} kind={sheet.kind} onClose={() => setSheet(null)} />}
+        {sheet?.mode === 'ghs' && <BulkGreenhousesSheet farmId={farmId!} zone={sheet.zone} onClose={() => setSheet(null)} />}
       </main>
     </RequireManage>
+  );
+}
+
+function KindPick({ value, onChange }: { value: ZoneKind; onChange: (k: ZoneKind) => void }) {
+  return (
+    <div className="chips-pick" role="group" aria-label="النوع">
+      {ZONE_KINDS.map((k) => (
+        <button type="button" key={k.v} aria-pressed={value === k.v} onClick={() => onChange(k.v)}>{k.label}</button>
+      ))}
+    </div>
+  );
+}
+
+function ZoneSheet({ idx, farmId, parent, kind: kind0, existing, ghs, onClose }: {
+  idx: ZoneIndex; farmId: string; parent: Zone | null; kind: ZoneKind; existing?: Zone;
+  ghs: { zone_id: string | null }[]; onClose: () => void;
+}) {
+  const { toast } = useApp();
+  const [, go] = useZoneParam(idx);
+  const [kind, setKind] = useState<ZoneKind>(kind0);
+  const [name, setName] = useState(existing?.name ?? '');
+  const [area, setArea] = useState(numStr(existing?.area_m2));
+  const [notes, setNotes] = useState(existing?.notes ?? '');
+  const [parentId, setParentId] = useState(existing ? existing.parent_id ?? '' : parent?.id ?? '');
+  const [err, setErr] = useState<string | null>(null);
+  const [confirmDel, setConfirmDel] = useState(false);
+  const parents = flatTree(idx, (z) => validParents(idx, existing?.id ?? null).some((p) => p.id === z.id));
+  const hasContent = existing ? (idx.children.get(existing.id)?.length ?? 0) > 0 || ghs.some((g) => g.zone_id === existing.id) : false;
+
+  async function save(e: FormEvent) {
+    e.preventDefault();
+    const n = name.trim();
+    if (!n) return setErr('الاسم مطلوب');
+    const siblings = idx.children.get(parentId) ?? [];
+    if (siblings.some((z) => z.id !== existing?.id && z.name.trim().toLowerCase() === n.toLowerCase())) return setErr(`يوجد مكان بنفس الاسم "${n}" هنا`);
+    const a = toNum(area);
+    if (a != null && a <= 0) return setErr('المساحة يجب أن تكون أكبر من صفر');
+    const values = { kind, name: n, area_m2: a, notes: notes.trim() || null, parent_id: parentId || null };
+    if (existing) {
+      await update('farm_zones', existing.id, values);
+      toast('تم الحفظ');
+    } else {
+      const z = await create('farm_zones', { ...values, farm_id: farmId });
+      toast(`تمت إضافة ${zoneTitle(z)}`);
+      go(z.id);
+    }
+    onClose();
+  }
+
+  return (
+    <Sheet title={existing ? `تعديل ${zoneTitle(existing)}` : `${KIND_LABEL[kind]} جديد داخل ${parent ? zoneTitle(parent) : 'الموقع'}`} onClose={onClose}>
+      <form className="form" onSubmit={save}>
+        <div className="field"><span>النوع</span><KindPick value={kind} onChange={setKind} /></div>
+        <Field label="الاسم" hint={kind === 'row' ? 'مثل A أو 1' : kind === 'sector' ? 'مثل 1 أو القطاع الشمالي' : undefined}>
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} autoFocus required />
+        </Field>
+        {name.trim() && <p className="muted">سيظهر باسم: <b>{zoneTitle({ kind, name })}</b></p>}
+        {existing && (
+          <Field label="يتبع">
+            <select className="select" value={parentId} onChange={(e) => setParentId(e.target.value)}>
+              <option value="">الموقع مباشرة</option>
+              {parents.map(({ z, depth }) => <option key={z.id} value={z.id}>{'— '.repeat(depth)}{zoneTitle(z)}</option>)}
+            </select>
+          </Field>
+        )}
+        <div className="form-grid">
+          <Field label="المساحة (م²) — اختياري"><input className="input ltr" inputMode="decimal" value={area} onChange={(e) => setArea(e.target.value)} /></Field>
+          <Field label="ملاحظات"><input className="input" value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
+        </div>
+        {err && <p className="form-error" role="alert">{err}</p>}
+        <div className="form-actions">
+          <button className="btn primary">{existing ? 'حفظ' : 'إضافة'}</button>
+          <button type="button" className="btn" onClick={onClose}>إلغاء</button>
+          {existing && !hasContent && (
+            confirmDel
+              ? <button type="button" className="btn danger" onClick={async () => { await softDelete('farm_zones', existing.id); toast('تم الحذف'); go(existing.parent_id ?? ''); onClose(); }}>تأكيد الحذف</button>
+              : <button type="button" className="btn danger" onClick={() => setConfirmDel(true)}>حذف</button>
+          )}
+        </div>
+        {existing && hasContent && <p className="faint" style={{ fontSize: 'var(--fs-xs)' }}>لا يمكن حذف مكان بداخله صوب أو تقسيمات — انقلها أو احذفها أولًا.</p>}
+      </form>
+    </Sheet>
+  );
+}
+
+function BulkZonesSheet({ idx, farmId, parent, kind: kind0, onClose }: { idx: ZoneIndex; farmId: string; parent: Zone | null; kind: ZoneKind; onClose: () => void }) {
+  const { toast } = useApp();
+  const [kind, setKind] = useState<ZoneKind>(kind0);
+  const [from, setFrom] = useState('A');
+  const [to, setTo] = useState('D');
+  const [err, setErr] = useState<string | null>(null);
+  const names = nameSequence(from, to, '', false);
+  const existing = new Set((idx.children.get(parent?.id ?? '') ?? []).map((z) => z.name.trim().toLowerCase()));
+  const fresh = (names ?? []).filter((n) => !existing.has(n.toLowerCase()));
+
+  async function save(e: FormEvent) {
+    e.preventDefault();
+    if (!names) return setErr('اكتب بداية ونهاية من نفس النوع: أرقام (1 إلى 12) أو حروف (A إلى H)');
+    if (!fresh.length) return setErr('كل الأسماء موجودة بالفعل');
+    await createMany('farm_zones', fresh.map((name, i) => ({ farm_id: farmId, parent_id: parent?.id ?? null, kind, name, sort_order: 100 + i })));
+    toast(`تمت إضافة ${fresh.length} ${KIND_LABEL[kind]}`);
+    onClose();
+  }
+
+  return (
+    <Sheet title={`عدة أماكن داخل ${parent ? zoneTitle(parent) : 'الموقع'}`} onClose={onClose}>
+      <form className="form" onSubmit={save}>
+        <div className="field"><span>النوع</span><KindPick value={kind} onChange={setKind} /></div>
+        <div className="form-grid">
+          <Field label="من"><input className="input ltr" value={from} onChange={(e) => setFrom(e.target.value)} /></Field>
+          <Field label="إلى"><input className="input ltr" value={to} onChange={(e) => setTo(e.target.value)} /></Field>
+        </div>
+        {names && (
+          <div className="field">
+            <span>سيتم إنشاء {fresh.length}{fresh.length !== names.length ? ` (${names.length - fresh.length} موجود بالفعل)` : ''}</span>
+            <div className="preview-codes">{fresh.map((n) => <span key={n} className="chip">{zoneTitle({ kind, name: n })}</span>)}</div>
+          </div>
+        )}
+        {err && <p className="form-error" role="alert">{err}</p>}
+        <div className="form-actions"><button className="btn primary">إنشاء</button><button type="button" className="btn" onClick={onClose}>إلغاء</button></div>
+      </form>
+    </Sheet>
+  );
+}
+
+function BulkGreenhousesSheet({ farmId, zone, onClose }: { farmId: string; zone: Zone | null; onClose: () => void }) {
+  const { toast } = useApp();
+  const [f, setF] = useState({ prefix: '', from: '1', to: '10', pad: true, area_m2: '', spans_count: '', rows_count: '', row_length_m: '', greenhouse_type: '', cover_material: '' });
+  const [err, setErr] = useState<string | null>(null);
+  const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
+  const codes = nameSequence(f.from, f.to, f.prefix.trim().toUpperCase(), f.pad);
+  const taken = useLiveQuery(async () => new Set(
+    (await db.greenhouses.where('farm_id').equals(farmId).toArray())
+      .filter((g) => alive(g) && (g.zone_id ?? null) === (zone?.id ?? null)).map((g) => g.code.toUpperCase()),
+  ), [farmId, zone?.id]);
+  const fresh = (codes ?? []).filter((c) => !taken?.has(c));
+
+  async function save(e: FormEvent) {
+    e.preventDefault();
+    if (!codes) return setErr('اكتب بداية ونهاية صحيحة: أرقام (1 إلى 20) أو حروف (A إلى H)، وبحد أقصى 200 صوبة');
+    if (!fresh.length) return setErr('كل الأكواد موجودة بالفعل في هذا المكان');
+    const pos = (v: string) => { const n = toNum(v); return n != null && n > 0 ? n : null; };
+    await createMany('greenhouses', fresh.map((code) => ({
+      farm_id: farmId, zone_id: zone?.id ?? null, code,
+      area_m2: pos(f.area_m2), spans_count: pos(f.spans_count), rows_count: pos(f.rows_count), row_length_m: pos(f.row_length_m),
+      greenhouse_type: f.greenhouse_type.trim() || null, cover_material: f.cover_material.trim() || null,
+    })));
+    toast(`تمت إضافة ${fresh.length} صوبة`);
+    onClose();
+  }
+
+  return (
+    <Sheet title={`عدة صوب داخل ${zone ? zoneTitle(zone) : 'الموقع'}`} onClose={onClose}>
+      <form className="form" onSubmit={save}>
+        <div className="form-grid">
+          <Field label="بادئة الكود (اختياري)" hint="مثل GH-"><input className="input ltr" value={f.prefix} onChange={set('prefix')} /></Field>
+          <Field label="من"><input className="input ltr" value={f.from} onChange={set('from')} /></Field>
+          <Field label="إلى"><input className="input ltr" value={f.to} onChange={set('to')} /></Field>
+        </div>
+        <label className="check-row"><input type="checkbox" checked={f.pad} onChange={(e) => setF({ ...f, pad: e.target.checked })} /> أرقام بنفس العرض (01، 02 ... 10)</label>
+        {codes && (
+          <div className="field">
+            <span>سيتم إنشاء {fresh.length} صوبة{fresh.length !== codes.length ? ` (${codes.length - fresh.length} موجودة بالفعل)` : ''}</span>
+            <div className="preview-codes">{fresh.map((c) => <span key={c} className="chip num">{c}</span>)}</div>
+          </div>
+        )}
+        <h3 className="form-h">بيانات مشتركة (اختياري)</h3>
+        <div className="form-grid">
+          <Field label="المساحة (م²)"><input className="input ltr" inputMode="decimal" value={f.area_m2} onChange={set('area_m2')} /></Field>
+          <Field label="عدد البواكي"><input className="input ltr" inputMode="numeric" value={f.spans_count} onChange={set('spans_count')} /></Field>
+          <Field label="عدد الخطوط"><input className="input ltr" inputMode="numeric" value={f.rows_count} onChange={set('rows_count')} /></Field>
+          <Field label="طول الخط (م)"><input className="input ltr" inputMode="decimal" value={f.row_length_m} onChange={set('row_length_m')} /></Field>
+          <Field label="نوع الصوبة"><input className="input" list="gh-types" value={f.greenhouse_type} onChange={set('greenhouse_type')} /></Field>
+          <Field label="مادة الغطاء"><input className="input" list="gh-covers" value={f.cover_material} onChange={set('cover_material')} /></Field>
+        </div>
+        <GhDatalists />
+        {err && <p className="form-error" role="alert">{err}</p>}
+        <div className="form-actions"><button className="btn primary">إنشاء الصوب</button><button type="button" className="btn" onClick={onClose}>إلغاء</button></div>
+      </form>
+    </Sheet>
+  );
+}
+
+function GhDatalists() {
+  return (
+    <>
+      <datalist id="gh-types"><option value="صوبة مفردة" /><option value="متعددة البواكي" /><option value="شبكية" /><option value="أنفاق" /></datalist>
+      <datalist id="gh-covers"><option value="بولي إيثيلين" /><option value="بولي كربونيت" /><option value="زجاج" /><option value="شبك" /></datalist>
+    </>
   );
 }
 
 // ── إضافة / تعديل صوبة ───────────────────────────────────────────────
 export function GreenhouseForm() {
   const { id } = useParams();
+  const [sp] = useSearchParams();
   const { farmId, toast } = useApp();
   const nav = useNavigate();
+  const idx = useZones(farmId);
   const existing = useLiveQuery(async () => (id ? (await db.greenhouses.get(id)) ?? null : null), [id]);
-  if (id && existing === undefined) return null;
+  if ((id && existing === undefined) || !idx) return null;
   return (
     <RequireManage>
-      <GreenhouseFormInner key={existing?.id ?? 'new'} existing={existing ?? null} farmId={farmId!} onDone={(gid, msg) => { toast(msg); nav(`/setup/greenhouses/${gid}`, { replace: true }); }} />
+      <GreenhouseFormInner key={existing?.id ?? 'new'} idx={idx} existing={existing ?? null} farmId={farmId!} zone0={existing ? existing.zone_id : sp.get('zone')}
+        onDone={(gid, msg) => { toast(msg); nav(`/setup/greenhouses/${gid}`, { replace: true }); }} />
     </RequireManage>
   );
 }
 
-function GreenhouseFormInner({ existing, farmId, onDone }: { existing: Row<'greenhouses'> | null; farmId: string; onDone: (id: string, msg: string) => void }) {
+function GreenhouseFormInner({ idx, existing, farmId, zone0, onDone }: { idx: ZoneIndex; existing: Row<'greenhouses'> | null; farmId: string; zone0: string | null; onDone: (id: string, msg: string) => void }) {
   const [f, setF] = useState({
+    zone_id: zone0 && idx.byId.has(zone0) ? zone0 : '',
     code: existing?.code ?? '',
     name: existing?.name ?? '',
     greenhouse_type: existing?.greenhouse_type ?? '',
@@ -98,15 +340,17 @@ function GreenhouseFormInner({ existing, farmId, onDone }: { existing: Row<'gree
   });
   const [err, setErr] = useState<string | null>(null);
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
+  const tree = flatTree(idx);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     const code = f.code.trim().toUpperCase();
     if (!code) return setErr('كود الصوبة مطلوب');
+    const zone_id = f.zone_id || null;
     const dup = (await db.greenhouses.where('farm_id').equals(farmId).toArray()).find(
-      (g) => alive(g) && g.code.toUpperCase() === code && g.id !== existing?.id,
+      (g) => alive(g) && g.code.toUpperCase() === code && (g.zone_id ?? null) === zone_id && g.id !== existing?.id,
     );
-    if (dup) return setErr(`الكود ${code} مستخدم لصوبة أخرى`);
+    if (dup) return setErr(`الكود ${code} مستخدم لصوبة أخرى في نفس المكان`);
     const pos = (v: string, label: string) => {
       const n = toNum(v);
       if (n != null && n <= 0) throw new Error(`${label} يجب أن يكون أكبر من صفر`);
@@ -114,6 +358,7 @@ function GreenhouseFormInner({ existing, farmId, onDone }: { existing: Row<'gree
     };
     try {
       const values = {
+        zone_id,
         code,
         name: f.name.trim() || null,
         greenhouse_type: f.greenhouse_type.trim() || null,
@@ -136,13 +381,22 @@ function GreenhouseFormInner({ existing, farmId, onDone }: { existing: Row<'gree
     }
   }
 
+  const backTo = existing ? `/setup/greenhouses/${existing.id}` : `/setup${f.zone_id ? `?z=${f.zone_id}` : ''}`;
   return (
     <main className="page">
-      <Back to={existing ? `/setup/greenhouses/${existing.id}` : '/setup'} label={existing ? `صوبة ${existing.code}` : 'الصوب'} />
+      <Back to={backTo} label={existing ? `صوبة ${existing.code}` : 'هيكل الموقع'} />
       <div className="page-head"><div><h1>{existing ? 'تعديل بيانات الصوبة' : 'صوبة جديدة'}</h1></div></div>
       <form className="panel panel-pad form" onSubmit={submit}>
+        {tree.length > 0 && (
+          <Field label="المكان" hint="القطاع أو الصف الذي تقع فيه الصوبة">
+            <select className="select" value={f.zone_id} onChange={set('zone_id')}>
+              <option value="">الموقع مباشرة (بدون تقسيم)</option>
+              {tree.map(({ z, depth }) => <option key={z.id} value={z.id}>{'— '.repeat(depth)}{zoneTitle(z)}</option>)}
+            </select>
+          </Field>
+        )}
         <div className="form-grid">
-          <Field label="كود الصوبة" hint="كما هو مكتوب على الصوبة، مثل GH-07">
+          <Field label="كود الصوبة" hint="كما هو مكتوب على الصوبة، مثل GH-07 أو 3">
             <input className="input ltr" required value={f.code} onChange={set('code')} autoFocus={!existing} />
           </Field>
           <Field label="اسم وصفي (اختياري)"><input className="input" value={f.name} onChange={set('name')} /></Field>
@@ -154,8 +408,7 @@ function GreenhouseFormInner({ existing, farmId, onDone }: { existing: Row<'gree
           <Field label="مادة الغطاء"><input className="input" list="gh-covers" value={f.cover_material} onChange={set('cover_material')} /></Field>
         </div>
         <Field label="ملاحظات"><textarea className="textarea" value={f.notes} onChange={set('notes')} /></Field>
-        <datalist id="gh-types"><option value="صوبة مفردة" /><option value="متعددة البواكي" /><option value="شبكية" /><option value="أنفاق" /></datalist>
-        <datalist id="gh-covers"><option value="بولي إيثيلين" /><option value="بولي كربونيت" /><option value="زجاج" /><option value="شبك" /></datalist>
+        <GhDatalists />
         {err && <p className="form-error" role="alert">{err}</p>}
         <div className="form-actions">
           <button className="btn primary">{existing ? 'حفظ التعديلات' : 'إضافة الصوبة'}</button>
@@ -168,8 +421,9 @@ function GreenhouseFormInner({ existing, farmId, onDone }: { existing: Row<'gree
 // ── تفاصيل صوبة + دوراتها ────────────────────────────────────────────
 export function GreenhouseDetail() {
   const { id } = useParams();
-  const { toast } = useApp();
+  const { toast, farmId } = useApp();
   const nav = useNavigate();
+  const idx = useZones(farmId);
   const data = useLiveQuery(async () => {
     const g = await db.greenhouses.get(id!);
     const cycles = (await db.crop_cycles.where('greenhouse_id').equals(id!).toArray())
@@ -188,9 +442,10 @@ export function GreenhouseDetail() {
   return (
     <RequireManage>
       <main className="page">
-        <Back to="/setup" label="الصوب" />
+        <Back to={`/setup${g.zone_id ? `?z=${g.zone_id}` : ''}`} label="هيكل الموقع" />
         <div className="page-head">
           <div>
+            <GhPlace idx={idx} zoneId={g.zone_id} />
             <h1><span className="num">{g.code}</span>{g.name ? ` — ${g.name}` : ''}</h1>
             <p>
               {[g.area_m2 && `${g.area_m2} م²`, g.spans_count && `${g.spans_count} بواكي`, g.rows_count && `${g.rows_count} خط`, g.cover_material]
@@ -229,6 +484,8 @@ export function GreenhouseDetail() {
           </ul>
         )}
 
+        <DocSection greenhouseId={g.id} />
+
         {cycles.length === 0 && (
           <div style={{ marginTop: 28 }}>
             <button className="btn danger" onClick={() => setConfirm(true)}>حذف الصوبة</button>
@@ -238,7 +495,7 @@ export function GreenhouseDetail() {
           <Sheet title={`حذف الصوبة ${g.code}؟`} onClose={() => setConfirm(false)}>
             <p className="muted" style={{ marginBottom: 16 }}>الصوبة ليس لها دورات زراعية. سيتم إخفاؤها من كل الأجهزة.</p>
             <div className="form-actions">
-              <button className="btn danger" onClick={async () => { await softDelete('greenhouses', g.id); toast('تم حذف الصوبة'); nav('/setup', { replace: true }); }}>حذف</button>
+              <button className="btn danger" onClick={async () => { await softDelete('greenhouses', g.id); toast('تم حذف الصوبة'); nav(`/setup${g.zone_id ? `?z=${g.zone_id}` : ''}`, { replace: true }); }}>حذف</button>
               <button className="btn" onClick={() => setConfirm(false)}>إلغاء</button>
             </div>
           </Sheet>
