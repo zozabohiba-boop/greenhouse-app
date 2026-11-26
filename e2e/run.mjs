@@ -39,7 +39,7 @@ async function newTablet(viewport = { width: 1180, height: 820 }) {
   page.on('pageerror', (e) => consoleErrors.push(String(e)));
   return { ctx, page };
 }
-const asUser = (uid, q) => sql(`select set_config('request.jwt.claims', json_build_object('sub', '${uid}', 'role', 'authenticated')::text, false); set role authenticated; ${q}`);
+const asUser = (uid, q) => sql(`select set_config('request.jwt.claims', json_build_object('sub', '${uid}', 'role', 'authenticated')::text, false); set role authenticated; ${q}`).split('\n').pop().trim();
 const UID = { admin: 'aaaaaaaa-0000-0000-0000-000000000001', scout: 'bbbbbbbb-0000-0000-0000-000000000002', ops: 'bbbbbbbb-0000-0000-0000-000000000003', irr: 'bbbbbbbb-0000-0000-0000-000000000004', manager: 'bbbbbbbb-0000-0000-0000-000000000005', store: 'bbbbbbbb-0000-0000-0000-000000000006' };
 const FARM = 'dddddddd-0000-0000-0000-000000000001';
 async function login(page, email, password, waitFor = 'h1:has-text("الأسبوع")') {
@@ -289,6 +289,7 @@ try {
   // ── 14. الفحص الحشري بدون إنترنت (المهندس، تابلت عمودي) ───────────
   const scout = await newTablet({ width: 800, height: 1280 });
   await login(scout.page, 'scout@test.local', 'Scout#2026');
+  await scout.page.locator('a.action:has-text("معاملات المكافحة")').waitFor({ timeout: 15000 }).catch(() => {});
   ok(!(await scout.page.locator('a.action:has-text("تسجيل المحصول")').count()) && await scout.page.locator('a.action:has-text("معاملات المكافحة")').isVisible(), 'مهندس المكافحة يرى مجاله فقط (بدون تسجيل المحصول)');
   await waitSynced(scout.page, 20000);
   const sp = scout.page;
@@ -678,6 +679,7 @@ try {
   const irr = await newTablet();
   await login(irr.page, 'irr@test.local', 'Irr#2026x');
   const ip = irr.page;
+  await ip.locator('a.action:has-text("الري والتسميد")').waitFor({ timeout: 15000 }).catch(() => {});
   ok(await ip.locator('a.action:has-text("الري والتسميد")').isVisible() && !(await ip.locator('a.action:has-text("الفحص الحشري")').count()) && !(await ip.locator('a.action:has-text("تسجيل المحصول")').count()), 'مهندس الري: الرئيسية فيها مجاله فقط');
   await ip.click('a.action:has-text("لوحة المزرعة العامة")');
   await ip.locator('.kpi', { hasText: 'فحص هذا الأسبوع' }).waitFor({ timeout: 15000 });
@@ -685,6 +687,7 @@ try {
   ok(await ip.locator('.kpi', { hasText: 'فترة أمان' }).locator('b', { hasText: '1' }).isVisible(), 'اللوحة العامة: صوبة في فترة أمان (من معاملات مجال آخر)');
   await ip.screenshot({ path: `${SHOTS}/29-overview-irrigation.png`, fullPage: true });
   await ip.goto(APP + '#/activities/new');
+  await ip.locator('.type-pick button').first().waitFor();
   ok(await ip.locator('.type-pick button').count() === 2 && await ip.locator('.type-pick button', { hasText: 'تغذية ورقية' }).isVisible(), 'نموذج المعاملة: مهندس الري يشوف أنواع مجاله فقط (حقن بالري + تغذية ورقية)');
   await ip.click('.type-pick button:has-text("تغذية ورقية")');
   await ip.click('.gh-pick button:has-text("GH-07")');
@@ -711,7 +714,10 @@ try {
 
   // مهندس العمليات: خدمة أرضية بالعمالة وجودة التنفيذ
   const op = ops.page;
+  await op.keyboard.press('Escape');
+  await op.goto(APP + '#/');
   await op.goto(APP + '#/activities/new');
+  await op.locator('.type-pick button').first().waitFor();
   ok(await op.locator('.type-pick button').count() === 1, 'مهندس العمليات: نوع معاملة واحد (عمليات زراعية)');
   await op.click('.gh-pick button:has-text("GH-07")');
   await op.locator('input[aria-label="بحث في العمليات"]').fill('حرث');
@@ -733,6 +739,7 @@ try {
   await fp.page.fill('.sheet input[type=email]', 'scout@test.local');
   await fp.page.click('.sheet button:has-text("إرسال الطلب")');
   await fp.page.locator('.sheet .banner.ok').waitFor();
+  await fp.page.click('.sheet button:has-text("تم")');
   ok(sql("select count(*) from password_reset_requests where email = 'scout@test.local' and resolved_at is null") === '1', 'نسيت كلمة المرور: الطلب اتسجل');
   const mg = await newTablet();
   await login(mg.page, 'manager@test.local', 'Manager#2026');
@@ -774,6 +781,7 @@ try {
   const stk = await newTablet();
   await login(stk.page, 'store@test.local', 'Store#2026');
   const tp = stk.page;
+  await tp.locator('a.action:has-text("المخزن والحصاد")').waitFor({ timeout: 15000 }).catch(() => {});
   ok(await tp.locator('a.action:has-text("المخزن والحصاد")').isVisible() && !(await tp.locator('a.action:has-text("الفحص الحشري")').count()), 'أمين المخزن: الرئيسية فيها المخزن والمشتريات');
   await tp.click('a.action:has-text("المخزن والحصاد")');
   await tp.click('button:has-text("إنشاء المخازن الأساسية")');
@@ -844,6 +852,7 @@ try {
   await tp.goto(APP + '#/purchases');
   await tp.click('.pr-card button:has-text("استلام في المخزن")');
   await tp.click('.sheet button:has-text("تسجيل الاستلام")');
+  await tp.click('.seg button:has-text("كل الطلبات")');
   await tp.locator('.pr-card .chip', { hasText: 'تم الاستلام' }).waitFor({ timeout: 10000 });
   await waitSynced(tp, 20000);
   ok(sql("select status from purchase_requests") === 'received' && sql("select count(*) from stock_movements where purchase_request_id is not null") === '1', 'الاستلام مرتبط بطلب الشراء والطلب اتقفل');
