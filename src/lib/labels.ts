@@ -66,14 +66,16 @@ export const LIFE_STAGES = ['بيض', 'يرقات', 'حوريات', 'عذارى'
 
 // ── المعاملات ────────────────────────────────────────────────────────
 export const ACTIVITY_TYPE_LABEL: Record<E['activity_type'], string> = {
-  chemical_spray: 'رش',
+  chemical_spray: 'رش مكافحة',
   fertigation_injection: 'حقن بالري',
+  foliar_nutrition: 'تغذية ورقية',
   bio_release: 'إطلاق حيوي',
   cultural_operation: 'عملية زراعية',
 };
 export const ACTIVITY_ICON: Record<E['activity_type'], string> = {
   chemical_spray: 'spray',
   fertigation_injection: 'drop',
+  foliar_nutrition: 'leaf',
   bio_release: 'bug',
   cultural_operation: 'plant',
 };
@@ -106,8 +108,9 @@ export const PRODUCT_TYPE_LABEL: Record<E['product_type'], string> = {
 export const PRODUCT_TYPES_FOR: Record<E['activity_type'], E['product_type'][]> = {
   chemical_spray: ['insecticide', 'acaricide', 'fungicide', 'bactericide', 'nematicide', 'herbicide', 'biostimulant', 'fertilizer', 'adjuvant', 'other'],
   fertigation_injection: ['fertilizer', 'biostimulant', 'nematicide', 'fungicide', 'insecticide', 'bactericide', 'other'],
+  foliar_nutrition: ['fertilizer', 'biostimulant', 'adjuvant', 'other'],
   bio_release: ['biocontrol_agent', 'pollinator'],
-  cultural_operation: [],
+  cultural_operation: ['fertilizer', 'biostimulant', 'other'],
 };
 
 export const DOSE_UNIT_LABEL: Record<E['dose_unit'], string> = {
@@ -129,6 +132,7 @@ export const DOSE_UNIT_LABEL: Record<E['dose_unit'], string> = {
 };
 
 export const OP_CATEGORY_LABEL: Record<E['operation_category'], string> = {
+  land_preparation: 'الخدمة الأرضية وتجهيز التربة',
   establishment: 'التأسيس',
   crop_maintenance: 'خدمة المحصول',
   pollination: 'التلقيح',
@@ -149,4 +153,63 @@ export const REC_STATUS_LABEL: Record<E['recommendation_status'], string> = {
   in_progress: 'جاري التنفيذ',
   done: 'نُفّذت',
   cancelled: 'ملغاة',
+};
+
+/** جودة تنفيذ العملية */
+export const QUALITY_LABEL: Record<number, string> = { 1: 'ضعيف', 2: 'مقبول', 3: 'جيد', 4: 'ممتاز' };
+
+// ── المخازن والحصاد ─────────────────────────────────────────────────
+export const MOVEMENT_LABEL: Record<string, string> = {
+  receipt: 'استلام',
+  issue: 'صرف',
+  return: 'مرتجع للمخزن',
+  adjust_in: 'تسوية جرد (زيادة)',
+  adjust_out: 'تسوية جرد (عجز/تالف)',
+  transfer_in: 'تحويل وارد',
+  transfer_out: 'تحويل صادر',
+};
+export const WAREHOUSE_KIND_LABEL: Record<string, string> = {
+  general: 'مخزن عام',
+  pesticides: 'مخزن المبيدات',
+  fertilizers: 'مخزن الأسمدة',
+  supplies: 'مستلزمات',
+  harvest: 'ثلاجة / مخزن الحصاد',
+  fuel: 'وقود',
+};
+export const HARVEST_GRADE_LABEL: Record<string, string> = {
+  export: 'تصدير',
+  first: 'درجة أولى',
+  second: 'درجة ثانية',
+  local: 'سوق محلي',
+  cull: 'فرز / هالك',
+};
+export const PR_STATUS_LABEL: Record<string, string> = {
+  draft: 'مسودة',
+  submitted: 'بانتظار الاعتماد',
+  approved: 'معتمد',
+  rejected: 'مرفوض',
+  ordered: 'تم الطلب من المورد',
+  partially_received: 'استلام جزئي',
+  received: 'تم الاستلام',
+  cancelled: 'ملغي',
+};
+export const STOCK_UNITS = ['كجم', 'جم', 'لتر', 'مل', 'عبوة', 'كرتونة', 'شيكارة', 'قطعة', 'لفة', 'متر', 'خلية', 'علبة'];
+
+// ── أسواق التصدير ────────────────────────────────────────────────────
+export const MARKET_LABEL: Record<string, string> = {
+  EU: 'الاتحاد الأوروبي',
+  UK: 'المملكة المتحدة',
+  CODEX: 'كودكس (دولي)',
+  US: 'الولايات المتحدة',
+  JP: 'اليابان',
+  CN: 'الصين',
+  GCC: 'دول الخليج',
+  RU: 'روسيا',
+  EG: 'مصر',
+};
+export const EU_STATUS_LABEL: Record<string, string> = {
+  approved: 'معتمدة في الاتحاد الأوروبي',
+  not_approved: 'غير معتمدة في الاتحاد الأوروبي',
+  pending: 'قيد المراجعة في الاتحاد الأوروبي',
+  unknown: 'حالة الاتحاد الأوروبي غير محددة',
 };

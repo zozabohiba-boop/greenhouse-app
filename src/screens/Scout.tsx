@@ -61,7 +61,7 @@ export function ScoutPick() {
     return { ghs: ghs.filter(alive).sort(byCode), grid, last };
   }, [farmId, year, week]);
 
-  if (!can.record) return <Navigate to="/" replace />;
+  if (!can.canRecord('ipm')) return <Navigate to="/" replace />;
   const scouted = data ? data.ghs.filter((g) => data.grid.has(`${g.id}|${weekKey(year, week)}`)).length : 0;
 
   return (
@@ -157,7 +157,7 @@ export function ScoutGreenhouse() {
           <h1>فحص <span className="num">{g.code}</span></h1>
           <p>{g.name ? `${g.name}، ` : ''}{g.rows_count ? `${g.rows_count} خط` : 'عدد الخطوط غير محدد'}</p>
         </div>
-        {can.record && (mineToday
+        {can.canRecord('ipm') && (mineToday
           ? <Link to={`/scout/s/${mineToday.id}`} className="btn primary lg"><Icon name="bug" /> أكمل جولة اليوم</Link>
           : (
             <div className="row">
@@ -282,7 +282,7 @@ export function ScoutSession() {
   if (data === null) return <main className="page"><div className="panel empty"><h3>الجولة غير موجودة</h3></div></main>;
   const { s, g, obs, prevMax } = data;
   const mine = s.created_by === user?.id || s.created_by == null;
-  const editable = can.record && (mine || can.supervise);
+  const editable = can.canRecord('ipm') && (mine || can.supervise);
   const rows = g?.rows_count ?? null;
   const lastRow = obs.find((o) => o.row_no != null)?.row_no ?? null;
   const currentRow = rowSel === undefined ? (lastRow ?? (rows ? 1 : null)) : rowSel;
@@ -318,7 +318,7 @@ export function ScoutSession() {
         </div>
       </div>
 
-      {!editable && can.record && <div className="banner info"><Icon name="alert" /> هذه جولة مهندس آخر — للعرض فقط.</div>}
+      {!editable && can.canRecord('ipm') && <div className="banner info"><Icon name="alert" /> هذه جولة مهندس آخر — للعرض فقط.</div>}
 
       <div className="scout">
         <section className="scout-map">

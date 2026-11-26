@@ -7,7 +7,11 @@ import { Home } from './screens/Home';
 import { CycleDetail, CycleForm, GreenhouseDetail, GreenhouseForm, SetupHome } from './screens/Setup';
 import { RegisterEntry, RegisterPick } from './screens/Register';
 import { RegisterSummary } from './screens/Summary';
-import { Team } from './screens/Team';
+import { ForcePasswordChange, SystemAdmins, Team } from './screens/Team';
+import { OverviewScreen } from './screens/Overview';
+import { StoreHome, HarvestScreen } from './screens/Store';
+import { PurchasesScreen } from './screens/Purchases';
+import { RegistryScreen } from './screens/Registry';
 import { ScoutGreenhouse, ScoutPick, ScoutSession } from './screens/Scout';
 import { ActivityDetail, ActivityForm, ActivityList, ProductList } from './screens/Activities';
 import { RecForm, RecList } from './screens/Recs';
@@ -20,6 +24,7 @@ import { ProjectsBoard } from './screens/Projects';
 function Protected() {
   const { user } = useApp();
   if (!user) return <Navigate to="/login" replace />;
+  if (user.mustChange) return <ForcePasswordChange />;
   return (
     <FarmGate>
       <Routes>
@@ -52,6 +57,12 @@ function Protected() {
           <Route path="weather" element={<WeatherScreen />} />
           <Route path="farm" element={<FarmProfile />} />
           <Route path="projects" element={<ProjectsBoard />} />
+          <Route path="admins" element={<SystemAdmins />} />
+          <Route path="overview" element={<OverviewScreen />} />
+          <Route path="store" element={<StoreHome />} />
+          <Route path="harvest" element={<HarvestScreen />} />
+          <Route path="purchases" element={<PurchasesScreen />} />
+          <Route path="registry" element={<RegistryScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp } from '../app/context';
 import { db } from '../lib/db';
-import { cropAgeWeeks, formatDay, isoWeek, todayLocal, weekSpan } from '../lib/dates';
+import { cropAgeWeeks, formatDate, formatDay, isoWeek, todayLocal, weekSpan } from '../lib/dates';
 import { Icon } from '../components/Icon';
 import { alive } from '../lib/repo';
 import { phiByGreenhouse, pressureGrid } from '../lib/ipm';
@@ -10,6 +10,8 @@ import { SevChip } from './Scout';
 import { useZones } from '../lib/zones';
 import { ZoneBrowser } from '../components/ZoneBrowser';
 import { WeatherStrip } from './Weather';
+import { ROLE_HINT, ROLE_LABEL } from '../lib/access';
+import { useOverview } from '../lib/overview';
 
 export const byCode = (a: { code: string }, b: { code: string }) =>
   a.code.localeCompare(b.code, 'en', { numeric: true });
@@ -71,8 +73,10 @@ export function useGreenhouseBoard(farmId: string | null) {
 }
 
 export function Home() {
-  const { farmId, can } = useApp();
+  const { farmId, can, role } = useApp();
   const board = useGreenhouseBoard(farmId);
+  const overview = useOverview(farmId, !can.full).data;
+  const ov = new Map((overview?.greenhouses ?? []).map((x) => [x.id, x]));
   const idx = useZones(farmId);
   const today = todayLocal();
   const { week } = isoWeek(today);
@@ -95,54 +99,91 @@ export function Home() {
           <h1>الأسبوع {week}</h1>
           <p>{weekSpan(today)}، اليوم {formatDay(today)}</p>
         </div>
-        <Link to="/dashboard" className="btn"><Icon name="chart" size={20} /> لوحة المتابعة</Link>
+        <Link to={can.full ? '/dashboard' : '/overview'} className="btn"><Icon name="chart" size={20} /> {can.full ? 'لوحة المتابعة' : 'لوحة المزرعة العامة'}</Link>
       </div>
+
+      {!can.full && role && (
+        <div className="role-strip"><Icon name="worker" size={20} /> <b>{ROLE_LABEL[role]}</b><span className="muted">{ROLE_HINT[role]}</span></div>
+      )}
 
       <WeatherStrip />
 
       <div className="actions">
-        {can.record ? (
-          <>
-            <Link to="/register" className="action primary">
-              <span className="ico"><Icon name="ruler" size={28} /></span>
-              <b>تسجيل المحصول</b>
-              <small>القياسات الأسبوعية للنباتات المرجعية</small>
-            </Link>
-            <Link to="/scout" className="action">
-              <span className="ico"><Icon name="bug" size={28} /></span>
-              <b>الفحص الحشري</b>
-              <small>{board ? `فُحصت ${scouted} من ${board.length} صوبة هذا الأسبوع` : 'الآفات والأمراض والبؤر'}</small>
-            </Link>
-            <Link to="/activities" className="action">
-              <span className="ico"><Icon name="spray" size={28} /></span>
-              <b>المعاملات</b>
-              <small>{blocked ? `${blocked} صوبة في فترة أمان` : 'الرش والحقن والإطلاق الحيوي والعمليات'}</small>
-            </Link>
-          </>
-        ) : (
-          <Link to="/dashboard" className="action primary">
-            <span className="ico"><Icon name="chart" size={28} /></span>
-            <b>لوحة المتابعة</b>
-            <small>ضغط الآفات، توازن النبات، فترات الأمان</small>
+        {can.canRecord('operations') && (
+          <Link to="/register" className={`action${can.full || role === 'operations' ? ' primary' : ''}`}>
+            <span className="ico"><Icon name="ruler" size={28} /></span>
+            <b>تسجيل المحصول</b>
+            <small>القياسات الأسبوعية للنباتات المرجعية</small>
           </Link>
         )}
-        <Link to="/recs" className="action">
-          <span className="ico"><Icon name="note" size={28} /></span>
-          <b>التوصيات</b>
-          <small>{recs ? `${recs} توصية مفتوحة` : 'لا توجد توصيات مفتوحة'}</small>
-        </Link>
+        {can.canRecord('ipm') && (
+          <Link to="/scout" className={`action${role === 'scout' ? ' primary' : ''}`}>
+            <span className="ico"><Icon name="bug" size={28} /></span>
+            <b>الفحص الحشري</b>
+            <small>{board ? `فُحصت ${scouted} من ${board.length} صوبة هذا الأسبوع` : 'الآفات والأمراض والبؤر'}</small>
+          </Link>
+        )}
+        {can.full && (
+          <Link to="/activities" className="action">
+            <span className="ico"><Icon name="spray" size={28} /></span>
+            <b>{can.record ? 'المعاملات' : 'سجل المعاملات'}</b>
+            <small>{blocked ? `${blocked} صوبة في فترة أمان` : 'المكافحة والري والتسميد والعمليات الزراعية'}</small>
+          </Link>
+        )}
+        {!can.full && can.canRecord('ipm') && (
+          <Link to="/activities?domain=ipm" className="action">
+            <span className="ico"><Icon name="spray" size={28} /></span>
+            <b>معاملات المكافحة</b>
+            <small>{blocked ? `${blocked} صوبة في فترة أمان` : 'الرش والإطلاق الحيوي وتنفيذ التوصيات'}</small>
+          </Link>
+        )}
+        {!can.full && can.canRecord('fertigation') && (
+          <Link to="/activities?domain=fertigation" className={`action${role === 'irrigation' ? ' primary' : ''}`}>
+            <span className="ico"><Icon name="drop" size={28} /></span>
+            <b>الري والتسميد</b>
+            <small>الحقن بالري والتغذية الورقية</small>
+          </Link>
+        )}
+        {!can.full && can.canRecord('operations') && (
+          <Link to="/activities?domain=operations" className="action">
+            <span className="ico"><Icon name="plant" size={28} /></span>
+            <b>العمليات الزراعية</b>
+            <small>التجهيز والزراعة والخدمة بالعمالة وجودة التنفيذ</small>
+          </Link>
+        )}
+        {can.store && (
+          <Link to="/store" className={`action${role === 'storekeeper' ? ' primary' : ''}`}>
+            <span className="ico"><Icon name="store" size={28} /></span>
+            <b>المخزن والحصاد</b>
+            <small>الرصيد والاستلام والصرف ووزن الحصاد</small>
+          </Link>
+        )}
+        {can.requestPurchase && (
+          <Link to="/purchases" className={`action${role === 'purchasing' ? ' primary' : ''}`}>
+            <span className="ico"><Icon name="cart" size={28} /></span>
+            <b>{can.canRead('purchasing') ? 'المشتريات' : 'طلب شراء'}</b>
+            <small>{can.approvePurchases ? 'الطلبات والاعتماد والمتابعة' : can.canRead('purchasing') ? 'الطلبات حتى الاستلام' : 'اطلب مواد أو مستلزمات لمجالك'}</small>
+          </Link>
+        )}
+        {!can.full && (
+          <Link to="/overview" className="action">
+            <span className="ico"><Icon name="eye" size={28} /></span>
+            <b>لوحة المزرعة العامة</b>
+            <small>حالة كل الصوب للمتابعة فقط</small>
+          </Link>
+        )}
+        {(can.full || can.record) && (
+          <Link to="/recs" className="action">
+            <span className="ico"><Icon name="note" size={28} /></span>
+            <b>التوصيات</b>
+            <small>{recs ? `${recs} توصية مفتوحة` : 'لا توجد توصيات مفتوحة'}</small>
+          </Link>
+        )}
         <Link to="/files" className="action">
           <span className="ico"><Icon name="folder" size={28} /></span>
           <b>الملفات والتقارير</b>
           <small>تقارير الزيارات والتحاليل والبرامج</small>
         </Link>
-        {!can.record && (
-          <Link to="/activities" className="action">
-            <span className="ico"><Icon name="spray" size={28} /></span>
-            <b>سجل المعاملات</b>
-            <small>{blocked ? `${blocked} صوبة في فترة أمان` : 'الرش والحقن والإطلاق الحيوي'}</small>
-          </Link>
-        )}
       </div>
 
       <h2 className="section-title">
@@ -178,12 +219,20 @@ export function Home() {
             );
           }}
           render={({ g, cycle, crop, variety, plants, measured, pest, phi }) => {
+          const o = ov.get(g.id);
+          const seeReg = can.canRead('operations');
+          const seeIpm = can.canRead('ipm');
           let chip = <span className="chip">لا توجد دورة قائمة</span>;
-          if (cycle && plants === 0) chip = <span className="chip warn">لم تُحدد نباتات مرجعية</span>;
+          if (!seeReg) chip = o?.has_cycle ? <span className={`chip ${o.registered ? 'ok' : 'warn'}`}>{o.registered ? 'سُجّل المحصول' : 'لم يُسجّل المحصول'}</span> : cycle ? <span className="chip">دورة قائمة</span> : chip;
+          else if (cycle && plants === 0) chip = <span className="chip warn">لم تُحدد نباتات مرجعية</span>;
           else if (cycle && measured >= plants) chip = <span className="chip ok"><Icon name="check" size={14} /> سُجّل هذا الأسبوع</span>;
           else if (cycle && measured > 0) chip = <span className="chip warn">{measured} من {plants} نبات</span>;
           else if (cycle) chip = <span className="chip bad">لم يُسجّل هذا الأسبوع</span>;
-          const target = cycle && plants > 0 && can.record ? `/register/${cycle.id}` : can.manage ? `/setup/greenhouses/${g.id}` : cycle ? `/register/${cycle.id}/summary` : undefined;
+          const phiUntil = phi ? null : o?.harvest_allowed_from ?? null;
+          const target = cycle && plants > 0 && can.canRecord('operations') ? `/register/${cycle.id}`
+            : can.manage ? `/setup/greenhouses/${g.id}`
+            : can.canRecord('ipm') ? `/scout/gh/${g.id}`
+            : cycle && seeReg ? `/register/${cycle.id}/summary` : undefined;
           const body = (
             <>
               <span className="code">{g.code}</span>
@@ -197,8 +246,11 @@ export function Home() {
               </span>
               <span className="gh-status">
                 {chip}
-                {pest && (pest.observations ? <SevChip v={pest.max} hotspot={pest.hotspots > 0} /> : <span className="chip ok">فحص: نظيفة</span>)}
+                {seeIpm
+                  ? pest && (pest.observations ? <SevChip v={pest.max} hotspot={pest.hotspots > 0} /> : <span className="chip ok">فحص: نظيفة</span>)
+                  : o?.scouted && (o.worst ? <SevChip v={o.worst} /> : <span className="chip ok">فحص: نظيفة</span>)}
                 {phi && <span className="chip bad" title={phi.product}><Icon name="shield" size={14} /> فترة أمان</span>}
+                {phiUntil && <span className="chip bad"><Icon name="shield" size={14} /> فترة أمان حتى {formatDate(phiUntil)}</span>}
               </span>
             </>
           );

@@ -8,15 +8,20 @@ import { ProjectsBoard } from './Projects';
 
 /** يضمن اختيار مزرعة قبل أي شاشة. لو المستخدم عضو في مزرعة واحدة تُختار تلقائيًا */
 export function FarmGate({ children }: { children: ReactNode }) {
-  const { user, farmId, setFarmId } = useApp();
+  const { user, farmId, setFarmId, isSystemAdmin } = useApp();
   const sync = useSync();
   const options = useLiveQuery(async () => {
+    // مدير النظام: كل المشاريع، وغيره: المشاريع اللي هو عضو فيها فقط
+    if (isSystemAdmin) {
+      const farms = (await db.farms.toArray()).filter((f) => !f.deleted_at);
+      return farms.map((f) => ({ m: { farm_id: f.id, role: 'admin' as const }, f }));
+    }
     const mem = await db.farm_members.where('user_id').equals(user!.id).toArray();
     const farms = await db.farms.bulkGet(mem.map((m) => m.farm_id));
     return mem
-      .map((m, i) => ({ m, f: farms[i] }))
+      .map((m, i) => ({ m: { farm_id: m.farm_id, role: m.role }, f: farms[i] }))
       .filter((x) => x.f && !x.f.deleted_at);
-  }, [user?.id]);
+  }, [user?.id, isSystemAdmin]);
 
   useEffect(() => {
     if (!options) return;
@@ -50,8 +55,8 @@ export function FarmGate({ children }: { children: ReactNode }) {
             </>
           ) : (
             <>
-              <h3>حسابك غير مرتبط بأي مزرعة</h3>
-              <p>اطلب من مدير المزرعة إضافة بريدك ({user?.email}) من شاشة فريق العمل.</p>
+              <h3>حسابك غير مرتبط بأي مشروع</h3>
+              <p>اطلب من مدير الشركة أو مدير النظام إضافة بريدك ({user?.email}) من شاشة فريق العمل.</p>
             </>
           )}
         </div>
@@ -59,5 +64,5 @@ export function FarmGate({ children }: { children: ReactNode }) {
     );
   }
 
-  return <ProjectsBoard canCreate={options.some((o) => o.m.role === 'admin')} />;
+  return <ProjectsBoard canCreate={isSystemAdmin} />;
 }

@@ -56,6 +56,17 @@ export class GreenhouseDB extends Dexie {
   farm_zones!: Table<Local<Row<'farm_zones'>>, string>;
   farm_profiles!: Table<Local<Row<'farm_profiles'>>, string>;
   documents!: Table<Local<Row<'documents'>>, string>;
+  system_admins!: Table<Local<Row<'system_admins'>>, string>;
+  product_categories!: Table<Local<Row<'product_categories'>>, string>;
+  active_substances!: Table<Local<Row<'active_substances'>>, string>;
+  substance_limits!: Table<Local<Row<'substance_limits'>>, string>;
+  product_actives!: Table<Local<Row<'product_actives'>>, string>;
+  warehouses!: Table<Local<Row<'warehouses'>>, string>;
+  stock_items!: Table<Local<Row<'stock_items'>>, string>;
+  purchase_requests!: Table<Local<Row<'purchase_requests'>>, string>;
+  purchase_request_items!: Table<Local<Row<'purchase_request_items'>>, string>;
+  stock_movements!: Table<Local<Row<'stock_movements'>>, string>;
+  harvest_records!: Table<Local<Row<'harvest_records'>>, string>;
   meta!: Table<MetaRow, string>;
   blobs!: Table<BlobRow, string>;
 
@@ -104,6 +115,21 @@ export class GreenhouseDB extends Dexie {
     // v4: قاعدة المعرفة — خيارات المكافحة لكل آفة
     this.version(4).stores({
       pest_controls: 'id, farm_id, pest_id, product_id, _dirty',
+    });
+    // v5: مديرو النظام، تصنيف المواد، سجل المبيدات، المخازن والمشتريات والحصاد
+    this.version(5).stores({
+      system_admins: 'id, user_id',
+      product_categories: 'id, farm_id, parent_id, _dirty',
+      products: 'id, farm_id, category_id, _dirty',
+      active_substances: 'id, farm_id, _dirty',
+      substance_limits: 'id, substance_id, [substance_id+market], _dirty',
+      product_actives: 'id, product_id, substance_id, _dirty',
+      warehouses: 'id, farm_id, _dirty',
+      stock_items: 'id, farm_id, product_id, _dirty',
+      purchase_requests: 'id, farm_id, status, _dirty',
+      purchase_request_items: 'id, farm_id, request_id, _dirty',
+      stock_movements: 'id, farm_id, product_id, warehouse_id, activity_id, _dirty',
+      harvest_records: 'id, farm_id, greenhouse_id, harvested_on, _dirty',
     });
   }
 

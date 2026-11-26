@@ -20,7 +20,7 @@ export function RegisterPick() {
   const { farmId, can } = useApp();
   const board = useGreenhouseBoard(farmId);
   const idx = useZones(farmId);
-  if (!can.record) return <Navigate to="/" replace />;
+  if (!can.canRecord('operations')) return <Navigate to="/" replace />;
   const ready = board?.filter((b) => b.cycle && b.plants > 0) ?? [];
   const { week } = isoWeek(todayLocal());
   return (
@@ -284,7 +284,7 @@ export function RegisterEntry() {
     }
   }, [field, idx]);
 
-  if (!can.record) return <Navigate to="/" replace />;
+  if (!can.canRecord('operations')) return <Navigate to="/" replace />;
   if (!data) return null;
   if (!data.cycle) return <main className="page"><div className="panel empty"><h3>الدورة غير موجودة</h3><Link className="btn" to="/register">رجوع</Link></div></main>;
   const { gh, crop, week } = data as Required<typeof data>;

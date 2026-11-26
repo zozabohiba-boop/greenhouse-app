@@ -1,7 +1,7 @@
 // لوحة المتابعة للإدارة والاستشاري: كل شيء محسوب على الجهاز من البيانات المتزامنة (تعمل أوفلاين)
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp } from '../app/context';
 import { db } from '../lib/db';
@@ -21,6 +21,13 @@ import type { Row } from '../lib/schema';
 const RANGES = [4, 8, 12] as const;
 
 export function Dashboard() {
+  const { can } = useApp();
+  // اللوحة التفصيلية لمن يشوف كل المجالات، وغيرهم اللوحة العامة (أرقام مجمّعة للقراءة فقط)
+  if (!can.full) return <Navigate to="/overview" replace />;
+  return <DashboardFull />;
+}
+
+function DashboardFull() {
   const { farmId } = useApp();
   const nav = useNavigate();
   const today = todayLocal();

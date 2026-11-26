@@ -1,0 +1,2362 @@
+{
+  "generated_on": "2026-11-27",
+  "sources": [
+    {
+      "id": "ppdb",
+      "title": "University of Hertfordshire AERU — Pesticide Properties DataBase (PPDB/BPDB/IUPAC), per-substance reports incl. EC 1107/2009 status, expiry, CfS, CAS, MoA (pages last updated 2026)",
+      "url": "https://sitem.herts.ac.uk/aeru/ppdb/en/"
+    },
+    {
+      "id": "echa_ppp",
+      "title": "ECHA — Annex: approved active substances in plant protection products (Reg. (EC) 1107/2009 / Reg. (EU) 540/2011)",
+      "url": "https://echa.europa.eu/ann-approved-act-subs-plant-prot-prods"
+    },
+    {
+      "id": "irac",
+      "title": "IRAC Mode of Action Classification Scheme v11.5 (February 2026)",
+      "url": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "id": "frac",
+      "title": "FRAC Code List 2025 (last update March 2025)",
+      "url": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "id": "codex",
+      "title": "Codex Alimentarius — Pesticide Residues in Food and Feed database (MRLs adopted up to CAC49, July 2026)",
+      "url": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index"
+    },
+    {
+      "id": "hrac",
+      "title": "HRAC Global Herbicide MoA Classification poster (2024)",
+      "url": "https://hracglobal.com/files/2024-HRAC-GLOBAL-HERBICIDE-MOA-CLASSIFICATION-POSTERold.pdf"
+    },
+    {
+      "id": "eurlex_ext",
+      "title": "EU Implementing Regulations amending Reg. (EU) 540/2011 (2026/372, 2026/870, 2026/1421, 2026/1826, 2026/1976, 2026/2348) — expiry-date verification",
+      "url": "https://eur-lex.europa.eu/eli/reg_impl/2026/2348/oj/eng"
+    }
+  ],
+  "progress": {
+    "next": "US (eCFR 40 CFR 180) tolerances for priority-1 substances; EU MRLs blocked (see blocked_sources); Codex for remaining substances blocked by codex.fao.org detail-page bug",
+    "blocked_sources": [
+      "api.datalake.sante.service.ec.europa.eu (EU Pesticides DB API): shell egress refused (HTTP 403 by proxy) and WebFetch permission not granted",
+      "ec.europa.eu/food/plant/pesticides/eu-pesticides-database (web app): WebFetch permission not granted / JS-only",
+      "echa.europa.eu MRL list pages (pesticides-mrls-ann-dir-396-2005): fetch fails (client_error) or per-record only",
+      "codex.fao.org pesticide-details pages: server returns 'Clofentezine (156)' for every pesticide alphabetically after clofentezine, so only A–Ch pesticides could be read",
+      "apc.gov.eg (Egypt APC): not reachable from shell; not attempted via WebFetch (no search-surfaced registered-product list)"
+    ],
+    "done_substances": [
+      "abamectin",
+      "emamectin benzoate",
+      "chlorantraniliprole",
+      "cyantraniliprole",
+      "spinosad",
+      "spinetoram",
+      "indoxacarb",
+      "lufenuron",
+      "methoxyfenozide",
+      "imidacloprid",
+      "spirotetramat",
+      "acetamiprid",
+      "thiamethoxam",
+      "dinotefuran",
+      "pyriproxyfen",
+      "buprofezin",
+      "spirodiclofen",
+      "spiromesifen",
+      "flonicamid",
+      "flupyradifurone",
+      "sulfoxaflor",
+      "pymetrozine",
+      "lambda-cyhalothrin",
+      "alpha-cypermethrin",
+      "chlorfenapyr",
+      "hexythiazox",
+      "etoxazole",
+      "fenpyroximate",
+      "bifenazate",
+      "pyridaben",
+      "chlorpyrifos",
+      "profenofos",
+      "methomyl",
+      "dimethoate",
+      "oxamyl",
+      "fosthiazate",
+      "fluopyram",
+      "azoxystrobin",
+      "pyraclostrobin",
+      "trifloxystrobin",
+      "difenoconazole",
+      "tebuconazole",
+      "penconazole",
+      "myclobutanil",
+      "tetraconazole",
+      "boscalid",
+      "cyprodinil",
+      "fludioxonil",
+      "iprodione",
+      "mancozeb",
+      "chlorothalonil",
+      "copper hydroxide",
+      "copper oxychloride",
+      "sulfur",
+      "metalaxyl-M",
+      "cymoxanil",
+      "dimethomorph",
+      "mandipropamid",
+      "fosetyl",
+      "propamocarb",
+      "famoxadone",
+      "ametoctradin",
+      "thiophanate-methyl",
+      "carbendazim",
+      "hymexazol",
+      "fluazinam",
+      "cyflufenamid",
+      "bupirimate",
+      "milbemectin",
+      "quinoxyfen",
+      "glyphosate",
+      "potassium hydrogen carbonate",
+      "bacillus amyloliquefaciens qst 713",
+      "paraffin oil (cas 8042-47-5)",
+      "paraffin oil (cas 64742-46-7)",
+      "azadirachtin",
+      "bacillus thuringiensis subsp. kurstaki abts 351",
+      "bacillus thuringiensis subsp. aizawai abts-1857",
+      "bacillus thuringiensis subsp. aizawai gc-91",
+      "beauveria bassiana atcc 74040",
+      "beauveria bassiana gha",
+      "copper sulphate tribasic",
+      "bordeaux mixture",
+      "fatty acids potassium salts",
+      "acequinocyl",
+      "malathion",
+      "deltamethrin"
+    ],
+    "mrl_done": {
+      "EU": [],
+      "CODEX": [
+        "abamectin",
+        "acetamiprid",
+        "ametoctradin",
+        "azoxystrobin",
+        "bifenazate",
+        "boscalid",
+        "buprofezin",
+        "chlorantraniliprole",
+        "chlorfenapyr",
+        "chlorothalonil"
+      ],
+      "US": [],
+      "JP": []
+    },
+    "codex_checked_no_rows": []
+  },
+  "substances": [
+    {
+      "name_en": "abamectin",
+      "name_ar": "أبامكتين",
+      "cas": "71751-41-2",
+      "classes": [
+        "insecticide",
+        "acaricide",
+        "nematicide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "6",
+      "chemical_group": "avermectins",
+      "eu_status": "approved",
+      "eu_expiry": "2038-03-31",
+      "eu_cfs": false,
+      "eu_source": "https://echa.europa.eu/sv/ann-approved-act-subs-plant-prot-prods/-/legislationlist/substance/external/100.113.437",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_source_alt": "https://sitem.herts.ac.uk/aeru/bpdb/Reports/8.htm"
+    },
+    {
+      "name_en": "emamectin benzoate",
+      "name_ar": "إيمامكتين بنزوات",
+      "cas": "155569-91-8",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "6",
+      "chemical_group": "avermectins",
+      "eu_status": "approved",
+      "eu_expiry": "2029-05-15",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/1326.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_verified_by": "Reg. (EU) 2026/2348 — https://eur-lex.europa.eu/eli/reg_impl/2026/2348/oj/eng"
+    },
+    {
+      "name_en": "chlorantraniliprole",
+      "name_ar": "كلورانترانيليبرول",
+      "cas": "500008-45-7",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "28",
+      "chemical_group": "diamides",
+      "eu_status": "approved",
+      "eu_expiry": "2027-05-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/1138.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "cyantraniliprole",
+      "name_ar": "سيانترانيليبرول",
+      "cas": "736994-63-1",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "28",
+      "chemical_group": "diamides",
+      "eu_status": "approved",
+      "eu_expiry": "2030-03-14",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/1662.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_verified_by": "Reg. (EU) 2026/1826 — https://www.boe.es/doue/2026/1826/L00001-00014.pdf"
+    },
+    {
+      "name_en": "spinosad",
+      "name_ar": "سبينوساد",
+      "cas": "168316-95-8",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "5",
+      "chemical_group": "spinosyns",
+      "eu_status": "approved",
+      "eu_expiry": "2041-04-01",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/bpdb/Reports/596.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "spinetoram",
+      "name_ar": "سبينتورام",
+      "cas": "935545-74-7",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "5",
+      "chemical_group": "spinosyns",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/1144.htm",
+      "notes": "غير معتمد في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "indoxacarb",
+      "name_ar": "إندوكساكارب",
+      "cas": "173584-44-6",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "22A",
+      "chemical_group": "oxadiazines",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/399.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "lufenuron",
+      "name_ar": "لوفينيورون",
+      "cas": "103055-07-8",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "15",
+      "chemical_group": "benzoylureas",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/420.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "methoxyfenozide",
+      "name_ar": "ميثوكسي فينوزايد",
+      "cas": "161050-58-4",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "18",
+      "chemical_group": "diacylhydrazines",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/461.htm",
+      "notes": "غير معتمد في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "imidacloprid",
+      "name_ar": "إيميداكلوبريد",
+      "cas": "138261-41-3",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "4A",
+      "chemical_group": "neonicotinoids",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/397.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "spirotetramat",
+      "name_ar": "سبيروتترامات",
+      "cas": "203313-25-1",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "23",
+      "chemical_group": "tetronic and tetramic acid derivatives",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/1119.htm",
+      "notes": "غير معتمد حاليًا في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "acetamiprid",
+      "name_ar": "أسيتامبريد",
+      "cas": "135410-20-7",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "4A",
+      "chemical_group": "neonicotinoids",
+      "eu_status": "approved",
+      "eu_expiry": "2033-02-28",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/11.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "thiamethoxam",
+      "name_ar": "ثياميثوكسام",
+      "cas": "153719-23-4",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "4A",
+      "chemical_group": "neonicotinoids",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/631.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "dinotefuran",
+      "name_ar": "دينوتيفوران",
+      "cas": "165252-70-0",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "4A",
+      "chemical_group": "neonicotinoids",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/1195.htm",
+      "notes": "غير معتمد في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "pyriproxyfen",
+      "name_ar": "بيريبروكسيفين",
+      "cas": "95737-68-1",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "7C",
+      "chemical_group": "juvenile hormone mimics",
+      "eu_status": "approved",
+      "eu_expiry": "2035-07-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/574.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "buprofezin",
+      "name_ar": "بوبروفيزين",
+      "cas": null,
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "16",
+      "chemical_group": "unclassified IGR",
+      "eu_status": "approved",
+      "eu_expiry": "2027-03-15",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/100.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_verified_by": "Reg. (EU) 2026/2348 — https://eur-lex.europa.eu/eli/reg_impl/2026/2348/oj/eng"
+    },
+    {
+      "name_en": "spirodiclofen",
+      "name_ar": "سبيروديكلوفين",
+      "cas": "148477-71-8",
+      "classes": [
+        "acaricide",
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "23",
+      "chemical_group": "tetronic and tetramic acid derivatives",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/597.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "spiromesifen",
+      "name_ar": "سبيروميسيفين",
+      "cas": "283594-90-1",
+      "classes": [
+        "insecticide",
+        "acaricide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "23",
+      "chemical_group": "tetronic and tetramic acid derivatives",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/598.htm",
+      "notes": "غير معتمد في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "flonicamid",
+      "name_ar": "فلونيكاميد",
+      "cas": "158062-67-0",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "29",
+      "chemical_group": "pyridine insecticide",
+      "eu_status": "approved",
+      "eu_expiry": "2029-10-15",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/321.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_verified_by": "Reg. (EU) 2026/2348 — https://eur-lex.europa.eu/eli/reg_impl/2026/2348/oj/eng"
+    },
+    {
+      "name_en": "flupyradifurone",
+      "name_ar": "فلوبيراديفيورون",
+      "cas": "951659-40-8",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "4D",
+      "chemical_group": "butenolides",
+      "eu_status": "approved",
+      "eu_expiry": "2029-06-09",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/2620.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "sulfoxaflor",
+      "name_ar": "سلفوكسافلور",
+      "cas": "946578-00-3",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "4C",
+      "chemical_group": "sulfoximines",
+      "eu_status": "approved",
+      "eu_expiry": "2028-01-18",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/1669.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "pymetrozine",
+      "name_ar": "بيميتروزين",
+      "cas": "123312-89-0",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "9B",
+      "chemical_group": "pyridine azomethine derivatives",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/562.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "lambda-cyhalothrin",
+      "name_ar": "لامبدا سيهالوثرين",
+      "cas": "91465-08-6",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "3A",
+      "chemical_group": "pyrethroids",
+      "eu_status": "approved",
+      "eu_expiry": "2029-01-31",
+      "eu_cfs": true,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/415.htm",
+      "notes": "مرشح للاستبدال في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_verified_by": "Reg. (EU) 2026/1421 — https://eur-lex.europa.eu/eli/reg_impl/2026/1421/oj/eng"
+    },
+    {
+      "name_en": "alpha-cypermethrin",
+      "name_ar": "ألفا سيبرمثرين",
+      "cas": "67375-30-8",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "3A",
+      "chemical_group": "pyrethroids",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/24.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "chlorfenapyr",
+      "name_ar": "كلورفينابير",
+      "cas": "122453-73-0",
+      "classes": [
+        "insecticide",
+        "acaricide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "13",
+      "chemical_group": "pyrroles",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/136.htm",
+      "notes": "غير معتمد في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "hexythiazox",
+      "name_ar": "هكسيثيازوكس",
+      "cas": "78587-05-0",
+      "classes": [
+        "acaricide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "10A",
+      "chemical_group": "thiazolidines",
+      "eu_status": "approved",
+      "eu_expiry": "2027-01-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/385.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "etoxazole",
+      "name_ar": "إيتوكسازول",
+      "cas": "153233-91-1",
+      "classes": [
+        "acaricide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "10B",
+      "chemical_group": "diphenyl oxazolines",
+      "eu_status": "approved",
+      "eu_expiry": "2028-01-31",
+      "eu_cfs": true,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/284.htm",
+      "notes": "مرشح للاستبدال في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "fenpyroximate",
+      "name_ar": "فينبيروكسيميت",
+      "cas": "134098-61-6",
+      "classes": [
+        "acaricide",
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "21A",
+      "chemical_group": "METI acaricides and insecticides",
+      "eu_status": "approved",
+      "eu_expiry": "2028-01-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/309.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_verified_by": "Reg. (EU) 2026/372 — https://www.boe.es/doue/2026/372/L00001-00011.pdf"
+    },
+    {
+      "name_en": "bifenazate",
+      "name_ar": "بيفينازيت",
+      "cas": "149877-41-8",
+      "classes": [
+        "acaricide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "20D",
+      "chemical_group": "carbazates",
+      "eu_status": "approved",
+      "eu_expiry": "2037-06-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/76.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "pyridaben",
+      "name_ar": "بيريدابين",
+      "cas": "96489-71-3",
+      "classes": [
+        "acaricide",
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "21A",
+      "chemical_group": "METI acaricides and insecticides",
+      "eu_status": "approved",
+      "eu_expiry": "2030-01-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/569.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_verified_by": "Reg. (EU) 2026/372 — https://www.boe.es/doue/2026/372/L00001-00011.pdf"
+    },
+    {
+      "name_en": "chlorpyrifos",
+      "name_ar": "كلوربيريفوس",
+      "cas": "2921-88-2",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "1B",
+      "chemical_group": "organophosphates",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/154.htm",
+      "notes": "غير معتمد في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "profenofos",
+      "name_ar": "بروفينوفوس",
+      "cas": "41198-08-7",
+      "classes": [
+        "insecticide",
+        "acaricide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "1B",
+      "chemical_group": "organophosphates",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/538.htm",
+      "notes": "غير معتمد في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "methomyl",
+      "name_ar": "ميثوميل",
+      "cas": "16752-77-5",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "1A",
+      "chemical_group": "carbamates",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/458.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "dimethoate",
+      "name_ar": "دايميثويت",
+      "cas": "60-51-5",
+      "classes": [
+        "insecticide",
+        "acaricide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "1B",
+      "chemical_group": "organophosphates",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/244.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "oxamyl",
+      "name_ar": "أوكساميل",
+      "cas": "23135-22-0",
+      "classes": [
+        "insecticide",
+        "nematicide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "1A",
+      "chemical_group": "carbamates",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/498.htm",
+      "notes": "غير معتمد في الاتحاد الأوروبي",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "fosthiazate",
+      "name_ar": "فوستيازيت",
+      "cas": "98886-44-3",
+      "classes": [
+        "nematicide",
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "1B",
+      "chemical_group": "organophosphates",
+      "eu_status": "approved",
+      "eu_expiry": "2027-01-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/364.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "fluopyram",
+      "name_ar": "فلوبيرام",
+      "cas": "658066-35-4",
+      "classes": [
+        "fungicide",
+        "nematicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "7",
+      "chemical_group": "SDHI - pyridinyl-ethylbenzamides",
+      "eu_status": "approved",
+      "eu_expiry": "2028-06-15",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/1362.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/372 — https://www.boe.es/doue/2026/372/L00001-00011.pdf"
+    },
+    {
+      "name_en": "azoxystrobin",
+      "name_ar": "أزوكسيستروبين",
+      "cas": "131860-33-8",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "11",
+      "chemical_group": "QoI - methoxy-acrylates",
+      "eu_status": "approved",
+      "eu_expiry": "2027-05-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/54.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "pyraclostrobin",
+      "name_ar": "بيراكلوستروبين",
+      "cas": "175013-18-0",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "11",
+      "chemical_group": "QoI - methoxy-carbamates",
+      "eu_status": "approved",
+      "eu_expiry": "2041-09-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/564.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/1976 (renewal) — https://www.boe.es/doue/2026/1976/L00001-00006.pdf"
+    },
+    {
+      "name_en": "trifloxystrobin",
+      "name_ar": "ترايفلوكسيستروبين",
+      "cas": "141517-21-7",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "11",
+      "chemical_group": "QoI - oximino-acetates",
+      "eu_status": "approved",
+      "eu_expiry": "2033-07-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/664.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "difenoconazole",
+      "name_ar": "دايفينوكونازول",
+      "cas": "119446-68-3",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "3",
+      "chemical_group": "DMI - triazoles",
+      "eu_status": "approved",
+      "eu_expiry": "2028-01-31",
+      "eu_cfs": true,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/230.htm",
+      "notes": "مرشح للاستبدال في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "tebuconazole",
+      "name_ar": "تيبوكونازول",
+      "cas": "107534-96-3",
+      "classes": [
+        "fungicide",
+        "plant_growth_regulator"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "3",
+      "chemical_group": "DMI - triazoles",
+      "eu_status": "approved",
+      "eu_expiry": "2028-07-31",
+      "eu_cfs": true,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/610.htm",
+      "notes": "مرشح للاستبدال في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/1421 — https://eur-lex.europa.eu/eli/reg_impl/2026/1421/oj/eng"
+    },
+    {
+      "name_en": "penconazole",
+      "name_ar": "بنكونازول",
+      "cas": "66246-88-6",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "3",
+      "chemical_group": "DMI - triazoles",
+      "eu_status": "approved",
+      "eu_expiry": "2029-02-15",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/509.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/1826 — https://www.boe.es/doue/2026/1826/L00001-00014.pdf"
+    },
+    {
+      "name_en": "myclobutanil",
+      "name_ar": "مايكلوبيوتانيل",
+      "cas": "88671-89-0",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "3",
+      "chemical_group": "DMI - triazoles",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/478.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "tetraconazole",
+      "name_ar": "تتراكونازول",
+      "cas": "112281-77-3",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "3",
+      "chemical_group": "DMI - triazoles",
+      "eu_status": "approved",
+      "eu_expiry": "2027-03-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/626.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "boscalid",
+      "name_ar": "بوسكاليد",
+      "cas": "188425-85-6",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "7",
+      "chemical_group": "SDHI - pyridine-carboxamides",
+      "eu_status": "approved",
+      "eu_expiry": "2028-03-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/86.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/372 — https://www.boe.es/doue/2026/372/L00001-00011.pdf"
+    },
+    {
+      "name_en": "cyprodinil",
+      "name_ar": "سيبرودينيل",
+      "cas": "121552-61-2",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "9",
+      "chemical_group": "AP - anilino-pyrimidines",
+      "eu_status": "approved",
+      "eu_expiry": "2027-07-31",
+      "eu_cfs": true,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/199.htm",
+      "notes": "مرشح للاستبدال في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/1826 — https://www.boe.es/doue/2026/1826/L00001-00014.pdf"
+    },
+    {
+      "name_en": "fludioxonil",
+      "name_ar": "فلوديوكسونيل",
+      "cas": "131341-86-1",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "12",
+      "chemical_group": "PP - phenylpyrroles",
+      "eu_status": "approved",
+      "eu_expiry": "2027-09-30",
+      "eu_cfs": true,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/330.htm",
+      "notes": "مرشح للاستبدال في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/1826 — https://www.boe.es/doue/2026/1826/L00001-00014.pdf"
+    },
+    {
+      "name_en": "iprodione",
+      "name_ar": "إبروديون",
+      "cas": "36734-19-7",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "2",
+      "chemical_group": "dicarboximides",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/403.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "mancozeb",
+      "name_ar": "مانكوزيب",
+      "cas": "8018-01-7",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "M 03",
+      "chemical_group": "dithiocarbamates and relatives",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/424.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "chlorothalonil",
+      "name_ar": "كلوروثالونيل",
+      "cas": "1897-45-6",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "M 05",
+      "chemical_group": "chloronitriles (phthalonitriles)",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/150.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "copper hydroxide",
+      "name_ar": "هيدروكسيد النحاس",
+      "cas": "20427-59-2",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "M 01",
+      "chemical_group": "inorganic (copper)",
+      "eu_status": "approved",
+      "eu_expiry": "2029-06-30",
+      "eu_cfs": true,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/175.htm",
+      "notes": "مركبات النحاس مرشحة للاستبدال في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "copper oxychloride",
+      "name_ar": "أوكسي كلوريد النحاس",
+      "cas": "1332-40-7",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "M 01",
+      "chemical_group": "inorganic (copper)",
+      "eu_status": "approved",
+      "eu_expiry": "2029-06-30",
+      "eu_cfs": true,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/177.htm",
+      "notes": "مركبات النحاس مرشحة للاستبدال في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "sulfur",
+      "name_ar": "كبريت",
+      "cas": "7704-34-9",
+      "classes": [
+        "fungicide",
+        "acaricide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "M 02",
+      "chemical_group": "inorganic (sulphur)",
+      "eu_status": "approved",
+      "eu_expiry": "2027-07-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/605.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/372 — https://www.boe.es/doue/2026/372/L00001-00011.pdf"
+    },
+    {
+      "name_en": "metalaxyl-M",
+      "name_ar": "ميتالاكسيل-إم (ميفينوكسام)",
+      "cas": "70630-17-0",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "4",
+      "chemical_group": "PA - acylalanines",
+      "eu_status": "approved",
+      "eu_expiry": "2035-05-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/445.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "cymoxanil",
+      "name_ar": "سيموكسانيل",
+      "cas": "57966-95-7",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "27",
+      "chemical_group": "cyanoacetamide-oximes",
+      "eu_status": "approved",
+      "eu_expiry": "2027-11-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/196.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/1421 — https://eur-lex.europa.eu/eli/reg_impl/2026/1421/oj/eng"
+    },
+    {
+      "name_en": "dimethomorph",
+      "name_ar": "دايميثومورف",
+      "cas": "110488-70-5",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "40",
+      "chemical_group": "CAA - cinnamic acid amides",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/245.htm",
+      "notes": "غير معتمد حاليًا في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "mandipropamid",
+      "name_ar": "ماندي بروباميد",
+      "cas": "374726-62-2",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "40",
+      "chemical_group": "CAA - mandelic acid amides",
+      "eu_status": "approved",
+      "eu_expiry": "2029-06-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/425.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "fosetyl",
+      "name_ar": "فوسيتيل ألومنيوم",
+      "cas": "39148-24-8",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "P 07",
+      "chemical_group": "phosphonates (ethyl phosphonates)",
+      "eu_status": "approved",
+      "eu_expiry": "2028-01-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/363.htm",
+      "notes": "البيانات لفوسيتيل-ألومنيوم (fosetyl-aluminium)",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/1826 — https://www.boe.es/doue/2026/1826/L00001-00014.pdf"
+    },
+    {
+      "name_en": "propamocarb",
+      "name_ar": "بروباموكارب",
+      "cas": "24579-73-5",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "28",
+      "chemical_group": "carbamates",
+      "eu_status": "approved",
+      "eu_expiry": "2027-01-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/1546.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "famoxadone",
+      "name_ar": "فاموكسادون",
+      "cas": "131807-57-3",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "11",
+      "chemical_group": "QoI - oxazolidine-diones",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/287.htm",
+      "notes": "غير معتمد في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "ametoctradin",
+      "name_ar": "أميتوكترادين",
+      "cas": "865318-97-4",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "45",
+      "chemical_group": "QoSI - triazolo-pyrimidylamines",
+      "eu_status": "approved",
+      "eu_expiry": "2028-05-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/1648.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "thiophanate-methyl",
+      "name_ar": "ثيوفانات ميثيل",
+      "cas": "23564-05-8",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "1",
+      "chemical_group": "MBC - thiophanates",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/640.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "carbendazim",
+      "name_ar": "كاربندازيم",
+      "cas": "10605-21-7",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "1",
+      "chemical_group": "MBC - benzimidazoles",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/116.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "hymexazol",
+      "name_ar": "هيميكسازول",
+      "cas": "10004-44-1",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "32",
+      "chemical_group": "isoxazoles",
+      "eu_status": "approved",
+      "eu_expiry": "2029-01-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/388.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/1421 — https://eur-lex.europa.eu/eli/reg_impl/2026/1421/oj/eng"
+    },
+    {
+      "name_en": "fluazinam",
+      "name_ar": "فلوازينام",
+      "cas": "79622-59-6",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "29",
+      "chemical_group": "2,6-dinitro-anilines (uncouplers)",
+      "eu_status": "approved",
+      "eu_expiry": "2027-11-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/325.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf",
+      "eu_verified_by": "Reg. (EU) 2026/372 — https://www.boe.es/doue/2026/372/L00001-00011.pdf"
+    },
+    {
+      "name_en": "cyflufenamid",
+      "name_ar": "سيفلوفيناميد",
+      "cas": "180409-60-3",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "U 06",
+      "chemical_group": "phenyl-acetamides",
+      "eu_status": "approved",
+      "eu_expiry": "2027-06-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/191.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "bupirimate",
+      "name_ar": "بيوبيريميت",
+      "cas": "41483-43-6",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "8",
+      "chemical_group": "hydroxy-(2-amino-)pyrimidines",
+      "eu_status": "approved",
+      "eu_expiry": "2027-01-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/99.htm",
+      "notes": null,
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "milbemectin",
+      "name_ar": "ميلبيمكتين",
+      "cas": "51596-11-3",
+      "classes": [
+        "insecticide",
+        "acaricide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "6",
+      "chemical_group": "milbemycins",
+      "eu_status": "approved",
+      "eu_expiry": "2040-11-15",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/bpdb/Reports/472.htm",
+      "notes": "رقم CAS للمكوّن MA4",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "quinoxyfen",
+      "name_ar": "كينوكسيفين",
+      "cas": "124495-18-7",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "13",
+      "chemical_group": "aryloxyquinolines",
+      "eu_status": "not_approved",
+      "eu_expiry": null,
+      "eu_cfs": null,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/580.htm",
+      "notes": "انتهى اعتماده في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "glyphosate",
+      "name_ar": "جليفوسات",
+      "cas": "1071-83-6",
+      "classes": [
+        "herbicide"
+      ],
+      "moa_system": "HRAC",
+      "moa_code": "9",
+      "chemical_group": "organophosphonates (phosphonoglycines)",
+      "eu_status": "approved",
+      "eu_expiry": "2033-12-15",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/373.htm",
+      "notes": null,
+      "moa_source": "https://hracglobal.com/files/2024-HRAC-GLOBAL-HERBICIDE-MOA-CLASSIFICATION-POSTERold.pdf"
+    },
+    {
+      "name_en": "potassium hydrogen carbonate",
+      "name_ar": "بيكربونات البوتاسيوم",
+      "cas": "298-14-6",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "NC",
+      "chemical_group": "inorganic salts",
+      "eu_status": "approved",
+      "eu_expiry": "2036-10-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/1624.htm",
+      "notes": "مادة منخفضة الخطورة في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "bacillus amyloliquefaciens qst 713",
+      "name_ar": "باسيلس سبتلس سلالة QST 713",
+      "cas": null,
+      "classes": [
+        "fungicide",
+        "biological"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "BM 02",
+      "chemical_group": "Bacillus spp. (microbial)",
+      "eu_status": "approved",
+      "eu_expiry": "2038-06-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/1949.htm",
+      "notes": "كانت تُعرف سابقًا باسم Bacillus subtilis QST 713 — مادة منخفضة الخطورة في الاتحاد الأوروبي",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "paraffin oil (cas 8042-47-5)",
+      "name_ar": "زيت البارافين",
+      "cas": "8042-47-5",
+      "classes": [
+        "insecticide",
+        "acaricide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "UNM",
+      "chemical_group": "mineral oils",
+      "eu_status": "approved",
+      "eu_expiry": "2041-06-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/1377.htm",
+      "notes": "IRAC يصنّف الزيوت المعدنية تحت UNM",
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_verified_by": "Reg. (EU) 2026/870 (renewal) — https://www.boe.es/doue/2026/870/L00001-00005.pdf"
+    },
+    {
+      "name_en": "paraffin oil (cas 64742-46-7)",
+      "name_ar": "زيت البارافين",
+      "cas": "64742-46-7",
+      "classes": [
+        "insecticide",
+        "acaricide",
+        "fungicide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "UNM",
+      "chemical_group": "mineral oils",
+      "eu_status": "approved",
+      "eu_expiry": "2027-03-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/1376.htm",
+      "notes": "IRAC يصنّف الزيوت المعدنية تحت UNM",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "azadirachtin",
+      "name_ar": "أزاديراختين",
+      "cas": "11141-17-6",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "UN",
+      "chemical_group": "compounds of unknown or uncertain MoA",
+      "eu_status": "approved",
+      "eu_expiry": "2027-01-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/bpdb/Reports/46.htm",
+      "notes": "رقم CAS للأزاديراختين A",
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "bacillus thuringiensis subsp. kurstaki abts 351",
+      "name_ar": "باسيلس ثورينجنسيس (كورستاكي)",
+      "cas": null,
+      "classes": [
+        "insecticide",
+        "biological"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "11A",
+      "chemical_group": "Bacillus thuringiensis and insecticidal proteins",
+      "eu_status": "approved",
+      "eu_expiry": "2038-06-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/bpdb/Reports/57.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "bacillus thuringiensis subsp. aizawai abts-1857",
+      "name_ar": "باسيلس ثورينجنسيس (أيزاواي)",
+      "cas": null,
+      "classes": [
+        "insecticide",
+        "biological"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "11A",
+      "chemical_group": "Bacillus thuringiensis and insecticidal proteins",
+      "eu_status": "approved",
+      "eu_expiry": "2038-06-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/3221.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "bacillus thuringiensis subsp. aizawai gc-91",
+      "name_ar": "باسيلس ثورينجنسيس (أيزاواي)",
+      "cas": null,
+      "classes": [
+        "insecticide",
+        "biological"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "11A",
+      "chemical_group": "Bacillus thuringiensis and insecticidal proteins",
+      "eu_status": "approved",
+      "eu_expiry": "2038-06-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/ppdb/en/Reports/1942.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "beauveria bassiana atcc 74040",
+      "name_ar": "بوفيريا باسيانا",
+      "cas": null,
+      "classes": [
+        "insecticide",
+        "biological"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "UNF",
+      "chemical_group": null,
+      "eu_status": "approved",
+      "eu_expiry": "2027-09-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/bpdb/Reports/1394.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "beauveria bassiana gha",
+      "name_ar": "بوفيريا باسيانا",
+      "cas": null,
+      "classes": [
+        "insecticide",
+        "biological"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "UNF",
+      "chemical_group": null,
+      "eu_status": "approved",
+      "eu_expiry": "2027-09-15",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/bpdb/Reports/2514.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification"
+    },
+    {
+      "name_en": "copper sulphate tribasic",
+      "name_ar": "كبريتات النحاس الثلاثية القاعدية",
+      "cas": "12527-76-3",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "M 01",
+      "chemical_group": "inorganic (copper)",
+      "eu_status": "approved",
+      "eu_expiry": "2029-06-30",
+      "eu_cfs": true,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/178.htm",
+      "notes": "من كتالوج التطبيق (كبريتات النحاس) — مركبات النحاس مرشحة للاستبدال",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "bordeaux mixture",
+      "name_ar": "مخلوط بوردو",
+      "cas": "8011-63-0",
+      "classes": [
+        "fungicide"
+      ],
+      "moa_system": "FRAC",
+      "moa_code": "M 01",
+      "chemical_group": "inorganic (copper)",
+      "eu_status": "approved",
+      "eu_expiry": "2029-06-30",
+      "eu_cfs": true,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/85.htm",
+      "notes": "من كتالوج التطبيق (بوردو) — مركبات النحاس مرشحة للاستبدال",
+      "moa_source": "https://www.frac.info/media/ljsi3qrv/frac-code-list-2025.pdf"
+    },
+    {
+      "name_en": "fatty acids potassium salts",
+      "name_ar": "صابون البوتاسيوم (أملاح البوتاسيوم للأحماض الدهنية)",
+      "cas": "67701-09-1",
+      "classes": [
+        "insecticide",
+        "fungicide"
+      ],
+      "moa_system": null,
+      "moa_code": null,
+      "chemical_group": "fatty acids (potassium salts)",
+      "eu_status": "approved",
+      "eu_expiry": "2028-01-31",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/3585.htm",
+      "notes": "من كتالوج التطبيق (صابون البوتاسيوم) — غير مدرج في قائمة IRAC"
+    },
+    {
+      "name_en": "acequinocyl",
+      "name_ar": "أسيكينوسيل",
+      "cas": "57960-19-7",
+      "classes": [
+        "acaricide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "20B",
+      "chemical_group": null,
+      "eu_status": "approved",
+      "eu_expiry": "2029-01-15",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/10.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_verified_by": "Reg. (EU) 2026/2348 — https://eur-lex.europa.eu/eli/reg_impl/2026/2348/oj/eng"
+    },
+    {
+      "name_en": "malathion",
+      "name_ar": "ملاثيون",
+      "cas": "121-75-5",
+      "classes": [
+        "insecticide",
+        "acaricide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "1B",
+      "chemical_group": "organophosphates",
+      "eu_status": "approved",
+      "eu_expiry": "2028-07-15",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/421.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_verified_by": "Reg. (EU) 2026/372 — https://www.boe.es/doue/2026/372/L00001-00011.pdf"
+    },
+    {
+      "name_en": "deltamethrin",
+      "name_ar": "دلتامثرين",
+      "cas": "52918-63-5",
+      "classes": [
+        "insecticide"
+      ],
+      "moa_system": "IRAC",
+      "moa_code": "3A",
+      "chemical_group": "pyrethroids",
+      "eu_status": "approved",
+      "eu_expiry": "2028-06-30",
+      "eu_cfs": false,
+      "eu_source": "https://sitem.herts.ac.uk/aeru/iupac/Reports/205.htm",
+      "notes": null,
+      "moa_source": "https://irac-online.org/documents/moa-classification",
+      "eu_verified_by": "Reg. (EU) 2026/1421 — https://eur-lex.europa.eu/eli/reg_impl/2026/1421/oj/eng"
+    }
+  ],
+  "mrls": [
+    {
+      "substance": "abamectin",
+      "market": "CODEX",
+      "crop": "tomato",
+      "mrl_mg_kg": 0.05,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5f509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Tomato",
+      "year_adopted": "2016"
+    },
+    {
+      "substance": "abamectin",
+      "market": "CODEX",
+      "crop": "pepper",
+      "mrl_mg_kg": 0.09,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5f509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Peppers, sweet (including pimento or pimiento)",
+      "year_adopted": "2016"
+    },
+    {
+      "substance": "abamectin",
+      "market": "CODEX",
+      "crop": "cucumber",
+      "mrl_mg_kg": 0.03,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5f509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Cucumber",
+      "year_adopted": "2016"
+    },
+    {
+      "substance": "abamectin",
+      "market": "CODEX",
+      "crop": "strawberry",
+      "mrl_mg_kg": 0.15,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5f509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Strawberry",
+      "year_adopted": "2016"
+    },
+    {
+      "substance": "abamectin",
+      "market": "CODEX",
+      "crop": "eggplant",
+      "mrl_mg_kg": 0.05,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5f509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Eggplant",
+      "year_adopted": "2016"
+    },
+    {
+      "substance": "abamectin",
+      "market": "CODEX",
+      "crop": "melon",
+      "mrl_mg_kg": 0.01,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5f509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Melons (except watermelon)",
+      "year_adopted": "2016"
+    },
+    {
+      "substance": "abamectin",
+      "market": "CODEX",
+      "crop": "green_bean",
+      "mrl_mg_kg": 0.08,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5f509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Beans with pods (Phaseolus spp.) (immature pods and succulent seeds)",
+      "year_adopted": "2016",
+      "note": "Immature beans with pods."
+    },
+    {
+      "substance": "acetamiprid",
+      "market": "CODEX",
+      "crop": "tomato",
+      "mrl_mg_kg": 0.2,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=a3509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2012",
+      "note": "Except sweet corn and mushrooms."
+    },
+    {
+      "substance": "acetamiprid",
+      "market": "CODEX",
+      "crop": "pepper",
+      "mrl_mg_kg": 0.2,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=a3509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2012",
+      "note": "Except sweet corn and mushrooms."
+    },
+    {
+      "substance": "acetamiprid",
+      "market": "CODEX",
+      "crop": "cucumber",
+      "mrl_mg_kg": 0.3,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=a3509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Cucumber",
+      "year_adopted": "2016"
+    },
+    {
+      "substance": "acetamiprid",
+      "market": "CODEX",
+      "crop": "strawberry",
+      "mrl_mg_kg": 0.5,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=a3509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Strawberry",
+      "year_adopted": "2012"
+    },
+    {
+      "substance": "acetamiprid",
+      "market": "CODEX",
+      "crop": "eggplant",
+      "mrl_mg_kg": 0.2,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=a3509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2012",
+      "note": "Except sweet corn and mushrooms."
+    },
+    {
+      "substance": "acetamiprid",
+      "market": "CODEX",
+      "crop": "melon",
+      "mrl_mg_kg": 0.2,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=a3509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, cucurbits (group)",
+      "year_adopted": "2016",
+      "note": "Except cucumber."
+    },
+    {
+      "substance": "acetamiprid",
+      "market": "CODEX",
+      "crop": "green_bean",
+      "mrl_mg_kg": 0.4,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=a3509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Beans with pods (Phaseolus spp.) (immature pods and succulent seeds)",
+      "year_adopted": "2012"
+    },
+    {
+      "substance": "ametoctradin",
+      "market": "CODEX",
+      "crop": "tomato",
+      "mrl_mg_kg": 1.5,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=b2509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2013",
+      "note": "Except sweet corn and mushroom."
+    },
+    {
+      "substance": "ametoctradin",
+      "market": "CODEX",
+      "crop": "pepper",
+      "mrl_mg_kg": 1.5,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=b2509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2013",
+      "note": "Except sweet corn and mushroom."
+    },
+    {
+      "substance": "ametoctradin",
+      "market": "CODEX",
+      "crop": "cucumber",
+      "mrl_mg_kg": 0.4,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=b2509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Cucumber",
+      "year_adopted": "2013",
+      "note": "None"
+    },
+    {
+      "substance": "ametoctradin",
+      "market": "CODEX",
+      "crop": "eggplant",
+      "mrl_mg_kg": 1.5,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=b2509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2013",
+      "note": "Except sweet corn and mushroom."
+    },
+    {
+      "substance": "ametoctradin",
+      "market": "CODEX",
+      "crop": "melon",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=b2509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, cucurbits (group)",
+      "year_adopted": "2013",
+      "note": "Except cucumber."
+    },
+    {
+      "substance": "azoxystrobin",
+      "market": "CODEX",
+      "crop": "tomato",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=93509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2009",
+      "note": "Except mushrooms and sweet corn."
+    },
+    {
+      "substance": "azoxystrobin",
+      "market": "CODEX",
+      "crop": "pepper",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=93509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2009",
+      "note": "Except mushrooms and sweet corn."
+    },
+    {
+      "substance": "azoxystrobin",
+      "market": "CODEX",
+      "crop": "cucumber",
+      "mrl_mg_kg": 1.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=93509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, cucurbits (group)",
+      "year_adopted": "2025",
+      "note": "Except melos and watermelons"
+    },
+    {
+      "substance": "azoxystrobin",
+      "market": "CODEX",
+      "crop": "strawberry",
+      "mrl_mg_kg": 10.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=93509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Strawberry",
+      "year_adopted": "2009"
+    },
+    {
+      "substance": "azoxystrobin",
+      "market": "CODEX",
+      "crop": "eggplant",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=93509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2009",
+      "note": "Except mushrooms and sweet corn."
+    },
+    {
+      "substance": "azoxystrobin",
+      "market": "CODEX",
+      "crop": "melon",
+      "mrl_mg_kg": 5.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=93509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Melons (except watermelon)",
+      "year_adopted": "2025"
+    },
+    {
+      "substance": "azoxystrobin",
+      "market": "CODEX",
+      "crop": "green_bean",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=93509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Legume vegetables (group)",
+      "year_adopted": "2009"
+    },
+    {
+      "substance": "bifenazate",
+      "market": "CODEX",
+      "crop": "tomato",
+      "mrl_mg_kg": 0.5,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=88509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Tomato",
+      "year_adopted": "2007"
+    },
+    {
+      "substance": "bifenazate",
+      "market": "CODEX",
+      "crop": "pepper",
+      "mrl_mg_kg": 2.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=88509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Peppers, sweet (including pimento or pimiento)",
+      "year_adopted": "2007"
+    },
+    {
+      "substance": "bifenazate",
+      "market": "CODEX",
+      "crop": "cucumber",
+      "mrl_mg_kg": 0.5,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=88509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, cucurbits (group)",
+      "year_adopted": "2007"
+    },
+    {
+      "substance": "bifenazate",
+      "market": "CODEX",
+      "crop": "strawberry",
+      "mrl_mg_kg": 2.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=88509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Strawberry",
+      "year_adopted": "2007"
+    },
+    {
+      "substance": "bifenazate",
+      "market": "CODEX",
+      "crop": "melon",
+      "mrl_mg_kg": 0.5,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=88509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, cucurbits (group)",
+      "year_adopted": "2007"
+    },
+    {
+      "substance": "bifenazate",
+      "market": "CODEX",
+      "crop": "green_bean",
+      "mrl_mg_kg": 7.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=88509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Legume vegetables (group)",
+      "year_adopted": "2011"
+    },
+    {
+      "substance": "boscalid",
+      "market": "CODEX",
+      "crop": "tomato",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=8e509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2010",
+      "note": "Except fungi, mushroom, and sweet corn."
+    },
+    {
+      "substance": "boscalid",
+      "market": "CODEX",
+      "crop": "pepper",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=8e509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2010",
+      "note": "Except fungi, mushroom, and sweet corn."
+    },
+    {
+      "substance": "boscalid",
+      "market": "CODEX",
+      "crop": "cucumber",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=8e509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, cucurbits (group)",
+      "year_adopted": "2010"
+    },
+    {
+      "substance": "boscalid",
+      "market": "CODEX",
+      "crop": "strawberry",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=8e509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Strawberry",
+      "year_adopted": "2010"
+    },
+    {
+      "substance": "boscalid",
+      "market": "CODEX",
+      "crop": "eggplant",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=8e509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2010",
+      "note": "Except fungi, mushroom, and sweet corn."
+    },
+    {
+      "substance": "boscalid",
+      "market": "CODEX",
+      "crop": "melon",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=8e509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, cucurbits (group)",
+      "year_adopted": "2010"
+    },
+    {
+      "substance": "boscalid",
+      "market": "CODEX",
+      "crop": "green_bean",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=8e509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Legume vegetables (group)",
+      "year_adopted": "2010"
+    },
+    {
+      "substance": "buprofezin",
+      "market": "CODEX",
+      "crop": "tomato",
+      "mrl_mg_kg": 1.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5c509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Tomato",
+      "year_adopted": "2009"
+    },
+    {
+      "substance": "buprofezin",
+      "market": "CODEX",
+      "crop": "pepper",
+      "mrl_mg_kg": 2.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5c509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Peppers (subgroup)",
+      "year_adopted": "2010",
+      "note": "MRL provisionally applies to okra, martynia, and roselle."
+    },
+    {
+      "substance": "buprofezin",
+      "market": "CODEX",
+      "crop": "cucumber",
+      "mrl_mg_kg": 0.7,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5c509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, cucurbits (group)",
+      "year_adopted": "2010"
+    },
+    {
+      "substance": "buprofezin",
+      "market": "CODEX",
+      "crop": "strawberry",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5c509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Strawberry",
+      "year_adopted": "2010"
+    },
+    {
+      "substance": "buprofezin",
+      "market": "CODEX",
+      "crop": "melon",
+      "mrl_mg_kg": 0.7,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=5c509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, cucurbits (group)",
+      "year_adopted": "2010"
+    },
+    {
+      "substance": "chlorantraniliprole",
+      "market": "CODEX",
+      "crop": "tomato",
+      "mrl_mg_kg": 0.6,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=94509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2009"
+    },
+    {
+      "substance": "chlorantraniliprole",
+      "market": "CODEX",
+      "crop": "pepper",
+      "mrl_mg_kg": 0.6,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=94509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2009"
+    },
+    {
+      "substance": "chlorantraniliprole",
+      "market": "CODEX",
+      "crop": "cucumber",
+      "mrl_mg_kg": 0.3,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=94509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, cucurbits (group)",
+      "year_adopted": "2009"
+    },
+    {
+      "substance": "chlorantraniliprole",
+      "market": "CODEX",
+      "crop": "strawberry",
+      "mrl_mg_kg": 1.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=94509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Berries and other small fruits",
+      "year_adopted": "2011"
+    },
+    {
+      "substance": "chlorantraniliprole",
+      "market": "CODEX",
+      "crop": "eggplant",
+      "mrl_mg_kg": 0.6,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=94509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, other than cucurbits (group)",
+      "year_adopted": "2009"
+    },
+    {
+      "substance": "chlorantraniliprole",
+      "market": "CODEX",
+      "crop": "melon",
+      "mrl_mg_kg": 0.3,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=94509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Fruiting vegetables, cucurbits (group)",
+      "year_adopted": "2009"
+    },
+    {
+      "substance": "chlorantraniliprole",
+      "market": "CODEX",
+      "crop": "green_bean",
+      "mrl_mg_kg": 0.8,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=94509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Beans with pods (Phaseolus spp.) (immature pods and succulent seeds)",
+      "year_adopted": "2014",
+      "note": "Green pods and immature seeds."
+    },
+    {
+      "substance": "chlorfenapyr",
+      "market": "CODEX",
+      "crop": "tomato",
+      "mrl_mg_kg": 0.4,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=ab509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Tomato",
+      "year_adopted": "2019",
+      "note": "none"
+    },
+    {
+      "substance": "chlorfenapyr",
+      "market": "CODEX",
+      "crop": "pepper",
+      "mrl_mg_kg": 0.3,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=ab509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Peppers (subgroup)",
+      "year_adopted": "2019",
+      "note": "MRL provisionally applies to okra, martynia, and roselle."
+    },
+    {
+      "substance": "chlorfenapyr",
+      "market": "CODEX",
+      "crop": "melon",
+      "mrl_mg_kg": 0.4,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=ab509a14-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Melons (except watermelon)",
+      "year_adopted": "2019",
+      "note": "none"
+    },
+    {
+      "substance": "chlorothalonil",
+      "market": "CODEX",
+      "crop": "tomato",
+      "mrl_mg_kg": 5.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=028f9f0e-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Tomato",
+      "year_adopted": "2016"
+    },
+    {
+      "substance": "chlorothalonil",
+      "market": "CODEX",
+      "crop": "pepper",
+      "mrl_mg_kg": 7.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=028f9f0e-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Peppers (subgroup)",
+      "year_adopted": "2016",
+      "note": "MRL provisionally applies to okra, martynia, and roselle."
+    },
+    {
+      "substance": "chlorothalonil",
+      "market": "CODEX",
+      "crop": "cucumber",
+      "mrl_mg_kg": 3.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=028f9f0e-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Cucumber",
+      "year_adopted": "2011"
+    },
+    {
+      "substance": "chlorothalonil",
+      "market": "CODEX",
+      "crop": "strawberry",
+      "mrl_mg_kg": 5.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=028f9f0e-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Strawberry",
+      "year_adopted": "2011"
+    },
+    {
+      "substance": "chlorothalonil",
+      "market": "CODEX",
+      "crop": "melon",
+      "mrl_mg_kg": 2.0,
+      "default_loq": false,
+      "source": "https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=028f9f0e-199b-f111-b8dc-70a8a5613865",
+      "retrieved_on": "2026-11-27",
+      "commodity": "Melons (except watermelon)",
+      "year_adopted": "2011"
+    }
+  ],
+  "egypt": []
+}

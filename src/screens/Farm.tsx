@@ -104,7 +104,7 @@ function FarmProfileInner({ profile }: { profile: Row<'farm_profiles'> | null })
       <Link to="/" className="back"><Icon name="back" size={18} /> الرئيسية</Link>
       <div className="page-head">
         <div><h1>{farm?.name}</h1><p>{farm?.location_text || 'بيانات الموقع ومصادر المياه والإحداثيات'}</p></div>
-        {can.admin && <button className="btn" onClick={() => setRename(true)}><Icon name="edit" size={20} /> تعديل الاسم</button>}
+        {can.invite && <button className="btn" onClick={() => setRename(true)}><Icon name="edit" size={20} /> تعديل الاسم</button>}
       </div>
 
       {stats && (

@@ -40,8 +40,31 @@ export const WRITABLE: Partial<Record<TableName, Spec>> = {
     columns: {
       id: null, farm_id: null, name: '', product_type: 'other', active_ingredient: null, concentration: null,
       moa_code: null, phi_days: null, rei_hours: null, bio_species: null, default_dose_unit: null,
-      manufacturer: null, notes: null, is_active: true, is_bio: false, default_dose: null, targets: null, ...SYNC_COLS,
+      manufacturer: null, notes: null, is_active: true, is_bio: false, default_dose: null, targets: null,
+      category_id: null, eg_reg_no: null, eg_registered_crops: null, ...SYNC_COLS,
     },
+  },
+  product_categories: {
+    columns: {
+      id: null, farm_id: null, parent_id: null, code: '', name_ar: '', name_en: null, domain: 'ipm',
+      default_product_type: null, is_bio: false, sort_order: 100, notes: null, ...SYNC_COLS,
+    },
+  },
+  active_substances: {
+    columns: {
+      id: null, farm_id: null, name_en: '', name_ar: null, cas_no: null, classes: [], moa_system: null, moa_code: null,
+      chemical_group: null, eu_status: 'unknown', eu_expiry: null, eu_cfs: null, eg_registered: null, notes: null,
+      source_url: null, reviewed_on: null, ...SYNC_COLS,
+    },
+  },
+  substance_limits: {
+    columns: {
+      id: null, farm_id: null, substance_id: null, market: 'EU', crop_code: '', mrl_mg_kg: null, default_loq: false,
+      phi_days: null, source_url: null, retrieved_on: null, notes: null, ...SYNC_COLS,
+    },
+  },
+  product_actives: {
+    columns: { id: null, farm_id: null, product_id: null, substance_id: null, concentration: null, ...SYNC_COLS },
   },
   pest_controls: {
     columns: { id: null, farm_id: null, pest_id: null, product_id: null, approach: 'natural', priority: 100, note: null, ...SYNC_COLS },
@@ -54,7 +77,7 @@ export const WRITABLE: Partial<Record<TableName, Spec>> = {
       id: null, farm_id: null, owner_name: null, manager_name: null, contact_phone: null, address: null,
       latitude: null, longitude: null, elevation_m: null, total_area_feddan: null, water_source: null,
       water_ec_ds_m: null, water_ph: null, soil_type: null, irrigation_system: null, climate_control: null,
-      cover_transmission_pct: 70, notes: null, ...SYNC_COLS,
+      cover_transmission_pct: 70, export_markets: [], notes: null, ...SYNC_COLS,
     },
   },
   farm_zones: {
@@ -126,16 +149,17 @@ export const WRITABLE: Partial<Record<TableName, Spec>> = {
   recommendations: {
     columns: {
       id: null, farm_id: null, greenhouse_id: null, crop_cycle_id: null, observation_id: null, author_id: null,
-      title: '', body: null, priority: 'normal', status: 'open', due_on: null, resolved_at: null, ...SYNC_COLS,
+      title: '', body: null, priority: 'normal', status: 'open', due_on: null, resolved_at: null, domain: 'general', ...SYNC_COLS,
     },
   },
   activities: {
     columns: {
       id: null, farm_id: null, activity_type: 'cultural_operation', method: null, operation_type_id: null,
       performed_on: null, start_time: null, end_time: null, performed_by_name: null, water_volume_l: null,
-      target_pest_id: null, recommendation_id: null, reason: null, notes: null, device_id: null, ...SYNC_COLS,
+      target_pest_id: null, recommendation_id: null, reason: null, notes: null, device_id: null,
+      workers_count: null, labor_hours: null, quality: null, ...SYNC_COLS,
     },
-    generated: ['iso_year', 'iso_week'],
+    generated: ['iso_year', 'iso_week', 'domain'],
   },
   activity_greenhouses: {
     columns: {
@@ -155,6 +179,44 @@ export const WRITABLE: Partial<Record<TableName, Spec>> = {
       caption: null, taken_at: null, device_id: null, ...SYNC_COLS,
     },
   },
+  warehouses: {
+    columns: { id: null, farm_id: null, name: '', kind: 'general', notes: null, ...SYNC_COLS },
+  },
+  stock_items: {
+    columns: {
+      id: null, farm_id: null, product_id: null, stock_unit: 'كجم', min_qty: null, default_warehouse_id: null,
+      notes: null, ...SYNC_COLS,
+    },
+  },
+  purchase_requests: {
+    columns: {
+      id: null, farm_id: null, request_no: null, requested_on: null, needed_by: null, priority: 'normal',
+      status: 'submitted', supplier: null, approved_by: null, approved_at: null, decision_note: null, notes: null,
+      device_id: null, ...SYNC_COLS,
+    },
+  },
+  purchase_request_items: {
+    columns: {
+      id: null, farm_id: null, request_id: null, product_id: null, item_name: null, qty: 0, unit: 'كجم', notes: null,
+      ...SYNC_COLS,
+    },
+  },
+  stock_movements: {
+    columns: {
+      id: null, farm_id: null, warehouse_id: null, product_id: null, movement_type: 'receipt', qty: 0, unit: 'كجم',
+      moved_on: null, batch_no: null, expiry_date: null, supplier: null, document_no: null, unit_price: null,
+      purchase_request_id: null, activity_id: null, greenhouse_id: null, issued_to: null, transfer_group: null,
+      notes: null, device_id: null, ...SYNC_COLS,
+    },
+    generated: ['direction'],
+  },
+  harvest_records: {
+    columns: {
+      id: null, farm_id: null, greenhouse_id: null, crop_cycle_id: null, harvested_on: null, grade: 'first',
+      weight_kg: 0, boxes_count: null, warehouse_id: null, phi_warning: false, notes: null, device_id: null, ...SYNC_COLS,
+    },
+    generated: ['iso_year', 'iso_week'],
+  },
   documents: {
     columns: {
       id: null, farm_id: null, zone_id: null, greenhouse_id: null, category: 'other', title: '', file_name: '',
@@ -168,17 +230,19 @@ export const WRITABLE: Partial<Record<TableName, Spec>> = {
  * لذلك الترتيب هنا هو الضامن لسلامة المفاتيح الأجنبية.
  */
 export const PUSH_ORDER: TableName[] = [
-  'varieties', 'pests', 'products', 'pest_controls', 'operation_types',
+  'product_categories', 'varieties', 'pests', 'products', 'active_substances', 'substance_limits', 'product_actives',
+  'pest_controls', 'operation_types',
   'farm_profiles', 'farm_zones', 'greenhouses', 'crop_cycles', 'reference_plants', 'balance_targets',
   'crop_registration_sessions', 'plant_measurements',
   'scouting_sessions', 'scouting_observations',
   'recommendations', 'activities', 'activity_greenhouses', 'activity_products',
+  'warehouses', 'stock_items', 'purchase_requests', 'purchase_request_items', 'stock_movements', 'harvest_records',
   'attachments', 'documents',
 ];
 
 /** جداول تُسحب بمؤشر server_updated_at (تزايدي) */
 export const INCREMENTAL_PULL: TableName[] = [
-  'organizations', 'farms', ...PUSH_ORDER,
+  'organizations', 'farms', 'system_admins', ...PUSH_ORDER,
 ];
 
 /** جداول صغيرة بلا مؤشر — تُسحب كاملة في كل مزامنة */

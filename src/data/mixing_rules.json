@@ -1,0 +1,4541 @@
+{
+ "version": 1,
+ "generated_from": "page images of the three PDFs (pdftotext -layout output was garbled for Arabic presentation forms in the two guides)",
+ "match_semantics": {
+  "normalize": "حذف التشكيل والتطويل، توحيد أ/إ/آ/ٱ→ا و ى→ي و ة→ه، تحويل اللاتيني لحروف صغيرة، وحذف «ال» التعريف من بداية الكلمة الأطول من 4 أحرف",
+  "keywords": "كلمة/عبارة تطابق إذا وردت ككلمات كاملة متتالية (لا كجزء من كلمة) في اسم المنتج أو مادته الفعالة بعد التطبيع",
+  "moa_codes": "يطابق إذا ساوى أي جزء من moa_code بعد تقسيمه على + أو / أو , (مثل 11+3)، أو ساوى الرمز كاملًا (مثل 28+4A)",
+  "product_types": "إن وُجدت تُقيّد المطابقة على أنواع المنتج هذه",
+  "exclude_keywords": "تُلغي المطابقة إذا ظهرت",
+  "category_codes_hint": "رموز التصنيف الفرعي من scripts/knowledge/taxonomy.py — تلميح يطابق المنتج إذا كان في هذا التصنيف (مع احترام exclude_* و product_types)",
+  "exclude_category_codes": "تُلغي المطابقة إذا كان المنتج في هذا التصنيف",
+  "includes_groups": "المنتج الذي يطابق أي مجموعة مذكورة هنا يُعتبر عضوًا في هذه المجموعة أيضًا",
+  "formulation_codes": "يطابق رمز صورة المستحضر إن وُجد حقل لها أو ظهر الرمز ككلمة في الاسم",
+  "any": "يطابق كل المنتجات",
+  "rules": "القواعد متماثلة (a,b) = (b,a)؛ a = b تعني منتجين مختلفين من نفس المجموعة. عند تعارض أحكام نفس الزوج من مصدرين يُعرض الأشد مع ذكر المصدرين"
+ },
+ "sources": [
+  {
+   "id": "guide_green",
+   "title": "الدليل الفني للخلط المتوافق بين المبيدات والمركبات الغذائية — الإصدار الثالث (سبتمبر 2026)",
+   "file": "دليل_الخلط_المتوافق_للمبيدات_والمغذيات_أخضر.pdf",
+   "pages": 17,
+   "note_ar": "ملف «أخضر»؛ عدد صفحاته الفعلي 17 والإصدار المكتوب على الغلاف هو الثالث"
+  },
+  {
+   "id": "guide_v4",
+   "title": "الدليل الفنى للخلط المتوافق بين المبيدات والمركّبات الغذائية — الإصدار الرابع (سبتمبر 2026)",
+   "file": "الدليل الفني للخلط المتوافق - الإصدار الرابع.pdf",
+   "pages": 21,
+   "note_ar": "يضيف قسم القوائم التنظيمية الدولية (ص9–10) وخطوات تجهيز التانك داخل كل خلطة"
+  },
+  {
+   "id": "bio",
+   "title": "ملخص المركبات الحيوية",
+   "file": "bio",
+   "pages": 6,
+   "note_ar": "جدول أسماء وأغراض واستهداف فقط؛ لا يحتوي قواعد خلط ولا جرعات"
+  }
+ ],
+ "groups": [
+  {
+   "code": "any_product",
+   "name_ar": "أي مركّب آخر",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [],
+    "category_codes_hint": [],
+    "moa_codes": [],
+    "any": true
+   },
+   "note_ar": "يطابق أي منتج في الخلطة (لقواعد «+ أي مركّب آخر»)"
+  },
+  {
+   "code": "any_pesticide",
+   "name_ar": "أي مبيد",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [],
+    "category_codes_hint": [
+     "chem_insecticides",
+     "chem_acaricides",
+     "chem_fungicides",
+     "chem_bactericides",
+     "chem_nematicides",
+     "micro_ento_fungi",
+     "micro_ento_bacteria",
+     "micro_antagonists",
+     "bot_plant_oils",
+     "bot_mineral_oils",
+     "bot_extracts",
+     "bot_soaps_salts",
+     "min_sulfur",
+     "min_copper"
+    ],
+    "moa_codes": [],
+    "product_types": [
+     "insecticide",
+     "acaricide",
+     "fungicide",
+     "bactericide",
+     "nematicide"
+    ]
+   }
+  },
+  {
+   "code": "any_nutrient",
+   "name_ar": "أي مركّب غذائي / سماد ورقي",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [],
+    "category_codes_hint": [
+     "fert_nitrogen",
+     "fert_phosphate",
+     "fert_potassium",
+     "fert_secondary",
+     "fert_micro",
+     "fert_npk",
+     "fert_organic"
+    ],
+    "moa_codes": [],
+    "product_types": [
+     "fertilizer"
+    ],
+    "exclude_category_codes": [
+     "biofert_n",
+     "biofert_pk",
+     "biofert_myco",
+     "lp_organic_manures",
+     "lp_soil_amendments"
+    ],
+    "includes_groups": [
+     "cocktail_pearl",
+     "florastart",
+     "potassium_phosphite",
+     "frutaliv",
+     "champion",
+     "peak"
+    ]
+   }
+  },
+  {
+   "code": "cocktail_pearl",
+   "name_ar": "كوكتيل بيرل (كالسيوم مركّز + زنك مخلبي EDTA + بورون، Rovensa Next)",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [
+     "كوكتيل بيرل",
+     "Cocktail Pearl"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": []
+   },
+   "tank_order_step": 6
+  },
+  {
+   "code": "florastart",
+   "name_ar": "فلوراستارت (فوسفيت وبوتاسيوم + بورون وموليبدنيوم، Rovensa Next)",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [
+     "فلوراستارت",
+     "Florastart"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": []
+   },
+   "tank_order_step": 6,
+   "note_ar": "لا يطابق «فلور استار» الموجود في الكتالوج (منتج إزهار مختلف غالبًا) — يُراجع يدويًا"
+  },
+  {
+   "code": "potassium_phosphite",
+   "name_ar": "بوتاسيوم فوسفيت (فوسفيت 100% سائل)",
+   "match": {
+    "active_ingredient_keywords": [
+     "فوسفيت البوتاسيوم",
+     "بوتاسيوم فوسفيت",
+     "potassium phosphite",
+     "phosphite"
+    ],
+    "product_name_keywords": [
+     "بوتاسيوم فوسفيت",
+     "فوسفيت البوتاسيوم",
+     "Phosphite"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "P07"
+    ]
+   },
+   "tank_order_step": 6,
+   "note_ar": "«فوسفات البوتاسيوم» في الكتالوج ليس فوسفيت ولا يطابق هنا"
+  },
+  {
+   "code": "frutaliv",
+   "name_ar": "فروتاليف (فوسفور + بوتاسيوم بيروفوسفات نباتية + أحماض أمينية، Futureco Bioscience)",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [
+     "فروتاليف",
+     "Frutaliv"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": []
+   },
+   "tank_order_step": 6
+  },
+  {
+   "code": "champion",
+   "name_ar": "شامبيون (نترات بوتاسيوم عالية الذوبان SQM)",
+   "match": {
+    "active_ingredient_keywords": [
+     "نترات بوتاسيوم",
+     "نترات البوتاسيوم",
+     "potassium nitrate"
+    ],
+    "product_name_keywords": [
+     "شامبيون",
+     "شامبيبون",
+     "Champion"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": []
+   },
+   "tank_order_step": 6,
+   "note_ar": "الدليل يعرّفه بأنه نترات بوتاسيوم عالية الذوبان؛ لذا تُطابق نترات البوتاسيوم أيضًا (اجتهاد في المطابقة)"
+  },
+  {
+   "code": "peak",
+   "name_ar": "بيك (0-52-34 — أحادي فوسفات البوتاسيوم MKP / فوسفيت بوتاسيوم مركّز)",
+   "match": {
+    "active_ingredient_keywords": [
+     "مونو بوتاسيوم فوسفات",
+     "أحادي فوسفات البوتاسيوم",
+     "MKP",
+     "0-52-34",
+     "monopotassium phosphate"
+    ],
+    "product_name_keywords": [
+     "بيك",
+     "PeaK",
+     "MKP"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [],
+    "exclude_keywords": [
+     "بيكربونات"
+    ]
+   },
+   "tank_order_step": 6,
+   "note_ar": "الدليل: النسبة 0-52-34 شائعة لعدة أسماء تجارية (بيك / MKP / فوسفيت بوتاسيوم مركّز) وتخضع لنفس القواعد"
+  },
+  {
+   "code": "calcium_source",
+   "name_ar": "أي مصدر كالسيوم (نترات كالسيوم، كلوريد كالسيوم، كوكتيل بيرل...)",
+   "match": {
+    "active_ingredient_keywords": [
+     "كالسيوم",
+     "calcium"
+    ],
+    "product_name_keywords": [
+     "كالسيوم",
+     "Ca",
+     "كلباك",
+     "QUICELU",
+     "نيوسترين"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [],
+    "exclude_category_codes": [
+     "lp_soil_amendments"
+    ],
+    "includes_groups": [
+     "cocktail_pearl"
+    ]
+   },
+   "tank_order_step": 6
+  },
+  {
+   "code": "phosphorus_source",
+   "name_ar": "أي مصدر فوسفور / فوسفات / فوسفيت",
+   "match": {
+    "active_ingredient_keywords": [
+     "فوسفات",
+     "فوسفيت",
+     "فوسفور",
+     "فوسفوريك",
+     "phosphate",
+     "phosphite",
+     "P2O5"
+    ],
+    "product_name_keywords": [
+     "فوسفات",
+     "فوسفيت",
+     "MAP",
+     "MKP",
+     "DAP"
+    ],
+    "category_codes_hint": [
+     "fert_phosphate"
+    ],
+    "moa_codes": [],
+    "exclude_category_codes": [
+     "biofert_pk"
+    ],
+    "includes_groups": [
+     "florastart",
+     "potassium_phosphite",
+     "frutaliv",
+     "peak"
+    ]
+   },
+   "tank_order_step": 6
+  },
+  {
+   "code": "propargite_comite",
+   "name_ar": "كوميت EC 73% (بروبارجيت)",
+   "match": {
+    "active_ingredient_keywords": [
+     "بروبارجيت",
+     "Propargite"
+    ],
+    "product_name_keywords": [
+     "كوميت",
+     "Comite"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "12C"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "chlorfenapyr_challenger",
+   "name_ar": "تشالنجر سوبر SC 24% (كلورفينابير)",
+   "match": {
+    "active_ingredient_keywords": [
+     "كلورفينابير",
+     "Chlorfenapyr"
+    ],
+    "product_name_keywords": [
+     "تشالنجر",
+     "تشالنجر سوبر",
+     "Challenger"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "13"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "coragen",
+   "name_ar": "كوراجين SC 20% (كلورانترانيليبرول)",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [
+     "كوراجين",
+     "Coragen"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": []
+   },
+   "note_ar": "المطابقة بالاسم التجاري فقط لأن الدليل يذكر كوراجين تحديدًا"
+  },
+  {
+   "code": "benevia_od",
+   "name_ar": "بينيفيا OD 10% (سيانترانيليبرول — صياغة زيتية)",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [
+     "بينيفيا",
+     "Benevia"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": []
+   }
+  },
+  {
+   "code": "voliam_flexi",
+   "name_ar": "فوليام فليكسي WG 40% (كلورانترانيليبرول + ثياميثوكسام)",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [
+     "فوليام فليكسي",
+     "فوليام",
+     "Voliam"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "28+4A"
+    ]
+   }
+  },
+  {
+   "code": "lufenuron_match",
+   "name_ar": "ماتش EC 5% (لوفينورون)",
+   "match": {
+    "active_ingredient_keywords": [
+     "لوفينورون",
+     "Lufenuron"
+    ],
+    "product_name_keywords": [
+     "ماتش",
+     "Match"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "15"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "spinetoram",
+   "name_ar": "سبينيتورام (راديانت SC 12% / إكسالت SC 6%)",
+   "match": {
+    "active_ingredient_keywords": [
+     "سبينيتورام",
+     "Spinetoram"
+    ],
+    "product_name_keywords": [
+     "راديانت",
+     "Radiant",
+     "إكسالت",
+     "أكزلت",
+     "Exalt"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": []
+   }
+  },
+  {
+   "code": "bt",
+   "name_ar": "مستحضرات Bt الحيوية (باسيلس ثورينجينسيس)",
+   "match": {
+    "active_ingredient_keywords": [
+     "باسيلس ثورينجينسيس",
+     "ثورينجينسيس",
+     "Bacillus thuringiensis",
+     "thuringiensis",
+     "Bt"
+    ],
+    "product_name_keywords": [
+     "دايبل",
+     "Dipel",
+     "زنتاري",
+     "Xentari",
+     "أجرين",
+     "Agerin",
+     "بروتكتو",
+     "Protecto",
+     "Bt"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "11A"
+    ]
+   }
+  },
+  {
+   "code": "copper",
+   "name_ar": "المركبات النحاسية",
+   "match": {
+    "active_ingredient_keywords": [
+     "نحاس",
+     "نحاسي",
+     "copper",
+     "هيدروكسيد النحاس",
+     "أوكسي كلوريد النحاس",
+     "أوكسي كلورور النحاس",
+     "جليكونات النحاس",
+     "كبريتات النحاس",
+     "بوردو"
+    ],
+    "product_name_keywords": [
+     "نحاس",
+     "بوردو",
+     "جلوبر",
+     "باكو بيست",
+     "ترافس نحاس"
+    ],
+    "category_codes_hint": [
+     "min_copper"
+    ],
+    "moa_codes": [
+     "M01"
+    ],
+    "product_types": [
+     "fungicide",
+     "bactericide"
+    ]
+   },
+   "note_ar": "الدليل يقول «النحاس» فقط؛ قُصرت المطابقة على المبيدات (لا النحاس المخلبي كعنصر صغرى)"
+  },
+  {
+   "code": "sulfur",
+   "name_ar": "الكبريت",
+   "match": {
+    "active_ingredient_keywords": [
+     "كبريت",
+     "sulfur",
+     "sulphur"
+    ],
+    "product_name_keywords": [
+     "كبريت",
+     "هيليوسوفر",
+     "سوريل"
+    ],
+    "category_codes_hint": [
+     "min_sulfur"
+    ],
+    "moa_codes": [
+     "M02"
+    ],
+    "exclude_keywords": [
+     "كبريتات",
+     "كبريتيك"
+    ],
+    "exclude_category_codes": [
+     "lp_soil_amendments"
+    ]
+   }
+  },
+  {
+   "code": "mineral_oils",
+   "name_ar": "الزيوت المعدنية",
+   "match": {
+    "active_ingredient_keywords": [
+     "زيت معدني",
+     "زيوت معدنية",
+     "زيت بارافيني",
+     "بارافيني",
+     "mineral oil",
+     "paraffin"
+    ],
+    "product_name_keywords": [
+     "زيت معدني",
+     "KZ",
+     "سوبر مصرونا"
+    ],
+    "category_codes_hint": [
+     "bot_mineral_oils"
+    ],
+    "moa_codes": []
+   }
+  },
+  {
+   "code": "oils",
+   "name_ar": "الزيوت (أي زيت: معدني أو نباتي) والصياغات الزيتية",
+   "match": {
+    "active_ingredient_keywords": [
+     "زيت",
+     "زيوت",
+     "oil"
+    ],
+    "product_name_keywords": [
+     "زيت",
+     "زيوت"
+    ],
+    "category_codes_hint": [
+     "bot_plant_oils",
+     "bot_mineral_oils"
+    ],
+    "moa_codes": [],
+    "includes_groups": [
+     "mineral_oils"
+    ]
+   }
+  },
+  {
+   "code": "alkaline_solution",
+   "name_ar": "محاليل قلوية (pH أعلى من 8)",
+   "match": {
+    "active_ingredient_keywords": [
+     "بيكربونات",
+     "هيدروكسيد البوتاسيوم",
+     "قلوي",
+     "alkaline"
+    ],
+    "product_name_keywords": [
+     "بيكربونات",
+     "قلوي"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [],
+    "keywords_inferred": true
+   },
+   "note_ar": "الدليل لا يسمّي منتجات بعينها؛ الكلمات اجتهاد لمطابقة المواد القلوية الشائعة، والأصح قياس pH المحلول فعليًا"
+  },
+  {
+   "code": "wp_wg_sg",
+   "name_ar": "المساحيق WP · WG · SG",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [
+     "WP",
+     "WG",
+     "SG",
+     "مسحوق",
+     "نيسورون",
+     "ماساي",
+     "سانمايت",
+     "أبلاود",
+     "تشيس",
+     "أكتارا",
+     "فوليام فليكسي",
+     "بروكليم"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [],
+    "formulation_codes": [
+     "WP",
+     "WG",
+     "SG"
+    ]
+   },
+   "tank_order_step": 3,
+   "note_ar": "أسماء المنتجات من جداول الدليل حيث صياغتها مسحوق؛ تُذاب مسبقًا في جردل"
+  },
+  {
+   "code": "sc_od_se",
+   "name_ar": "المعلّقات SC · OD · SE (والأخضر يذكر ZC في ترتيب الإضافة)",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [
+     "SC",
+     "OD",
+     "SE",
+     "ZC",
+     "معلق",
+     "فلورامايت",
+     "فلوراميت",
+     "أبولو",
+     "أكراميت",
+     "أكرامايت",
+     "إنفيدور",
+     "موفنتو",
+     "موفينتو",
+     "ديناميت",
+     "أوبيرون",
+     "أويبرون",
+     "أويبيرون",
+     "كوراجين",
+     "إكسيريل",
+     "راديانت",
+     "إكسالت",
+     "تريسر",
+     "أفانت",
+     "أفاونت",
+     "رانر",
+     "رنر",
+     "تشالنجر سوبر",
+     "بينيفيا",
+     "بولو"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [],
+    "formulation_codes": [
+     "SC",
+     "OD",
+     "SE",
+     "ZC"
+    ]
+   },
+   "tank_order_step": 4
+  },
+  {
+   "code": "ec_formulation",
+   "name_ar": "المستحلبات EC · EW",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [
+     "EC",
+     "EW",
+     "مستحلب",
+     "كوميت",
+     "فيرتيمك",
+     "نيورون",
+     "ماجستير",
+     "فارمكتين",
+     "مينتو بلس",
+     "ماتش",
+     "أدميرال"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [],
+    "formulation_codes": [
+     "EC",
+     "EW"
+    ]
+   },
+   "tank_order_step": 5
+  },
+  {
+   "code": "sl_solution",
+   "name_ar": "المحاليل SL",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [
+     "SL",
+     "سيفانتو برايم"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [],
+    "formulation_codes": [
+     "SL"
+    ]
+   },
+   "tank_order_step": 6
+  },
+  {
+   "code": "adjuvant",
+   "name_ar": "المواد المساعدة (اللاصق / الناشر)",
+   "match": {
+    "active_ingredient_keywords": [],
+    "product_name_keywords": [
+     "لاصق",
+     "ناشر",
+     "ناشرة",
+     "لاصقة"
+    ],
+    "category_codes_hint": [
+     "adj_spreader_sticker"
+    ],
+    "moa_codes": [],
+    "product_types": [
+     "adjuvant"
+    ]
+   },
+   "tank_order_step": 7
+  },
+  {
+   "code": "irac_21a",
+   "name_ar": "مجموعة IRAC 21A — المركّب المتحد METI I",
+   "match": {
+    "active_ingredient_keywords": [
+     "فنبيروكسيمات",
+     "فنبيروكسيميت",
+     "Fenpyroximate",
+     "تيبوفينبيراد",
+     "Tebufenpyrad",
+     "فينازاكوين",
+     "Fenazaquin",
+     "بيريدابين",
+     "Pyridaben"
+    ],
+    "product_name_keywords": [
+     "أورتس",
+     "أورتيس",
+     "Ortus",
+     "ماساي",
+     "Masai",
+     "ماجستير",
+     "Magister",
+     "سانمايت",
+     "Sanmite"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "21A"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_12c",
+   "name_ar": "مجموعة IRAC 12C — سلفيت عضوي (ATP سنثيز)",
+   "match": {
+    "active_ingredient_keywords": [
+     "بروبارجيت",
+     "Propargite"
+    ],
+    "product_name_keywords": [
+     "كوميت",
+     "Comite"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "12C"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_6",
+   "name_ar": "مجموعة IRAC 6 — أفيرمكتينات",
+   "match": {
+    "active_ingredient_keywords": [
+     "أبامكتين",
+     "Abamectin",
+     "إيمامكتين بنزوات",
+     "إيمامكتين",
+     "Emamectin"
+    ],
+    "product_name_keywords": [
+     "فيرتيمك",
+     "Vertimec",
+     "فارمكتين",
+     "Farmectin",
+     "مينتو بلس",
+     "Minto",
+     "بروكليم",
+     "Proclaim"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "6"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_20d",
+   "name_ar": "مجموعة IRAC 20D — المركّب الثالث III (بيفينازيت)",
+   "match": {
+    "active_ingredient_keywords": [
+     "بيفينازيت",
+     "Bifenazate"
+    ],
+    "product_name_keywords": [
+     "فلورامايت",
+     "فلوراميت",
+     "Floramite",
+     "أكراميت",
+     "أكرامايت",
+     "Acramite"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "20D"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_20b",
+   "name_ar": "مجموعة IRAC 20B — المركّب الثالث III (أسيكوينوسيل)",
+   "match": {
+    "active_ingredient_keywords": [
+     "أسيكوينوسيل",
+     "أسيكينوسيل",
+     "Acequinocyl"
+    ],
+    "product_name_keywords": [
+     "ديناميت",
+     "Dynamite",
+     "كاني مايت"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "20B"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_10a",
+   "name_ar": "مجموعة IRAC 10A — بيوسيدات / مثبطات نمو",
+   "match": {
+    "active_ingredient_keywords": [
+     "هكسيثيازوكس",
+     "Hexythiazox",
+     "كلوفينتيزين",
+     "Clofentezine"
+    ],
+    "product_name_keywords": [
+     "نيسورون",
+     "Nissorun",
+     "أبولو",
+     "Apollo"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "10A"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_23",
+   "name_ar": "مجموعة IRAC 23 — مشتقات التترونيك والتترامك",
+   "match": {
+    "active_ingredient_keywords": [
+     "سبيروديكلوفين",
+     "Spirodiclofen",
+     "سبيروتيترامات",
+     "Spirotetramat",
+     "سبيروميسيفين",
+     "Spiromesifen"
+    ],
+    "product_name_keywords": [
+     "إنفيدور",
+     "Envidor",
+     "موفنتو",
+     "موفينتو",
+     "Movento",
+     "أوبيرون",
+     "أويبرون",
+     "أويبيرون",
+     "Oberon"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "23"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_28",
+   "name_ar": "مجموعة IRAC 28 — الدياميدات (منظم الرايانودين)",
+   "match": {
+    "active_ingredient_keywords": [
+     "كلورانترانيليبرول",
+     "Chlorantraniliprole",
+     "سيانترانيليبرول",
+     "Cyantraniliprole"
+    ],
+    "product_name_keywords": [
+     "كوراجين",
+     "Coragen",
+     "إكسيريل",
+     "Exirel",
+     "بينيفيا",
+     "Benevia",
+     "فوليام فليكسي"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "28"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_5",
+   "name_ar": "مجموعة IRAC 5 — سبينوسينات",
+   "match": {
+    "active_ingredient_keywords": [
+     "سبينيتورام",
+     "Spinetoram",
+     "سبينوساد",
+     "Spinosad"
+    ],
+    "product_name_keywords": [
+     "راديانت",
+     "Radiant",
+     "إكسالت",
+     "أكزلت",
+     "Exalt",
+     "تريسر",
+     "Tracer"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "5"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_22a",
+   "name_ar": "مجموعة IRAC 22A — إندوكساكارب",
+   "match": {
+    "active_ingredient_keywords": [
+     "إندوكساكارب",
+     "Indoxacarb"
+    ],
+    "product_name_keywords": [
+     "أفانت",
+     "أفاونت",
+     "Avaunt"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "22A"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_18",
+   "name_ar": "مجموعة IRAC 18 — مشابهات هرمون الانسلاخ",
+   "match": {
+    "active_ingredient_keywords": [
+     "ميثوكسي فينوزايد",
+     "Methoxyfenozide"
+    ],
+    "product_name_keywords": [
+     "رانر",
+     "رنر",
+     "Runner"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "18"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_15",
+   "name_ar": "مجموعة IRAC 15 — مثبطات انسلاخ الكيتين",
+   "match": {
+    "active_ingredient_keywords": [
+     "لوفينورون",
+     "Lufenuron"
+    ],
+    "product_name_keywords": [
+     "ماتش",
+     "Match"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "15"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_13",
+   "name_ar": "مجموعة IRAC 13 — بيرولات (فك اقتران ATP)",
+   "match": {
+    "active_ingredient_keywords": [
+     "كلورفينابير",
+     "Chlorfenapyr"
+    ],
+    "product_name_keywords": [
+     "تشالنجر",
+     "Challenger"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "13"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_11a",
+   "name_ar": "مجموعة IRAC 11A — بكتيريا Bt",
+   "match": {
+    "active_ingredient_keywords": [
+     "باسيلس ثورينجينسيس",
+     "Bacillus thuringiensis"
+    ],
+    "product_name_keywords": [
+     "دايبل",
+     "Dipel",
+     "أجرين",
+     "Agerin",
+     "بروتكتو",
+     "Protecto"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "11A"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_4a",
+   "name_ar": "مجموعة IRAC 4A — نيونيكوتينويدات",
+   "match": {
+    "active_ingredient_keywords": [
+     "أسيتامبريد",
+     "Acetamiprid",
+     "ثياميثوكسام",
+     "Thiamethoxam"
+    ],
+    "product_name_keywords": [
+     "موسبيلان",
+     "Mospilan",
+     "أكتارا",
+     "Actara",
+     "فوليام فليكسي"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "4A"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_4d",
+   "name_ar": "مجموعة IRAC 4D — بيوتينوليد",
+   "match": {
+    "active_ingredient_keywords": [
+     "فلوبيراديفيورون",
+     "Flupyradifurone"
+    ],
+    "product_name_keywords": [
+     "سيفانتو",
+     "Sivanto"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "4D"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_7c",
+   "name_ar": "مجموعة IRAC 7C — مشابه هرمون الشباب",
+   "match": {
+    "active_ingredient_keywords": [
+     "بيريبروكسيفين",
+     "Pyriproxyfen"
+    ],
+    "product_name_keywords": [
+     "أدميرال",
+     "Admiral"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "7C"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_16",
+   "name_ar": "مجموعة IRAC 16 — مثبطات تخليق الكيتين (حشرية)",
+   "match": {
+    "active_ingredient_keywords": [
+     "بوبروفيزين",
+     "Buprofezin"
+    ],
+    "product_name_keywords": [
+     "أبلاود",
+     "Applaud"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "16"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_9b",
+   "name_ar": "مجموعة IRAC 9B — بيميتروزين",
+   "match": {
+    "active_ingredient_keywords": [
+     "بيميتروزين",
+     "Pymetrozine"
+    ],
+    "product_name_keywords": [
+     "تشيس",
+     "Chess"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "9B"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  },
+  {
+   "code": "irac_12a",
+   "name_ar": "مجموعة IRAC 12A — الديافينثيورون",
+   "match": {
+    "active_ingredient_keywords": [
+     "ديافينثيورون",
+     "Diafenthiuron"
+    ],
+    "product_name_keywords": [
+     "بولو",
+     "Polo"
+    ],
+    "category_codes_hint": [],
+    "moa_codes": [
+     "12A"
+    ],
+    "product_types": [
+     "insecticide",
+     "acaricide"
+    ]
+   }
+  }
+ ],
+ "rules": [
+  {
+   "id": "r001",
+   "a": "irac_21a",
+   "b": "irac_21a",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r002",
+   "a": "irac_12c",
+   "b": "irac_12c",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r003",
+   "a": "irac_6",
+   "b": "irac_6",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r004",
+   "a": "irac_20d",
+   "b": "irac_20d",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r005",
+   "a": "irac_20b",
+   "b": "irac_20b",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r006",
+   "a": "irac_10a",
+   "b": "irac_10a",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r007",
+   "a": "irac_23",
+   "b": "irac_23",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r008",
+   "a": "irac_28",
+   "b": "irac_28",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r009",
+   "a": "irac_5",
+   "b": "irac_5",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r010",
+   "a": "irac_22a",
+   "b": "irac_22a",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r011",
+   "a": "irac_18",
+   "b": "irac_18",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r012",
+   "a": "irac_15",
+   "b": "irac_15",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r013",
+   "a": "irac_13",
+   "b": "irac_13",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r014",
+   "a": "irac_11a",
+   "b": "irac_11a",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r015",
+   "a": "irac_4a",
+   "b": "irac_4a",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r016",
+   "a": "irac_4d",
+   "b": "irac_4d",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r017",
+   "a": "irac_7c",
+   "b": "irac_7c",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r018",
+   "a": "irac_16",
+   "b": "irac_16",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r019",
+   "a": "irac_9b",
+   "b": "irac_9b",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r020",
+   "a": "irac_12a",
+   "b": "irac_12a",
+   "verdict": "incompatible",
+   "message_ar": "مبيدان من نفس مجموعة IRAC: لا يُضيف فاعلية إضافية ويسرّع ظهور سلالات مقاومة.",
+   "condition_ar": "لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين (الضابط 01).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ظهور سلالات مقاومة ضمن مجموعة IRAC الواحدة."
+    }
+   ]
+  },
+  {
+   "id": "r021",
+   "a": "calcium_source",
+   "b": "phosphorus_source",
+   "verdict": "incompatible",
+   "message_ar": "ترسيب فوري لفوسفات الكالسيوم غير الذائب، وانسداد الفلاتر والنوزلات.",
+   "condition_ar": "أي مصدر كالسيوم مع أي مصدر فوسفات/فوسفيت في نفس الخزان (كوكتيل بيرل + فلوراستارت أو فروتاليف أو بوتاسيوم فوسفيت أو بيك).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2,
+     "condition_ar": "كوكتيل بيرل لا يُخلط أبدًا مع فلوراستارت أو بوتاسيوم فوسفيت أو بيك (ترسيب فوري)، ولا يُجمع سمادان فوسفوريان في رشة واحدة."
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13
+    }
+   ]
+  },
+  {
+   "id": "r022",
+   "a": "phosphorus_source",
+   "b": "phosphorus_source",
+   "verdict": "incompatible",
+   "message_ar": "ارتفاع ملوحة المحلول (EC) وخطر حرق الأوراق، فضلًا عن تجاوز الحد الأقصى المسموح لمكوّنات الخلطة.",
+   "condition_ar": "فلوراستارت · فروتاليف · بوتاسيوم فوسفيت · بيك (أي اثنين منهما في نفس التنك).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13
+    }
+   ]
+  },
+  {
+   "id": "r023",
+   "a": "propargite_comite",
+   "b": "any_product",
+   "verdict": "incompatible",
+   "message_ar": "خطر سمية نباتية خارج أوقات الحرارة؛ يُرش منفردًا.",
+   "condition_ar": "كوميت EC 73% + مبيدات أو أسمدة أو زيوت.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "condition_ar": "على القرعيات (كوسة، بطيخ، كنتالوب)، أو مع مستحضرات أسمدة في الحرارة.",
+     "message_ar": "سمّية نباتية على القرعيات/أصناف حساسة؛ يُرش منفردًا."
+    },
+    {
+     "source": "guide_green",
+     "source_page": 3,
+     "condition_ar": "قوي جدًا على البالغات وله تأثير تبخيري؛ يُستخدم منفردًا ولا يُخلط في الحرارة الشديدة."
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 3,
+     "condition_ar": "قوي جدًا على البالغات وله تأثير تبخيري؛ يُستخدم منفردًا ولا يُخلط في الحرارة الشديدة."
+    }
+   ],
+   "ambiguity_ar": "مصفوفة الإصدار الرابع (ص12) تعطي كوميت «بشرط» أو «متوافق» مع المركّبات الغذائية، بما يناقض هذه القاعدة في نفس الإصدار (ص13)."
+  },
+  {
+   "id": "r024",
+   "a": "chlorfenapyr_challenger",
+   "b": "any_product",
+   "verdict": "incompatible",
+   "message_ar": "سمية نباتية على المجموع الخضري.",
+   "condition_ar": "على القرعيات (خيار، كوسة، كنتالوب، بطيخ)، أو مع مستحضرات وأسمدة في الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "ambiguity_ar": "الإصدار الرابع (ص13) قصر الحظر على الزيوت المعدنية أو الكبريت، ومصفوفته (ص12) تجعل تشالنجر «متوافق» مع كل المركّبات الغذائية، بينما مصفوفة الأخضر (ص10) «بشرط»."
+  },
+  {
+   "id": "r025",
+   "a": "chlorfenapyr_challenger",
+   "b": "mineral_oils",
+   "verdict": "incompatible",
+   "message_ar": "سمّية نباتية عند المجموع الخضري.",
+   "condition_ar": "تشالنجر سوبر (كلورفينابير) + زيوت معدنية أو كبريت — على المجموع الخضري في الحرارة المرتفعة.",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 13
+  },
+  {
+   "id": "r026",
+   "a": "chlorfenapyr_challenger",
+   "b": "sulfur",
+   "verdict": "incompatible",
+   "message_ar": "سمّية نباتية عند المجموع الخضري.",
+   "condition_ar": "تشالنجر سوبر (كلورفينابير) + زيوت معدنية أو كبريت — على المجموع الخضري في الحرارة المرتفعة.",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 13
+  },
+  {
+   "id": "r027",
+   "a": "chlorfenapyr_challenger",
+   "b": "ec_formulation",
+   "verdict": "incompatible",
+   "message_ar": "ثلاثي الأثر، لكن لا يُرش على القرعيات ولا يُخلط مع مستحلبات في الحرارة.",
+   "condition_ar": "في الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 5
+  },
+  {
+   "id": "r028",
+   "a": "mineral_oils",
+   "b": "sulfur",
+   "verdict": "incompatible",
+   "message_ar": "حرق شديد للمجموع الخضري.",
+   "condition_ar": "في نفس الرشة، أو قبل/بعد مرور 2-3 أسابيع بينهما.",
+   "interval_days": 21,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 13
+    }
+   ],
+   "interval_days_range": [
+    14,
+    21
+   ]
+  },
+  {
+   "id": "r029",
+   "a": "bt",
+   "b": "alkaline_solution",
+   "verdict": "incompatible",
+   "message_ar": "فقد حيوية البكتيريا وانعدام الفاعلية.",
+   "condition_ar": "مع محاليل قلوية (pH أعلى من 8).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 13
+    }
+   ],
+   "ambiguity_ar": "عمود «الخلطة» مكتوب «مستحضرات Bt الحيوية + كريات معدنية» في الأخضر و«+ كبريت معدنية» في الرابع؛ الحالة المذكورة صراحةً هي المحاليل القلوية pH>8."
+  },
+  {
+   "id": "r030",
+   "a": "bt",
+   "b": "sulfur",
+   "verdict": "caution",
+   "message_ar": "نص الإصدار الرابع: «مستحضرات Bt الحيوية + كبريت معدنية» — فقد حيوية البكتيريا وانعدام الفاعلية.",
+   "condition_ar": "مع محاليل قلوية (pH أعلى من 8).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 13,
+   "ambiguity_ar": "غالبًا خطأ طباعي (الأخضر: «كريات معدنية»)؛ وُضعت «تحذير» لا «ممنوع» حتى يُراجعها المكتب الفني."
+  },
+  {
+   "id": "r031",
+   "a": "bt",
+   "b": "copper",
+   "verdict": "incompatible",
+   "message_ar": "حيوي آمن؛ رش مسائي، pH محلول أقل من 8، لا يُخلط مع النحاس.",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 5,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 13
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 16,
+     "message_ar": "رشّ مسائي pH محلول أقل من 8، ولا يُخلط مع نحاس."
+    }
+   ]
+  },
+  {
+   "id": "r032",
+   "a": "champion",
+   "b": "calcium_source",
+   "verdict": "incompatible",
+   "message_ar": "خطر ترسيب أملاح غير ذائبة (فوسفات / كربونات كالسيوم)؛ يُضافان في رشّتين منفصلتين بفارق يوم أو ريّة.",
+   "condition_ar": "نترات بوتاسيوم أو فوسفيت بوتاسيوم مع أسمدة الكالسيوم في نفس الخزان.",
+   "interval_days": 1,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ترسيب أملاح غير ذائبة وانسداد الرشاشات؛ يُفصل بفارق يوم أو ريّة على الأقل."
+    },
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    }
+   ]
+  },
+  {
+   "id": "r033",
+   "a": "champion",
+   "b": "any_nutrient",
+   "verdict": "incompatible",
+   "message_ar": "يتجاوز الحد الأقصى لمكوّنات الخلطة (مبيد + مغذٍّ واحد) ويزيد فرص التعارض والحرق.",
+   "condition_ar": "أكثر من مصدر تسميد مركّز في نفس الرشّة (فوسفيت + فلوراستارت، أو شامبيون + فروتاليف...).",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 13
+    },
+    {
+     "source": "guide_green",
+     "source_page": 9,
+     "condition_ar": "لا يُخلط مع أي مركّب غذائي آخر — يُضاف منفردًا"
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11,
+     "condition_ar": "لا يُخلط معًا افتراضيًا مع أي مركّب غذائي آخر"
+    }
+   ],
+   "ambiguity_ar": "مصفوفة الإصدار الرابع (ص12) تجعل شامبيون «متوافق» مع بيك وفروتاليف، وبيك «بشرط» مع فروتاليف — بما يناقض هذه القاعدة في نفس الإصدار (ص11 وص13 وحاشية ص12)."
+  },
+  {
+   "id": "r034",
+   "a": "peak",
+   "b": "calcium_source",
+   "verdict": "incompatible",
+   "message_ar": "خطر ترسيب أملاح غير ذائبة (فوسفات / كربونات كالسيوم)؛ يُضافان في رشّتين منفصلتين بفارق يوم أو ريّة.",
+   "condition_ar": "نترات بوتاسيوم أو فوسفيت بوتاسيوم مع أسمدة الكالسيوم في نفس الخزان.",
+   "interval_days": 1,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "خطر ترسيب أملاح غير ذائبة وانسداد الرشاشات؛ يُفصل بفارق يوم أو ريّة على الأقل."
+    },
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    }
+   ]
+  },
+  {
+   "id": "r035",
+   "a": "peak",
+   "b": "any_nutrient",
+   "verdict": "incompatible",
+   "message_ar": "يتجاوز الحد الأقصى لمكوّنات الخلطة (مبيد + مغذٍّ واحد) ويزيد فرص التعارض والحرق.",
+   "condition_ar": "أكثر من مصدر تسميد مركّز في نفس الرشّة (فوسفيت + فلوراستارت، أو شامبيون + فروتاليف...).",
+   "interval_days": 1,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 13
+    },
+    {
+     "source": "guide_green",
+     "source_page": 9,
+     "condition_ar": "لا يُخلط مع أي مركّب غذائي آخر — يُفصل بفارق يوم أو رشّة"
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11,
+     "condition_ar": "يُفصل عن أي مركّب غذائي آخر بفارق يوم أو ريّة"
+    }
+   ],
+   "ambiguity_ar": "مصفوفة الإصدار الرابع (ص12) تجعل شامبيون «متوافق» مع بيك وفروتاليف، وبيك «بشرط» مع فروتاليف — بما يناقض هذه القاعدة في نفس الإصدار (ص11 وص13 وحاشية ص12)."
+  },
+  {
+   "id": "r036",
+   "a": "potassium_phosphite",
+   "b": "any_pesticide",
+   "verdict": "compatible",
+   "message_ar": "بوتاسيوم فوسفيت وفروتاليف وبيك متوافقة فيزيائيًا مع معظم المبيدات كلٌّ على حدة، لكن جمع أي اثنين منها معًا (فوسفيت مركّز + فوسفيت آخر) ممنوع.",
+   "condition_ar": "مركّب فوسفيت واحد فقط في الرشة، بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "ambiguity_ar": "الإصدار الرابع (ص13) يقول العكس — انظر القاعدة المقابلة."
+  },
+  {
+   "id": "r037",
+   "a": "potassium_phosphite",
+   "b": "any_pesticide",
+   "verdict": "incompatible",
+   "message_ar": "بوتاسيوم فوسفيت وفروتاليف غير متوافقين فيزيائيًا مع معظم المبيدات؛ فوسفيت مركّز أو فروتاليف غير مسموح خلطه مع أي مبيد.",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 13,
+   "ambiguity_ar": "يناقض الأخضر (ص11) ويناقض خلطات الإصدار الرابع نفسه (A1، A3، B1، B4، C4، D1، D5 تجمع بوتاسيوم فوسفيت مع مبيدات)."
+  },
+  {
+   "id": "r038",
+   "a": "frutaliv",
+   "b": "any_pesticide",
+   "verdict": "compatible",
+   "message_ar": "بوتاسيوم فوسفيت وفروتاليف وبيك متوافقة فيزيائيًا مع معظم المبيدات كلٌّ على حدة.",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "ambiguity_ar": "الإصدار الرابع (ص13) يقول العكس — انظر القاعدة المقابلة."
+  },
+  {
+   "id": "r039",
+   "a": "frutaliv",
+   "b": "any_pesticide",
+   "verdict": "incompatible",
+   "message_ar": "بوتاسيوم فوسفيت وفروتاليف غير متوافقين فيزيائيًا مع معظم المبيدات؛ فوسفيت مركّز أو فروتاليف غير مسموح خلطه مع أي مبيد.",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 13,
+   "ambiguity_ar": "يناقض الأخضر (ص11) وخلطة B3 في الإصدار الرابع نفسه (أفاونت + نيسورون + فروتاليف)."
+  },
+  {
+   "id": "r040",
+   "a": "peak",
+   "b": "any_pesticide",
+   "verdict": "compatible",
+   "message_ar": "بوتاسيوم فوسفيت وفروتاليف وبيك متوافقة فيزيائيًا مع معظم المبيدات كلٌّ على حدة.",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11
+  },
+  {
+   "id": "r041",
+   "a": "coragen",
+   "b": "any_nutrient",
+   "verdict": "compatible",
+   "message_ar": "من أثبت المبيدات توافقًا فيزيائيًا مع الأسمدة الورقية المختبرة (NPK، فوسفيت، عناصر صغرى) — الأساس الذي بُني عليه خلطتا B1 وD5.",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "message_ar": "من أثبت المبيدات توافقًا فيزيائيًا مع الأسمدة الورقية المختبرة."
+    }
+   ]
+  },
+  {
+   "id": "r042",
+   "a": "ec_formulation",
+   "b": "any_nutrient",
+   "verdict": "caution",
+   "message_ar": "متوافقة بشروط مع الأسمدة الورقية.",
+   "condition_ar": "تخفيف جيد، تقليب مستمر، وتجنّب أوقات الحرارة المرتفعة لتفادي التفاعل الحراري.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 11,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 13,
+     "condition_ar": "متوافقة بشروط مع الأسمدة الورقية ومعظم المبيدات، ويُتجنّب خلطها مع الأسمدة المركّزة عند جمع أي مصدر فوسفوري مركّز أو فوسفيت غير مذوّب."
+    },
+    {
+     "source": "guide_green",
+     "source_page": 2,
+     "condition_ar": "تُجنّب خلطات EC والأسمدة عند ارتفاع حرارة الصوبة (الضابط 06)."
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    }
+   ]
+  },
+  {
+   "id": "r043",
+   "a": "benevia_od",
+   "b": "oils",
+   "verdict": "incompatible",
+   "message_ar": "صياغة زيتية: لا يُخلط مع الزيوت، ويُخفَّض معدل السماد معه.",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 6
+  },
+  {
+   "id": "r044",
+   "a": "benevia_od",
+   "b": "mineral_oils",
+   "verdict": "incompatible",
+   "message_ar": "لا تخلط مع الزيوت المعدنية.",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 6
+  },
+  {
+   "id": "r045",
+   "a": "benevia_od",
+   "b": "any_nutrient",
+   "verdict": "caution",
+   "message_ar": "صياغة OD زيتية: لا تُستخدم إلا بالحد الأدنى من معدل السماد.",
+   "condition_ar": "بالحد الأدنى من معدل السماد.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 15,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 6
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 18
+    }
+   ]
+  },
+  {
+   "id": "r046",
+   "a": "lufenuron_match",
+   "b": "spinetoram",
+   "verdict": "incompatible",
+   "message_ar": "منظم نمو (مانع انسلاخ)؛ لا يُخلط مع راديانت أو أكزلت (نفس جدول الأكاروس).",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 5,
+   "ambiguity_ar": "مجموعتا IRAC مختلفتان (15 و5) والسبب المذكور غير واضح، والقاعدة غير موجودة في الإصدار الرابع (ص5)."
+  },
+  {
+   "id": "r047",
+   "a": "voliam_flexi",
+   "b": "peak",
+   "verdict": "compatible",
+   "message_ar": "مركّب جاهز ثنائي التأثير للديدان والذبابة، ويدعم بيك المقاومة الفسيولوجية عقب الإجهاد الحراري.",
+   "condition_ar": "لا يُخلط فوليام فليكسي مع بيك إلا كمكوّن ثانٍ (مكوّنان فقط)؛ لا يُخلط بيك مع كالسيوم.",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 20,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 16,
+     "condition_ar": "يُحتاط مع النحل الطيّار وقت الرش (مكوّن 4A)؛ لا يُخلط بيك مع كالسيوم."
+    }
+   ]
+  },
+  {
+   "id": "r048",
+   "a": "cocktail_pearl",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r049",
+   "a": "cocktail_pearl",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "compatible",
+   "message_ar": "متوافق.",
+   "condition_ar": "متوافق حسب مفتاح المصفوفة — مع الالتزام باختبار الجرّة (شرط لاعتماد أي خلطة جديدة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يختلف عن مصفوفة الأخضر (ص10)."
+  },
+  {
+   "id": "r050",
+   "a": "cocktail_pearl",
+   "b": "propargite_comite",
+   "verdict": "incompatible",
+   "message_ar": "ممنوع الخلط (مصفوفة التوافق).",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r051",
+   "a": "cocktail_pearl",
+   "b": "propargite_comite",
+   "verdict": "caution",
+   "message_ar": "متوافق بشرط.",
+   "condition_ar": "«يُبسَّط بشرط» حسب مفتاح المصفوفة (الشرط غير مفصّل في الإصدار الرابع؛ في الأخضر: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يناقض قاعدة «كوميت EC 73% + أي مركّب آخر» ممنوع في الإصدارين (الأخضر ص11، الرابع ص13)."
+  },
+  {
+   "id": "r052",
+   "a": "cocktail_pearl",
+   "b": "bt",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r053",
+   "a": "cocktail_pearl",
+   "b": "ec_formulation",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r054",
+   "a": "cocktail_pearl",
+   "b": "wp_wg_sg",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r055",
+   "a": "cocktail_pearl",
+   "b": "sc_od_se",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r056",
+   "a": "cocktail_pearl",
+   "b": "sc_od_se",
+   "verdict": "caution",
+   "message_ar": "متوافق بشرط.",
+   "condition_ar": "«يُبسَّط بشرط» حسب مفتاح المصفوفة (الشرط غير مفصّل في الإصدار الرابع؛ في الأخضر: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يختلف عن مصفوفة الأخضر (ص10)."
+  },
+  {
+   "id": "r057",
+   "a": "cocktail_pearl",
+   "b": "florastart",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "كوكتيل بيرل + فلوراستارت في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r058",
+   "a": "cocktail_pearl",
+   "b": "potassium_phosphite",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "كوكتيل بيرل + بوتاسيوم فوسفيت في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r059",
+   "a": "cocktail_pearl",
+   "b": "frutaliv",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "كوكتيل بيرل + فروتاليف في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r060",
+   "a": "cocktail_pearl",
+   "b": "champion",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "كوكتيل بيرل + شامبيون في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r061",
+   "a": "cocktail_pearl",
+   "b": "peak",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "كوكتيل بيرل + بيك في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r062",
+   "a": "florastart",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r063",
+   "a": "florastart",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "compatible",
+   "message_ar": "متوافق.",
+   "condition_ar": "متوافق حسب مفتاح المصفوفة — مع الالتزام باختبار الجرّة (شرط لاعتماد أي خلطة جديدة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يختلف عن مصفوفة الأخضر (ص10)."
+  },
+  {
+   "id": "r064",
+   "a": "florastart",
+   "b": "propargite_comite",
+   "verdict": "incompatible",
+   "message_ar": "ممنوع الخلط (مصفوفة التوافق).",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r065",
+   "a": "florastart",
+   "b": "propargite_comite",
+   "verdict": "caution",
+   "message_ar": "متوافق بشرط.",
+   "condition_ar": "«يُبسَّط بشرط» حسب مفتاح المصفوفة (الشرط غير مفصّل في الإصدار الرابع؛ في الأخضر: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يناقض قاعدة «كوميت EC 73% + أي مركّب آخر» ممنوع في الإصدارين (الأخضر ص11، الرابع ص13)."
+  },
+  {
+   "id": "r066",
+   "a": "florastart",
+   "b": "bt",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r067",
+   "a": "florastart",
+   "b": "ec_formulation",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r068",
+   "a": "florastart",
+   "b": "wp_wg_sg",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r069",
+   "a": "florastart",
+   "b": "sc_od_se",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r070",
+   "a": "florastart",
+   "b": "sc_od_se",
+   "verdict": "caution",
+   "message_ar": "متوافق بشرط.",
+   "condition_ar": "«يُبسَّط بشرط» حسب مفتاح المصفوفة (الشرط غير مفصّل في الإصدار الرابع؛ في الأخضر: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يختلف عن مصفوفة الأخضر (ص10)."
+  },
+  {
+   "id": "r071",
+   "a": "florastart",
+   "b": "potassium_phosphite",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "فلوراستارت + بوتاسيوم فوسفيت في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r072",
+   "a": "florastart",
+   "b": "frutaliv",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "فلوراستارت + فروتاليف في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r073",
+   "a": "florastart",
+   "b": "champion",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "فلوراستارت + شامبيون في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r074",
+   "a": "florastart",
+   "b": "peak",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "فلوراستارت + بيك في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r075",
+   "a": "potassium_phosphite",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r076",
+   "a": "potassium_phosphite",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "compatible",
+   "message_ar": "متوافق.",
+   "condition_ar": "متوافق حسب مفتاح المصفوفة — مع الالتزام باختبار الجرّة (شرط لاعتماد أي خلطة جديدة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يختلف عن مصفوفة الأخضر (ص10)."
+  },
+  {
+   "id": "r077",
+   "a": "potassium_phosphite",
+   "b": "propargite_comite",
+   "verdict": "incompatible",
+   "message_ar": "ممنوع الخلط (مصفوفة التوافق).",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r078",
+   "a": "potassium_phosphite",
+   "b": "propargite_comite",
+   "verdict": "caution",
+   "message_ar": "متوافق بشرط.",
+   "condition_ar": "«يُبسَّط بشرط» حسب مفتاح المصفوفة (الشرط غير مفصّل في الإصدار الرابع؛ في الأخضر: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يناقض قاعدة «كوميت EC 73% + أي مركّب آخر» ممنوع في الإصدارين (الأخضر ص11، الرابع ص13)."
+  },
+  {
+   "id": "r079",
+   "a": "potassium_phosphite",
+   "b": "bt",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r080",
+   "a": "potassium_phosphite",
+   "b": "ec_formulation",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r081",
+   "a": "potassium_phosphite",
+   "b": "wp_wg_sg",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r082",
+   "a": "potassium_phosphite",
+   "b": "sc_od_se",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r083",
+   "a": "potassium_phosphite",
+   "b": "sc_od_se",
+   "verdict": "caution",
+   "message_ar": "متوافق بشرط.",
+   "condition_ar": "«يُبسَّط بشرط» حسب مفتاح المصفوفة (الشرط غير مفصّل في الإصدار الرابع؛ في الأخضر: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يختلف عن مصفوفة الأخضر (ص10)."
+  },
+  {
+   "id": "r084",
+   "a": "potassium_phosphite",
+   "b": "frutaliv",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "بوتاسيوم فوسفيت + فروتاليف في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r085",
+   "a": "potassium_phosphite",
+   "b": "champion",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "بوتاسيوم فوسفيت + شامبيون في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r086",
+   "a": "potassium_phosphite",
+   "b": "peak",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "بوتاسيوم فوسفيت + بيك في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r087",
+   "a": "frutaliv",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r088",
+   "a": "frutaliv",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "compatible",
+   "message_ar": "متوافق.",
+   "condition_ar": "متوافق حسب مفتاح المصفوفة — مع الالتزام باختبار الجرّة (شرط لاعتماد أي خلطة جديدة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يختلف عن مصفوفة الأخضر (ص10)."
+  },
+  {
+   "id": "r089",
+   "a": "frutaliv",
+   "b": "propargite_comite",
+   "verdict": "incompatible",
+   "message_ar": "ممنوع الخلط (مصفوفة التوافق).",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r090",
+   "a": "frutaliv",
+   "b": "propargite_comite",
+   "verdict": "caution",
+   "message_ar": "متوافق بشرط.",
+   "condition_ar": "«يُبسَّط بشرط» حسب مفتاح المصفوفة (الشرط غير مفصّل في الإصدار الرابع؛ في الأخضر: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يناقض قاعدة «كوميت EC 73% + أي مركّب آخر» ممنوع في الإصدارين (الأخضر ص11، الرابع ص13)."
+  },
+  {
+   "id": "r091",
+   "a": "frutaliv",
+   "b": "bt",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r092",
+   "a": "frutaliv",
+   "b": "ec_formulation",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r093",
+   "a": "frutaliv",
+   "b": "wp_wg_sg",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r094",
+   "a": "frutaliv",
+   "b": "sc_od_se",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r095",
+   "a": "frutaliv",
+   "b": "sc_od_se",
+   "verdict": "caution",
+   "message_ar": "متوافق بشرط.",
+   "condition_ar": "«يُبسَّط بشرط» حسب مفتاح المصفوفة (الشرط غير مفصّل في الإصدار الرابع؛ في الأخضر: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يختلف عن مصفوفة الأخضر (ص10)."
+  },
+  {
+   "id": "r096",
+   "a": "frutaliv",
+   "b": "champion",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "فروتاليف + شامبيون في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    }
+   ],
+   "ambiguity_ar": "مصفوفة الإصدار الرابع (ص12) تعطي حكمًا مختلفًا — انظر القاعدة المقابلة."
+  },
+  {
+   "id": "r097",
+   "a": "frutaliv",
+   "b": "champion",
+   "verdict": "compatible",
+   "message_ar": "متوافق.",
+   "condition_ar": "متوافق حسب مفتاح المصفوفة — مع الالتزام باختبار الجرّة (شرط لاعتماد أي خلطة جديدة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يناقض الإصدار الرابع نفسه: جدول «لا يُخلط مع» (ص11) وحاشية المصفوفة (ص12: لا يُجمع مركّبان غذائيان في نفس الرشّة) والخلطات غير المسموح بها (ص13)، ويناقض الأخضر (ص9–10 و16)."
+  },
+  {
+   "id": "r098",
+   "a": "frutaliv",
+   "b": "peak",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "فروتاليف + بيك في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    }
+   ],
+   "ambiguity_ar": "مصفوفة الإصدار الرابع (ص12) تعطي حكمًا مختلفًا — انظر القاعدة المقابلة."
+  },
+  {
+   "id": "r099",
+   "a": "frutaliv",
+   "b": "peak",
+   "verdict": "caution",
+   "message_ar": "متوافق بشرط.",
+   "condition_ar": "«يُبسَّط بشرط» حسب مفتاح المصفوفة (الشرط غير مفصّل في الإصدار الرابع؛ في الأخضر: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يناقض الإصدار الرابع نفسه: جدول «لا يُخلط مع» (ص11) وحاشية المصفوفة (ص12: لا يُجمع مركّبان غذائيان في نفس الرشّة) والخلطات غير المسموح بها (ص13)، ويناقض الأخضر (ص9–10 و16)."
+  },
+  {
+   "id": "r100",
+   "a": "champion",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r101",
+   "a": "champion",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "compatible",
+   "message_ar": "متوافق.",
+   "condition_ar": "متوافق حسب مفتاح المصفوفة — مع الالتزام باختبار الجرّة (شرط لاعتماد أي خلطة جديدة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يختلف عن مصفوفة الأخضر (ص10)."
+  },
+  {
+   "id": "r102",
+   "a": "champion",
+   "b": "propargite_comite",
+   "verdict": "incompatible",
+   "message_ar": "ممنوع الخلط (مصفوفة التوافق).",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r103",
+   "a": "champion",
+   "b": "propargite_comite",
+   "verdict": "compatible",
+   "message_ar": "متوافق.",
+   "condition_ar": "متوافق حسب مفتاح المصفوفة — مع الالتزام باختبار الجرّة (شرط لاعتماد أي خلطة جديدة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يناقض قاعدة «كوميت EC 73% + أي مركّب آخر» ممنوع في الإصدارين (الأخضر ص11، الرابع ص13)."
+  },
+  {
+   "id": "r104",
+   "a": "champion",
+   "b": "bt",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r105",
+   "a": "champion",
+   "b": "ec_formulation",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r106",
+   "a": "champion",
+   "b": "wp_wg_sg",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r107",
+   "a": "champion",
+   "b": "sc_od_se",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r108",
+   "a": "champion",
+   "b": "peak",
+   "verdict": "incompatible",
+   "message_ar": "القاعدة العامة: لا يُجمع مركّبان غذائيان في نفس الرشّة مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت.",
+   "condition_ar": "شامبيون + بيك في نفس الرشّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 9
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 11
+    },
+    {
+     "source": "guide_green",
+     "source_page": 16,
+     "condition_ar": "يُختار مركّب واحد فقط من (شامبيون أو بيك) في الرشة الواحدة؛ لا يُجمع الاثنان معًا في نفس الرشة (قاعدة الضابط رقم 02)."
+    }
+   ],
+   "ambiguity_ar": "مصفوفة الإصدار الرابع (ص12) تعطي حكمًا مختلفًا — انظر القاعدة المقابلة."
+  },
+  {
+   "id": "r109",
+   "a": "champion",
+   "b": "peak",
+   "verdict": "compatible",
+   "message_ar": "متوافق.",
+   "condition_ar": "متوافق حسب مفتاح المصفوفة — مع الالتزام باختبار الجرّة (شرط لاعتماد أي خلطة جديدة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يناقض الإصدار الرابع نفسه: جدول «لا يُخلط مع» (ص11) وحاشية المصفوفة (ص12: لا يُجمع مركّبان غذائيان في نفس الرشّة) والخلطات غير المسموح بها (ص13)، ويناقض الأخضر (ص9–10 و16)."
+  },
+  {
+   "id": "r110",
+   "a": "peak",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r111",
+   "a": "peak",
+   "b": "chlorfenapyr_challenger",
+   "verdict": "compatible",
+   "message_ar": "متوافق.",
+   "condition_ar": "متوافق حسب مفتاح المصفوفة — مع الالتزام باختبار الجرّة (شرط لاعتماد أي خلطة جديدة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يختلف عن مصفوفة الأخضر (ص10)."
+  },
+  {
+   "id": "r112",
+   "a": "peak",
+   "b": "propargite_comite",
+   "verdict": "incompatible",
+   "message_ar": "ممنوع الخلط (مصفوفة التوافق).",
+   "condition_ar": null,
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "ambiguity_ar": "الإصدار الرابع (ص12) يعطي حكمًا مختلفًا لنفس الزوج."
+  },
+  {
+   "id": "r113",
+   "a": "peak",
+   "b": "propargite_comite",
+   "verdict": "caution",
+   "message_ar": "متوافق بشرط.",
+   "condition_ar": "«يُبسَّط بشرط» حسب مفتاح المصفوفة (الشرط غير مفصّل في الإصدار الرابع؛ في الأخضر: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة).",
+   "interval_days": null,
+   "source": "guide_v4",
+   "source_page": 12,
+   "ambiguity_ar": "يناقض قاعدة «كوميت EC 73% + أي مركّب آخر» ممنوع في الإصدارين (الأخضر ص11، الرابع ص13)."
+  },
+  {
+   "id": "r114",
+   "a": "peak",
+   "b": "bt",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r115",
+   "a": "peak",
+   "b": "ec_formulation",
+   "verdict": "caution",
+   "message_ar": "متوافق بشروط: الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "condition_ar": "الحد الأدنى من معدل السماد، رش صباحي، بعيدًا عن الحرارة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10
+  },
+  {
+   "id": "r116",
+   "a": "peak",
+   "b": "wp_wg_sg",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "id": "r117",
+   "a": "peak",
+   "b": "sc_od_se",
+   "verdict": "compatible",
+   "message_ar": "متوافق (بعد اختبار الجرّة).",
+   "condition_ar": "بعد اختبار الجرّة.",
+   "interval_days": null,
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  }
+ ],
+ "general": [
+  {
+   "topic": "moa_rule",
+   "text_ar": "اختلاف مجموعات آلية التأثير: لا تُخلط مركّبان من نفس مجموعة IRAC يستهدفان آفتين مختلفتين.",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    }
+   ],
+   "rule_no": "01"
+  },
+  {
+   "topic": "max_components",
+   "text_ar": "الحد الأقصى لمكوّنات الخلطة: مبيد + مغذٍّ واحد، أو 3 مبيدات بدون سماد؛ أي إضافة أكثر تزيد خطر عدم التوافق والحرق.",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_green",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13
+    }
+   ],
+   "rule_no": "02",
+   "max_pesticides_without_fertilizer": 3,
+   "max_nutrients": 1,
+   "forbidden_ar": "أكثر من 3 مبيدات، أو 3 مبيدات + سماد — تحميل التنك بمكوّنات كثيرة يرفع احتمال عدم التوافق والحرق، ويصعّب تحديد مسبّب أي مشكلة لاحقًا."
+  },
+  {
+   "topic": "calcium_phosphorus",
+   "text_ar": "عدم الجمع بين الكالسيوم والفوسفور: كوكتيل بيرل لا يُخلط أبدًا مع فلوراستارت أو بوتاسيوم فوسفيت أو بيك (ترسيب فوري)، ولا يُجمع سمادان فوسفوريان في رشة واحدة.",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    }
+   ],
+   "rule_no": "03"
+  },
+  {
+   "topic": "ph",
+   "text_ar": "ضبط درجة الحموضة (pH): يُضبط pH محلول الرش بين 5.5 و6.5؛ الوسط القلوي يُسارع تحلّل معظم المبيدات.",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    }
+   ],
+   "rule_no": "04"
+  },
+  {
+   "topic": "ph_adjust_step",
+   "text_ar": "توضيح ترتيب التحضير (الخطوة 2 — ضبط الـpH): طبقًا للضابط الفني رقم 04، تمت إضافة خطوة «ضبط pH محلول الرش إلى 5.5–6.5» صراحةً في تسلسل تحضير كل خلطة — بعد إضافة الماء (الخطوة 1) وقبل أي مسحوق أو معلّق — بوصفها خطوة إلزامية وليست اختيارية، تُنفَّذ بعد قياس pH ماء الرش الخام وتصحيحه عند الحاجة (بحمض الستريك أو الفوسفوريك المخفّف) قبل إضافة أي مكوّن آخر.",
+   "source": "guide_v4",
+   "source_page": 14
+  },
+  {
+   "topic": "rates",
+   "text_ar": "الالتزام بمعدلات الاستخدام: يُستخدم كل مبيد بمعدله الموصى به دون تخفيض أو زيادة، والسماد بالحد الأدنى من معدله عند خلطه مع مبيدين.",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2,
+     "condition_ar": "يُستخدم كل مبيد بمعدّله الموصى به دون تخفيض، والأسمدة دون زيادة أو نقصان عن حدّها الأدنى عند خلطها مع مبيدات."
+    }
+   ],
+   "rule_no": "05"
+  },
+  {
+   "topic": "spray_timing",
+   "text_ar": "توقيت التطبيق: الصباح الباكر أو قبل الغروب؛ تُجنّب خلطات EC والأسمدة عند ارتفاع حرارة الصوبة.",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    }
+   ],
+   "rule_no": "06"
+  },
+  {
+   "topic": "phi",
+   "text_ar": "فترة التحريم قبل الحصاد: فترة تحريم الخلطة = أطول فترة تحريم بين مكوّناتها.",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    }
+   ],
+   "rule_no": "07"
+  },
+  {
+   "topic": "coverage",
+   "text_ar": "كفاءة التغطية: الأكاروس والذبابة البيضاء على السطح السفلي للورقة؛ ضبط بشّابير مناسبة للوصول إليه.",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    }
+   ],
+   "rule_no": "08"
+  },
+  {
+   "topic": "use_immediately",
+   "text_ar": "استخدام المحلول فور تجهيزه: يُرش المحلول بعد تجهيزه مباشرة، ولا يُترك في الخزان لليوم التالي.",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    }
+   ],
+   "rule_no": "09"
+  },
+  {
+   "topic": "pollinators",
+   "text_ar": "حماية الملقّحات (النحل الطنان): في الصوب المزوّدة بالخلايا، تُراجع فترة تحريم الخلايا على البطاقة، وتُجنّب النيونيكوتينويدات أثناء وجودها.",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2,
+     "condition_ar": "تُراجع فترة تحريم كل مكوّنات الخلطة، وتُجنّب النيونيكوتينويدات أثناء وجودها."
+    }
+   ],
+   "rule_no": "10"
+  },
+  {
+   "topic": "mixing_order",
+   "text_ar": "ترتيب إضافة المكوّنات في الخزان",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    }
+   ],
+   "steps": [
+    {
+     "step": 1,
+     "name_ar": "الماء",
+     "detail_ar": "نصف - 2/3 الخزان مع تشغيل المقلّب"
+    },
+    {
+     "step": 2,
+     "name_ar": "ضبط pH",
+     "detail_ar": "5.5 إلى 6.5 عند اللزوم"
+    },
+    {
+     "step": 3,
+     "name_ar": "المساحيق",
+     "detail_ar": "WP · WG · SG (تُذاب مسبقًا في جردل)",
+     "formulations": [
+      "WP",
+      "WG",
+      "SG"
+     ]
+    },
+    {
+     "step": 4,
+     "name_ar": "المعلّقات",
+     "detail_ar": "SC · OD · SE (الأخضر: SC · OD · ZC)",
+     "formulations": [
+      "SC",
+      "OD",
+      "SE",
+      "ZC"
+     ]
+    },
+    {
+     "step": 5,
+     "name_ar": "المستحلبات",
+     "detail_ar": "EC · EW",
+     "formulations": [
+      "EC",
+      "EW"
+     ]
+    },
+    {
+     "step": 6,
+     "name_ar": "المحاليل والأسمدة",
+     "detail_ar": "SL + السماد الورقي (مخفّفًا مسبقًا)",
+     "formulations": [
+      "SL"
+     ]
+    },
+    {
+     "step": 7,
+     "name_ar": "المواد المساعدة",
+     "detail_ar": "اللاصق / الناشر اللازم"
+    },
+    {
+     "step": 8,
+     "name_ar": "استكمال الحجم",
+     "detail_ar": "الأخير، ويُرش فورًا مع استمرار التقليب"
+    }
+   ]
+  },
+  {
+   "topic": "jar_test",
+   "text_ar": "اختبار التوافق المبدئي (اختبار الجرّة) — شرط لاعتماد أي خلطة جديدة",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    }
+   ],
+   "steps": [
+    {
+     "step": 1,
+     "text_ar": "لتر من نفس مياه الرش في برطمان شفاف."
+    },
+    {
+     "step": 2,
+     "text_ar": "تُضاف المكوّنات بنفس ترتيب الخزان وبنفس النسبة (مثال: 50 سم³/100 لتر = 0.5 سم³/لتر)."
+    },
+    {
+     "step": 3,
+     "text_ar": "رجّ جيد ثم ترك 15-30 دقيقة."
+    },
+    {
+     "step": 4,
+     "text_ar": "ترسيب، تكتّل، انفصال طبقات، رغوة زائدة أو سخونة = خلطة غير صالحة."
+    },
+    {
+     "step": 5,
+     "text_ar": "عند النجاح: رش تجريبي لعدد محدود من النباتات ومتابعتها 48-72 ساعة قبل التعميم."
+    }
+   ]
+  },
+  {
+   "topic": "nutrients_one_per_spray",
+   "text_ar": "القاعدة العامة لخلط المركّبات الغذائية: بحسب الضابط الفني رقم 02 (الحد الأقصى: مبيد + مغذٍّ واحد)، لا يُجمع مركّبان غذائيان في نفس التنك مهما كانت طبيعتهما — يُضافان في رشّتين منفصلتين أو عبر التسميد بالري، إلى جانب خطر ترسيب الكالسيوم مع الفوسفور/الفوسفيت عند وجودهما معًا (كوكتيل بيرل × بوتاسيوم فوسفيت / فروتاليف / بيك).",
+   "source": "guide_green",
+   "source_page": 10,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 12
+    }
+   ]
+  },
+  {
+   "topic": "champion_or_peak",
+   "text_ar": "يُختار مركّب واحد فقط من (شامبيون أو بيك) في الرشة الواحدة حسب الأولوية الحقلية: شامبيون عند استهداف حجم/لون/صلابة الثمار، وبيك عند اشتداد ظروف الإصابة الفطرية أو عقب إجهاد حراري/نقل شتلات. لا يُجمع الاثنان معًا في نفس الرشة (قاعدة الضابط رقم 02).",
+   "source": "guide_green",
+   "source_page": 16
+  },
+  {
+   "topic": "rotation",
+   "text_ar": "برنامج استرشادي لصوبة خضر (طماطم / فلفل): الفاصل بين الرشّات 7-10 أيام. لا تتكرر مجموعتا IRAC نفسهما في رشّتين متتاليتين. البرنامج لا يحتوي كلورفينابير، فيصلح للقرعيات.",
+   "source": "guide_green",
+   "source_page": 17,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 21
+    }
+   ],
+   "spray_interval_days_min": 7,
+   "spray_interval_days_max": 10
+  },
+  {
+   "topic": "helicoverpa_rotation",
+   "text_ar": "دودة ثمار الفلفل: الرش المبكر عند بداية العقد، والرصد الأسبوعي (مصائد فرمونية + عدّ يدوي للثمار المصابة)، وتبديل مجموعات IRAC (22A ↔ 5 ↔ 6 ↔ 28) لمنع ظهور سلالات مقاومة، مع خفض كثافة الحشائش المضيفة المحيطة بالحقل.",
+   "source": "guide_green",
+   "source_page": 8,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 8,
+     "condition_ar": "ويُبدّل مجموعات (5 ↔ 6 ↔ 28) IRAC — بدون 22A في نص الإصدار الرابع."
+    }
+   ]
+  },
+  {
+   "topic": "nutrition_sequence",
+   "text_ar": "تسلسل برنامج التغذية: بوتاسيوم فوسفيت (نمو خضري) ← فلوراستارت (قبل التزهير) ← فروتاليف (بداية التزهير) ← كوكتيل بيرل أو شامبيون (العقد ونمو الثمار) ← بوتاسيوم فوسفيت أو بيك (نمو/لون الثمار). يُختار مركّب واحد فقط من كالسيوم أو فوسفور/فوسفيت في كل رشّة واحدة.",
+   "source": "guide_green",
+   "source_page": 17,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 21
+    }
+   ]
+  },
+  {
+   "topic": "flowering_spray",
+   "text_ar": "الرشّة الثالثة (مرحلة التزهير): اختيار سيفانتو برايم أو نيسورون خصيصًا لأنهما الأقل خطرًا على النحل الطنان خلال الأزهار والتلقيح.",
+   "source": "guide_green",
+   "source_page": 17,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 21
+    }
+   ]
+  },
+  {
+   "topic": "monitoring",
+   "text_ar": "المتابعة والرصد: يُعدّل البرنامج حسب الرصد الأسبوعي وفحص اللاصقة الصفراء والسطح السفلي للأوراق؛ لا يُرش مركّب لآفة غير موجودة.",
+   "source": "guide_green",
+   "source_page": 17,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 21
+    }
+   ]
+  },
+  {
+   "topic": "nrg_reference",
+   "text_ar": "المطابقة مع جدول التوافق الفيزيائي الصادر عن ATP Nutrition (سلسلة NRG): الجدول الكندي NRG يخص منتجاتها فيزيائيًا فقط (لا يقيس السمية النباتية ولا يتضمن مبيد الأكاروس أو الديدان والذبابة البيضاء الواردة بهذا الدليل)؛ لذلك يُستخدم للتأكيد الإضافي فقط وليس بديلًا عن اختبار الجرّة.",
+   "source": "guide_green",
+   "source_page": 11
+  },
+  {
+   "topic": "disclaimer",
+   "text_ar": "تنبيهات المكتب الفني: الأسماء التجارية المذكورة أمثلة كاملة للمواد الفعالة بالسوق المصري، ويتحقّق من سريان التسجيل والمعدل وفترة التحريم لكل مبيد من البطاقة المعتمدة ولوائح لجنة مبيدات الآفات الزراعية المحدّثة. الخلطات المقترحة مبنية على اختلاف آلية التأثير والتوافق الفيزيائي والكيميائي العام للمكوّنات، ويظل اختبار الجرّة أداة الوفاء الشخصية قبل التعميم شرطًا قبل أي رشة جديدة.",
+   "source": "guide_green",
+   "source_page": 17,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 21
+    }
+   ]
+  },
+  {
+   "topic": "crop_restriction",
+   "text_ar": "كلورفينابير (تشالنجر سوبر): لا يُرش على القرعيات (خيار، كوسة، كنتالوب، بطيخ) — سمية نباتية.",
+   "source": "guide_green",
+   "source_page": 5,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 11
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 5
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 7
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13
+    }
+   ]
+  },
+  {
+   "topic": "bee_notes",
+   "text_ar": "ملاحظات النحل في الخلطات: موسبيلان وأكتارا (نيونيكوتينويد) خطر على النحل الطنان — لا يُستخدمان أثناء وجود الخلايا (يُستبدل موسبيلان بتشيس WG50%)؛ راديانت خطر على النحل الطيّار — يُرش بعد خروج النحل أو أثناء إغلاق العقل / رش مسائي؛ فوليام فليكسي يحتوي نيونيكوتينويد — يُحتاط مع النحل أثناء الرش.",
+   "source": "guide_green",
+   "source_page": 12,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 14
+    },
+    {
+     "source": "guide_green",
+     "source_page": 15
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 14
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 17
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 18
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 19
+    }
+   ]
+  }
+ ],
+ "ph": [
+  {
+   "group": "any_product",
+   "optimal_ph_min": 5.5,
+   "optimal_ph_max": 6.5,
+   "note_ar": "يُضبط pH محلول الرش بين 5.5 و6.5؛ الوسط القلوي يُسارع تحلّل معظم المبيدات.",
+   "source": "guide_green",
+   "source_page": 2,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 2
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 14
+    }
+   ]
+  },
+  {
+   "group": "bt",
+   "optimal_ph_min": null,
+   "optimal_ph_max": 8,
+   "note_ar": "رش مسائي، محلول pH أقل من 8؛ مع محاليل قلوية (pH أعلى من 8) فقد حيوية البكتيريا وانعدام الفاعلية.",
+   "source": "guide_green",
+   "source_page": 5,
+   "also_in": [
+    {
+     "source": "guide_green",
+     "source_page": 11
+    },
+    {
+     "source": "guide_green",
+     "source_page": 13
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 13
+    },
+    {
+     "source": "guide_v4",
+     "source_page": 16
+    }
+   ],
+   "max_exclusive": true
+  },
+  {
+   "group": "irac_22a",
+   "optimal_ph_min": 5.5,
+   "optimal_ph_max": 6.5,
+   "note_ar": "يُضبط pH المحلول بين 5.5 و6.5 للحفاظ على ثبات أفانت (خلطة B3).",
+   "source": "guide_green",
+   "source_page": 13,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 15
+    }
+   ]
+  }
+ ],
+ "recommended_mixes": [
+  {
+   "code": "A1",
+   "section_ar": "أ — خلطات مكافحة الأكاروس والذبابة البيضاء",
+   "pesticides": [
+    {
+     "name_ar": "أوبيرون",
+     "formulation": "SC 24%",
+     "irac": "23"
+    },
+    {
+     "name_ar": "موسبيلان",
+     "formulation": "WP 20%",
+     "irac": "4A"
+    }
+   ],
+   "nutrient_ar": "بوتاسيوم فوسفيت",
+   "targets_ar": [
+    "ذبابة بيضاء (بيض وحوريات)",
+    "أكاروس",
+    "دعم ضد الأمراض"
+   ],
+   "precaution_ar": "موسبيلان خطر على النحل الطنان — يُستبدل بتشيس WG50% أثناء وجود الخلايا.",
+   "source": "guide_green",
+   "source_page": 12,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 14
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "A2",
+   "section_ar": "أ — خلطات مكافحة الأكاروس والذبابة البيضاء",
+   "pesticides": [
+    {
+     "name_ar": "نيسورون",
+     "formulation": "WP 10%",
+     "irac": "10A"
+    },
+    {
+     "name_ar": "سيفانتو برايم",
+     "formulation": "SL 20%",
+     "irac": "4D"
+    }
+   ],
+   "nutrient_ar": "كوكتيل بيرل",
+   "targets_ar": [
+    "أكاروس (بيض)",
+    "ذبابة بيضاء"
+   ],
+   "precaution_ar": "نيسورون بالملامسة فقط، يُستخدم مبكرًا مع بداية الإصابة.",
+   "source": "guide_green",
+   "source_page": 12,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 14
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "A3",
+   "section_ar": "أ — خلطات مكافحة الأكاروس والذبابة البيضاء",
+   "pesticides": [
+    {
+     "name_ar": "أكراميت",
+     "formulation": "SC 48%",
+     "irac": "20D"
+    },
+    {
+     "name_ar": "أبلاود",
+     "formulation": "WP 25%",
+     "irac": "16"
+    }
+   ],
+   "nutrient_ar": "بوتاسيوم فوسفيت",
+   "targets_ar": [
+    "أكاروس (كل الأطوار)",
+    "ذبابة بيضاء",
+    "دعم ضد الأمراض"
+   ],
+   "precaution_ar": "أبلاود منظم نمو فقط، لا يُستخدم منفردًا مع كثافة بالغات عالية.",
+   "source": "guide_green",
+   "source_page": 12,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 14
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "A4",
+   "section_ar": "أ — خلطات مكافحة الأكاروس والذبابة البيضاء",
+   "pesticides": [
+    {
+     "name_ar": "أبولو",
+     "formulation": "SC 50%",
+     "irac": "10A"
+    },
+    {
+     "name_ar": "بولو",
+     "formulation": "SC 50%",
+     "irac": "12A"
+    }
+   ],
+   "nutrient_ar": "كوكتيل بيرل",
+   "targets_ar": [
+    "أكاروس (بيض)",
+    "ذبابة بيضاء"
+   ],
+   "precaution_ar": "بولو ينشط بضوء الشمس — يُرش صباحًا.",
+   "source": "guide_green",
+   "source_page": 12,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 14
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "A5",
+   "section_ar": "أ — خلطات مكافحة الأكاروس والذبابة البيضاء",
+   "pesticides": [
+    {
+     "name_ar": "سانمايت",
+     "formulation": "WP 20%",
+     "irac": "21A"
+    },
+    {
+     "name_ar": "تشيس",
+     "formulation": "WG 50%",
+     "irac": "9B"
+    }
+   ],
+   "nutrient_ar": "فلوراستارت",
+   "targets_ar": [
+    "أكاروس",
+    "ذبابة بيضاء",
+    "دعم تغذية الأزهار"
+   ],
+   "precaution_ar": "توقيت قبل الأزهار — يُراعى توافق فلوراستارت لهذه المرحلة.",
+   "source": "guide_green",
+   "source_page": 12,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 15
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "B1",
+   "section_ar": "ب — خلطات مكافحة الأكاروس والديدان (توتا · اسبودوبترا · هليكوفيربا)",
+   "pesticides": [
+    {
+     "name_ar": "فيرتيمك",
+     "formulation": "EC 1.8%",
+     "irac": "6"
+    },
+    {
+     "name_ar": "كوراجين",
+     "formulation": "SC 20%",
+     "irac": "28"
+    }
+   ],
+   "nutrient_ar": "بوتاسيوم فوسفيت",
+   "targets_ar": [
+    "أكاروس",
+    "ديدان",
+    "دعم ضد الأمراض"
+   ],
+   "precaution_ar": "فوسفيت + EC: رش مبكر صباحًا وتجنّب الحرارة العالية.",
+   "source": "guide_green",
+   "source_page": 13,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 15
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "B2",
+   "section_ar": "ب — خلطات مكافحة الأكاروس والديدان (توتا · اسبودوبترا · هليكوفيربا)",
+   "pesticides": [
+    {
+     "name_ar": "أكراميت",
+     "formulation": "SC 48%",
+     "irac": "20D"
+    },
+    {
+     "name_ar": "رانر",
+     "formulation": "SC 24%",
+     "irac": "18"
+    }
+   ],
+   "nutrient_ar": "كوكتيل بيرل",
+   "targets_ar": [
+    "أكاروس",
+    "ديدان"
+   ],
+   "precaution_ar": "يُرش مبكرًا من ظهور الأعمار الصغيرة.",
+   "source": "guide_green",
+   "source_page": 13,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 15
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "B3",
+   "section_ar": "ب — خلطات مكافحة الأكاروس والديدان (توتا · اسبودوبترا · هليكوفيربا)",
+   "pesticides": [
+    {
+     "name_ar": "أفانت",
+     "formulation": "SC 15%",
+     "irac": "22A"
+    },
+    {
+     "name_ar": "نيسورون",
+     "formulation": "WP 10%",
+     "irac": "10A"
+    }
+   ],
+   "nutrient_ar": "فروتاليف",
+   "targets_ar": [
+    "أكاروس",
+    "ديدان"
+   ],
+   "precaution_ar": "يُضبط pH المحلول بين 5.5 و6.5 للحفاظ على ثبات أفانت.",
+   "source": "guide_green",
+   "source_page": 13,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 15
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "B4",
+   "section_ar": "ب — خلطات مكافحة الأكاروس والديدان (توتا · اسبودوبترا · هليكوفيربا)",
+   "pesticides": [
+    {
+     "name_ar": "إنفيدور",
+     "formulation": "SC 24%",
+     "irac": "23"
+    },
+    {
+     "name_ar": "بروكليم",
+     "formulation": "SG 5%",
+     "irac": "6"
+    }
+   ],
+   "nutrient_ar": "بوتاسيوم فوسفيت",
+   "targets_ar": [
+    "أكاروس",
+    "ديدان",
+    "دعم ضد الأمراض"
+   ],
+   "precaution_ar": "لا تُعاد الرشة قبل 7-10 أيام للحفاظ على فاعلية إنفيدور.",
+   "source": "guide_green",
+   "source_page": 13,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 16
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "B5",
+   "section_ar": "ب — خلطات مكافحة الأكاروس والديدان (توتا · اسبودوبترا · هليكوفيربا)",
+   "pesticides": [
+    {
+     "name_ar": "أوبيرون",
+     "formulation": "SC 24%",
+     "irac": "23"
+    },
+    {
+     "name_ar": "دايبل 2X (Bt)",
+     "formulation": null,
+     "irac": "11A"
+    }
+   ],
+   "nutrient_ar": "كوكتيل بيرل",
+   "targets_ar": [
+    "أكاروس",
+    "ذبابة بيضاء",
+    "ديدان (جزئي)"
+   ],
+   "precaution_ar": "رش مسائي، محلول pH أقل من 8، ولا يُخلط مع النحاس.",
+   "source": "guide_green",
+   "source_page": 13,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 16
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "B6",
+   "section_ar": "ب — خلطات مكافحة الأكاروس والديدان (توتا · اسبودوبترا · هليكوفيربا)",
+   "pesticides": [
+    {
+     "name_ar": "تشالنجر سوبر",
+     "formulation": "SC 24%",
+     "irac": "13"
+    },
+    {
+     "name_ar": "نيسورون",
+     "formulation": "WP 10%",
+     "irac": "10A"
+    }
+   ],
+   "nutrient_ar": "بدون سماد",
+   "targets_ar": [
+    "أكاروس",
+    "ديدان",
+    "تربس (جزئي)"
+   ],
+   "precaution_ar": "ممنوع على القرعيات؛ يُرش صباحًا بدون إضافة أي سماد.",
+   "source": "guide_green",
+   "source_page": 13,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 16
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)",
+   "precaution_v4_ar": "الإصدار الرابع: «ممنوع الرش صباحًا بدون إضافة أي سماد.»"
+  },
+  {
+   "code": "C1",
+   "section_ar": "ج — خلطات مكافحة الأكاروس والتربس",
+   "pesticides": [
+    {
+     "name_ar": "فيرتيمك",
+     "formulation": "EC 1.8%",
+     "irac": "6"
+    },
+    {
+     "name_ar": "راديانت",
+     "formulation": "SC 12%",
+     "irac": "5"
+    }
+   ],
+   "nutrient_ar": "بدون سماد",
+   "targets_ar": [
+    "أكاروس",
+    "تربس"
+   ],
+   "precaution_ar": "راديانت خطر على النحل الطيّار — يُرش بعد خروج النحل أو أثناء إغلاق العقل.",
+   "source": "guide_green",
+   "source_page": 14,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 17
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "C2",
+   "section_ar": "ج — خلطات مكافحة الأكاروس والتربس",
+   "pesticides": [
+    {
+     "name_ar": "أكراميت",
+     "formulation": "SC 48%",
+     "irac": "20D"
+    },
+    {
+     "name_ar": "تريسر",
+     "formulation": "SC 24%",
+     "irac": "5"
+    }
+   ],
+   "nutrient_ar": "بدون سماد",
+   "targets_ar": [
+    "أكاروس",
+    "تربس"
+   ],
+   "precaution_ar": "نفس احتياط النحل الخاص بمجموعة 5 (سبينوسينات).",
+   "source": "guide_green",
+   "source_page": 14,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 17
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)",
+   "precaution_v4_ar": "الإصدار الرابع: «احتياط: لا يُخلط الفعّال بمجموعة 5 (سبينوسايدات).»"
+  },
+  {
+   "code": "C3",
+   "section_ar": "ج — خلطات مكافحة الأكاروس والتربس",
+   "pesticides": [
+    {
+     "name_ar": "ماساي",
+     "formulation": "WP 20%",
+     "irac": "21A"
+    },
+    {
+     "name_ar": "أكتارا",
+     "formulation": "WG 25%",
+     "irac": "4A"
+    }
+   ],
+   "nutrient_ar": "كوكتيل بيرل",
+   "targets_ar": [
+    "أكاروس",
+    "تربس",
+    "ذبابة بيضاء"
+   ],
+   "precaution_ar": "أكتارا خطر على النحل الطنان — لا يُستخدم أثناء وجود الخلايا.",
+   "source": "guide_green",
+   "source_page": 14,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 17
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "C4",
+   "section_ar": "ج — خلطات مكافحة الأكاروس والتربس",
+   "pesticides": [
+    {
+     "name_ar": "فلوراميت",
+     "formulation": "SC 24%",
+     "irac": "20D"
+    },
+    {
+     "name_ar": "موفنتو",
+     "formulation": "SC 10%",
+     "irac": "23"
+    }
+   ],
+   "nutrient_ar": "بوتاسيوم فوسفيت",
+   "targets_ar": [
+    "أكاروس",
+    "تربس",
+    "ذبابة بيضاء",
+    "دعم ضد الأمراض"
+   ],
+   "precaution_ar": "موفنتو يحتاج مادة ناشرة/لاصقة حسب توصية البطاقة.",
+   "source": "guide_green",
+   "source_page": 14,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 17
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "D1",
+   "section_ar": "د — الخلطات الشاملة لمكافحة أربع آفات في رشة واحدة",
+   "pesticides": [
+    {
+     "name_ar": "أوبيرون",
+     "formulation": "SC 24%",
+     "irac": "23"
+    },
+    {
+     "name_ar": "راديانت",
+     "formulation": "SC 12%",
+     "irac": "5"
+    }
+   ],
+   "nutrient_ar": "بوتاسيوم فوسفيت",
+   "targets_ar": [
+    "أكاروس",
+    "ذبابة بيضاء",
+    "تربس",
+    "ديدان",
+    "دعم ضد الأمراض"
+   ],
+   "precaution_ar": "احتياط النحل الخاص براديانت (رش مسائي).",
+   "source": "guide_green",
+   "source_page": 14,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 18
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "D2",
+   "section_ar": "د — الخلطات الشاملة لمكافحة أربع آفات في رشة واحدة",
+   "pesticides": [
+    {
+     "name_ar": "فيرتيمك",
+     "formulation": "EC 1.8%",
+     "irac": "6"
+    },
+    {
+     "name_ar": "إكسيريل",
+     "formulation": "SE 10%",
+     "irac": "28"
+    }
+   ],
+   "nutrient_ar": "كوكتيل بيرل",
+   "targets_ar": [
+    "أكاروس",
+    "ذبابة بيضاء",
+    "ديدان",
+    "تربس (جزئي)"
+   ],
+   "precaution_ar": "رش في الصباح الباكر (تركيبة EC + SE).",
+   "source": "guide_green",
+   "source_page": 14,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 18
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "D3",
+   "section_ar": "د — الخلطات الشاملة لمكافحة أربع آفات في رشة واحدة",
+   "pesticides": [
+    {
+     "name_ar": "نيسورون",
+     "formulation": "WP 10%",
+     "irac": "10A"
+    },
+    {
+     "name_ar": "بينيفيا",
+     "formulation": "OD 10%",
+     "irac": "28"
+    }
+   ],
+   "nutrient_ar": "فلوراستارت",
+   "targets_ar": [
+    "أكاروس",
+    "ذبابة بيضاء",
+    "ديدان",
+    "تربس"
+   ],
+   "precaution_ar": "صياغة OD زيتية: لا تُستخدم إلا بالحد الأدنى من معدل السماد.",
+   "source": "guide_green",
+   "source_page": 15,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 18
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "D4",
+   "section_ar": "د — الخلطات الشاملة لمكافحة أربع آفات في رشة واحدة",
+   "pesticides": [
+    {
+     "name_ar": "نيسورون",
+     "formulation": "WP 10%",
+     "irac": "10A"
+    },
+    {
+     "name_ar": "سيفانتو برايم",
+     "formulation": "SL 20%",
+     "irac": "4D"
+    },
+    {
+     "name_ar": "كوراجين",
+     "formulation": "SC 20%",
+     "irac": "28"
+    }
+   ],
+   "nutrient_ar": "بدون سماد",
+   "targets_ar": [
+    "أكاروس (بيض)",
+    "ذبابة بيضاء",
+    "ديدان"
+   ],
+   "precaution_ar": "عند استخدام 3 مبيدات في خلطة واحدة، لا يُضاف أي سماد في نفس التنك.",
+   "source": "guide_green",
+   "source_page": 15,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 18
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "D5",
+   "section_ar": "د — الخلطات الشاملة لمكافحة أربع آفات في رشة واحدة",
+   "pesticides": [
+    {
+     "name_ar": "سانمايت",
+     "formulation": "WP 20%",
+     "irac": "21A"
+    },
+    {
+     "name_ar": "فوليام فليكسي",
+     "formulation": "WG 40%",
+     "irac": "28+4A"
+    }
+   ],
+   "nutrient_ar": "بوتاسيوم فوسفيت",
+   "targets_ar": [
+    "أكاروس",
+    "ذبابة بيضاء",
+    "ديدان",
+    "دعم ضد الأمراض"
+   ],
+   "precaution_ar": "يحتوي نيونيكوتينويد — يُحتاط مع النحل الطنان أثناء الرش.",
+   "source": "guide_green",
+   "source_page": 15,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 19
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "E1",
+   "section_ar": "هـ — خلطات مكافحة دودة ثمار الفلفل مع دعم التلوين والامتلاء (شامبيون / بيك)",
+   "pesticides": [
+    {
+     "name_ar": "كوراجين",
+     "formulation": "SC 20%",
+     "irac": "28"
+    },
+    {
+     "name_ar": "أوبيرون",
+     "formulation": "SC 24%",
+     "irac": "23"
+    }
+   ],
+   "nutrient_ar": "شامبيون",
+   "targets_ar": [
+    "ديدان (دودة ثمار الفلفل)",
+    "ذبابة بيضاء",
+    "دعم حجم/لون الثمار"
+   ],
+   "precaution_ar": "لا يُخلط شامبيون مع أي مصدر كالسيوم؛ يُضاف منفردًا في الخزان بعد اختبار الجرّة.",
+   "source": "guide_green",
+   "source_page": 16,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 19
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "E2",
+   "section_ar": "هـ — خلطات مكافحة دودة ثمار الفلفل مع دعم التلوين والامتلاء (شامبيون / بيك)",
+   "pesticides": [
+    {
+     "name_ar": "بروكليم",
+     "formulation": "SG 5%",
+     "irac": "6"
+    },
+    {
+     "name_ar": "راديانت",
+     "formulation": "SC 12%",
+     "irac": "5"
+    }
+   ],
+   "nutrient_ar": "بيك",
+   "targets_ar": [
+    "ديدان (دودة ثمار الفلفل)",
+    "تربس",
+    "دعم ضد الأمراض"
+   ],
+   "precaution_ar": "لا يُخلط بروكليم وراديانت مع فارمكتين/فيرتيمك (تعارض مجموعة 6)؛ لا يُخلط بيك مع كوكتيل بيرل.",
+   "source": "guide_green",
+   "source_page": 16,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 19
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)",
+   "precaution_v4_ar": "الإصدار الرابع: «لا يُخلط بيك مع كالسيوم.»"
+  },
+  {
+   "code": "E3",
+   "section_ar": "هـ — خلطات مكافحة دودة ثمار الفلفل مع دعم التلوين والامتلاء (شامبيون / بيك)",
+   "pesticides": [
+    {
+     "name_ar": "أفانت",
+     "formulation": "SC 15%",
+     "irac": "22A"
+    },
+    {
+     "name_ar": "أكراميت",
+     "formulation": "SC 48%",
+     "irac": "20D"
+    }
+   ],
+   "nutrient_ar": "شامبيون",
+   "targets_ar": [
+    "ديدان (دودة ثمار الفلفل)",
+    "أكاروس",
+    "دعم حجم الثمار"
+   ],
+   "precaution_ar": "رش عند الغروب لحماية الأعداء الحيوية؛ يُفصل شامبيون عن أي رشة كالسيوم بفارق يوم.",
+   "source": "guide_green",
+   "source_page": 16,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 19
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)"
+  },
+  {
+   "code": "E4",
+   "section_ar": "هـ — خلطات مكافحة دودة ثمار الفلفل مع دعم التلوين والامتلاء (شامبيون / بيك)",
+   "pesticides": [
+    {
+     "name_ar": "فوليام فليكسي",
+     "formulation": "WG 40%",
+     "irac": "28+4A"
+    }
+   ],
+   "nutrient_ar": "بيك",
+   "targets_ar": [
+    "ديدان (دودة ثمار الفلفل)",
+    "ذبابة بيضاء",
+    "دعم ضد الأمراض"
+   ],
+   "precaution_ar": "يُحتاط مع النحل الطيّار وقت الرش (مكوّن 4A)؛ لا يُخلط بيك مع كالسيوم.",
+   "source": "guide_green",
+   "source_page": 16,
+   "also_in": [
+    {
+     "source": "guide_v4",
+     "source_page": 20
+    }
+   ],
+   "tank_order_ar": "الماء ← ضبط pH 5.5–6.5 ← المساحيق ← المعلّقات ← المستحلبات ← المحلول/السماد ← استكمال الحجم (الإصدار الرابع)",
+   "precaution_v4_ar": "الإصدار الرابع: «لا يُخلط فوليام فليكسي مع بيك إلا كمكوّن ثانٍ (مكوّنان فقط)؛ لا يُخلط بيك مع كالسيوم.»"
+  }
+ ]
+}

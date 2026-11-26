@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      active_substances: {
+        Row: {
+          cas_no: string | null
+          chemical_group: string | null
+          classes: string[]
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          eg_registered: boolean | null
+          eu_cfs: boolean | null
+          eu_expiry: string | null
+          eu_status: string
+          farm_id: string | null
+          id: string
+          moa_code: string | null
+          moa_system: string | null
+          name_ar: string | null
+          name_en: string
+          notes: string | null
+          reviewed_on: string | null
+          server_updated_at: string
+          source_url: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          cas_no?: string | null
+          chemical_group?: string | null
+          classes?: string[]
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          eg_registered?: boolean | null
+          eu_cfs?: boolean | null
+          eu_expiry?: string | null
+          eu_status?: string
+          farm_id?: string | null
+          id?: string
+          moa_code?: string | null
+          moa_system?: string | null
+          name_ar?: string | null
+          name_en: string
+          notes?: string | null
+          reviewed_on?: string | null
+          server_updated_at?: string
+          source_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          cas_no?: string | null
+          chemical_group?: string | null
+          classes?: string[]
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          eg_registered?: boolean | null
+          eu_cfs?: boolean | null
+          eu_expiry?: string | null
+          eu_status?: string
+          farm_id?: string | null
+          id?: string
+          moa_code?: string | null
+          moa_system?: string | null
+          name_ar?: string | null
+          name_en?: string
+          notes?: string | null
+          reviewed_on?: string | null
+          server_updated_at?: string
+          source_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "active_substances_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activities: {
         Row: {
           activity_type: Database["public"]["Enums"]["activity_type"]
@@ -21,16 +104,19 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           device_id: string | null
+          domain: string | null
           end_time: string | null
           farm_id: string
           id: string
           iso_week: number | null
           iso_year: number | null
+          labor_hours: number | null
           method: Database["public"]["Enums"]["application_method"] | null
           notes: string | null
           operation_type_id: string | null
           performed_by_name: string | null
           performed_on: string
+          quality: number | null
           reason: string | null
           recommendation_id: string | null
           server_updated_at: string
@@ -39,6 +125,7 @@ export type Database = {
           updated_at: string
           updated_by: string | null
           water_volume_l: number | null
+          workers_count: number | null
         }
         Insert: {
           activity_type: Database["public"]["Enums"]["activity_type"]
@@ -46,16 +133,19 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           device_id?: string | null
+          domain?: string | null
           end_time?: string | null
           farm_id: string
           id?: string
           iso_week?: number | null
           iso_year?: number | null
+          labor_hours?: number | null
           method?: Database["public"]["Enums"]["application_method"] | null
           notes?: string | null
           operation_type_id?: string | null
           performed_by_name?: string | null
           performed_on: string
+          quality?: number | null
           reason?: string | null
           recommendation_id?: string | null
           server_updated_at?: string
@@ -64,6 +154,7 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           water_volume_l?: number | null
+          workers_count?: number | null
         }
         Update: {
           activity_type?: Database["public"]["Enums"]["activity_type"]
@@ -71,16 +162,19 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           device_id?: string | null
+          domain?: string | null
           end_time?: string | null
           farm_id?: string
           id?: string
           iso_week?: number | null
           iso_year?: number | null
+          labor_hours?: number | null
           method?: Database["public"]["Enums"]["application_method"] | null
           notes?: string | null
           operation_type_id?: string | null
           performed_by_name?: string | null
           performed_on?: string
+          quality?: number | null
           reason?: string | null
           recommendation_id?: string | null
           server_updated_at?: string
@@ -89,6 +183,7 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           water_volume_l?: number | null
+          workers_count?: number | null
         }
         Relationships: [
           {
@@ -761,6 +856,7 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           elevation_m: number | null
+          export_markets: string[]
           farm_id: string
           id: string
           irrigation_system: string | null
@@ -787,6 +883,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           elevation_m?: number | null
+          export_markets?: string[]
           farm_id: string
           id: string
           irrigation_system?: string | null
@@ -813,6 +910,7 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           elevation_m?: number | null
+          export_markets?: string[]
           farm_id?: string
           id?: string
           irrigation_system?: string | null
@@ -1041,6 +1139,104 @@ export type Database = {
           },
         ]
       }
+      harvest_records: {
+        Row: {
+          boxes_count: number | null
+          created_at: string
+          created_by: string | null
+          crop_cycle_id: string | null
+          deleted_at: string | null
+          device_id: string | null
+          farm_id: string
+          grade: string
+          greenhouse_id: string
+          harvested_on: string
+          id: string
+          iso_week: number | null
+          iso_year: number | null
+          notes: string | null
+          phi_warning: boolean
+          server_updated_at: string
+          updated_at: string
+          updated_by: string | null
+          warehouse_id: string | null
+          weight_kg: number
+        }
+        Insert: {
+          boxes_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          crop_cycle_id?: string | null
+          deleted_at?: string | null
+          device_id?: string | null
+          farm_id: string
+          grade?: string
+          greenhouse_id: string
+          harvested_on?: string
+          id?: string
+          iso_week?: number | null
+          iso_year?: number | null
+          notes?: string | null
+          phi_warning?: boolean
+          server_updated_at?: string
+          updated_at?: string
+          updated_by?: string | null
+          warehouse_id?: string | null
+          weight_kg: number
+        }
+        Update: {
+          boxes_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          crop_cycle_id?: string | null
+          deleted_at?: string | null
+          device_id?: string | null
+          farm_id?: string
+          grade?: string
+          greenhouse_id?: string
+          harvested_on?: string
+          id?: string
+          iso_week?: number | null
+          iso_year?: number | null
+          notes?: string | null
+          phi_warning?: boolean
+          server_updated_at?: string
+          updated_at?: string
+          updated_by?: string | null
+          warehouse_id?: string | null
+          weight_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "harvest_records_crop_cycle_id_farm_id_fkey"
+            columns: ["crop_cycle_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "crop_cycles"
+            referencedColumns: ["id", "farm_id"]
+          },
+          {
+            foreignKeyName: "harvest_records_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "harvest_records_greenhouse_id_farm_id_fkey"
+            columns: ["greenhouse_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "greenhouses"
+            referencedColumns: ["id", "farm_id"]
+          },
+          {
+            foreignKeyName: "harvest_records_warehouse_id_farm_id_fkey"
+            columns: ["warehouse_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id", "farm_id"]
+          },
+        ]
+      }
       operation_types: {
         Row: {
           category: Database["public"]["Enums"]["operation_category"]
@@ -1127,6 +1323,33 @@ export type Database = {
           server_updated_at?: string
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      password_reset_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1401,16 +1624,164 @@ export type Database = {
           },
         ]
       }
+      product_actives: {
+        Row: {
+          concentration: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          farm_id: string | null
+          id: string
+          product_id: string
+          server_updated_at: string
+          substance_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          concentration?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          farm_id?: string | null
+          id?: string
+          product_id: string
+          server_updated_at?: string
+          substance_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          concentration?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          farm_id?: string | null
+          id?: string
+          product_id?: string
+          server_updated_at?: string
+          substance_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_actives_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_actives_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_actives_substance_id_fkey"
+            columns: ["substance_id"]
+            isOneToOne: false
+            referencedRelation: "active_substances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_categories: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          default_product_type:
+            | Database["public"]["Enums"]["product_type"]
+            | null
+          deleted_at: string | null
+          domain: string
+          farm_id: string | null
+          id: string
+          is_bio: boolean
+          name_ar: string
+          name_en: string | null
+          notes: string | null
+          parent_id: string | null
+          server_updated_at: string
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          default_product_type?:
+            | Database["public"]["Enums"]["product_type"]
+            | null
+          deleted_at?: string | null
+          domain: string
+          farm_id?: string | null
+          id?: string
+          is_bio?: boolean
+          name_ar: string
+          name_en?: string | null
+          notes?: string | null
+          parent_id?: string | null
+          server_updated_at?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          default_product_type?:
+            | Database["public"]["Enums"]["product_type"]
+            | null
+          deleted_at?: string | null
+          domain?: string
+          farm_id?: string | null
+          id?: string
+          is_bio?: boolean
+          name_ar?: string
+          name_en?: string | null
+          notes?: string | null
+          parent_id?: string | null
+          server_updated_at?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_categories_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           active_ingredient: string | null
           bio_species: string | null
+          category_id: string | null
           concentration: string | null
           created_at: string
           created_by: string | null
           default_dose: number | null
           default_dose_unit: Database["public"]["Enums"]["dose_unit"] | null
           deleted_at: string | null
+          eg_reg_no: string | null
+          eg_registered_crops: string | null
           farm_id: string | null
           id: string
           is_active: boolean
@@ -1430,12 +1801,15 @@ export type Database = {
         Insert: {
           active_ingredient?: string | null
           bio_species?: string | null
+          category_id?: string | null
           concentration?: string | null
           created_at?: string
           created_by?: string | null
           default_dose?: number | null
           default_dose_unit?: Database["public"]["Enums"]["dose_unit"] | null
           deleted_at?: string | null
+          eg_reg_no?: string | null
+          eg_registered_crops?: string | null
           farm_id?: string | null
           id?: string
           is_active?: boolean
@@ -1455,12 +1829,15 @@ export type Database = {
         Update: {
           active_ingredient?: string | null
           bio_species?: string | null
+          category_id?: string | null
           concentration?: string | null
           created_at?: string
           created_by?: string | null
           default_dose?: number | null
           default_dose_unit?: Database["public"]["Enums"]["dose_unit"] | null
           deleted_at?: string | null
+          eg_reg_no?: string | null
+          eg_registered_crops?: string | null
           farm_id?: string | null
           id?: string
           is_active?: boolean
@@ -1478,6 +1855,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_farm_id_fkey"
             columns: ["farm_id"]
@@ -1517,6 +1901,146 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_request_items: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          farm_id: string
+          id: string
+          item_name: string | null
+          notes: string | null
+          product_id: string | null
+          qty: number
+          request_id: string
+          server_updated_at: string
+          unit: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          farm_id: string
+          id?: string
+          item_name?: string | null
+          notes?: string | null
+          product_id?: string | null
+          qty: number
+          request_id: string
+          server_updated_at?: string
+          unit?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          farm_id?: string
+          id?: string
+          item_name?: string | null
+          notes?: string | null
+          product_id?: string | null
+          qty?: number
+          request_id?: string
+          server_updated_at?: string
+          unit?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_request_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_request_items_request_id_farm_id_fkey"
+            columns: ["request_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_requests"
+            referencedColumns: ["id", "farm_id"]
+          },
+        ]
+      }
+      purchase_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          created_by: string | null
+          decision_note: string | null
+          deleted_at: string | null
+          device_id: string | null
+          farm_id: string
+          id: string
+          needed_by: string | null
+          notes: string | null
+          priority: Database["public"]["Enums"]["priority_level"]
+          request_no: string | null
+          requested_on: string
+          server_updated_at: string
+          status: string
+          supplier: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          decision_note?: string | null
+          deleted_at?: string | null
+          device_id?: string | null
+          farm_id: string
+          id?: string
+          needed_by?: string | null
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["priority_level"]
+          request_no?: string | null
+          requested_on?: string
+          server_updated_at?: string
+          status?: string
+          supplier?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          decision_note?: string | null
+          deleted_at?: string | null
+          device_id?: string | null
+          farm_id?: string
+          id?: string
+          needed_by?: string | null
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["priority_level"]
+          request_no?: string | null
+          requested_on?: string
+          server_updated_at?: string
+          status?: string
+          supplier?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_requests_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recommendations: {
         Row: {
           author_id: string | null
@@ -1525,6 +2049,7 @@ export type Database = {
           created_by: string | null
           crop_cycle_id: string | null
           deleted_at: string | null
+          domain: string
           due_on: string | null
           farm_id: string
           greenhouse_id: string | null
@@ -1545,6 +2070,7 @@ export type Database = {
           created_by?: string | null
           crop_cycle_id?: string | null
           deleted_at?: string | null
+          domain?: string
           due_on?: string | null
           farm_id: string
           greenhouse_id?: string | null
@@ -1565,6 +2091,7 @@ export type Database = {
           created_by?: string | null
           crop_cycle_id?: string | null
           deleted_at?: string | null
+          domain?: string
           due_on?: string | null
           farm_id?: string
           greenhouse_id?: string | null
@@ -1867,6 +2394,324 @@ export type Database = {
           },
         ]
       }
+      stock_items: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          default_warehouse_id: string | null
+          deleted_at: string | null
+          farm_id: string
+          id: string
+          min_qty: number | null
+          notes: string | null
+          product_id: string
+          server_updated_at: string
+          stock_unit: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          default_warehouse_id?: string | null
+          deleted_at?: string | null
+          farm_id: string
+          id?: string
+          min_qty?: number | null
+          notes?: string | null
+          product_id: string
+          server_updated_at?: string
+          stock_unit?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          default_warehouse_id?: string | null
+          deleted_at?: string | null
+          farm_id?: string
+          id?: string
+          min_qty?: number | null
+          notes?: string | null
+          product_id?: string
+          server_updated_at?: string
+          stock_unit?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_items_default_warehouse_id_farm_id_fkey"
+            columns: ["default_warehouse_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id", "farm_id"]
+          },
+          {
+            foreignKeyName: "stock_items_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          activity_id: string | null
+          batch_no: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          device_id: string | null
+          direction: number | null
+          document_no: string | null
+          expiry_date: string | null
+          farm_id: string
+          greenhouse_id: string | null
+          id: string
+          issued_to: string | null
+          moved_on: string
+          movement_type: string
+          notes: string | null
+          product_id: string
+          purchase_request_id: string | null
+          qty: number
+          server_updated_at: string
+          supplier: string | null
+          transfer_group: string | null
+          unit: string
+          unit_price: number | null
+          updated_at: string
+          updated_by: string | null
+          warehouse_id: string
+        }
+        Insert: {
+          activity_id?: string | null
+          batch_no?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          device_id?: string | null
+          direction?: number | null
+          document_no?: string | null
+          expiry_date?: string | null
+          farm_id: string
+          greenhouse_id?: string | null
+          id?: string
+          issued_to?: string | null
+          moved_on?: string
+          movement_type: string
+          notes?: string | null
+          product_id: string
+          purchase_request_id?: string | null
+          qty: number
+          server_updated_at?: string
+          supplier?: string | null
+          transfer_group?: string | null
+          unit: string
+          unit_price?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          warehouse_id: string
+        }
+        Update: {
+          activity_id?: string | null
+          batch_no?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          device_id?: string | null
+          direction?: number | null
+          document_no?: string | null
+          expiry_date?: string | null
+          farm_id?: string
+          greenhouse_id?: string | null
+          id?: string
+          issued_to?: string | null
+          moved_on?: string
+          movement_type?: string
+          notes?: string | null
+          product_id?: string
+          purchase_request_id?: string | null
+          qty?: number
+          server_updated_at?: string
+          supplier?: string | null
+          transfer_group?: string | null
+          unit?: string
+          unit_price?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_activity_id_farm_id_fkey"
+            columns: ["activity_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id", "farm_id"]
+          },
+          {
+            foreignKeyName: "stock_movements_activity_id_farm_id_fkey"
+            columns: ["activity_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "v_activity_log"
+            referencedColumns: ["activity_id", "farm_id"]
+          },
+          {
+            foreignKeyName: "stock_movements_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_greenhouse_id_farm_id_fkey"
+            columns: ["greenhouse_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "greenhouses"
+            referencedColumns: ["id", "farm_id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_purchase_request_id_farm_id_fkey"
+            columns: ["purchase_request_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_requests"
+            referencedColumns: ["id", "farm_id"]
+          },
+          {
+            foreignKeyName: "stock_movements_warehouse_id_farm_id_fkey"
+            columns: ["warehouse_id", "farm_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id", "farm_id"]
+          },
+        ]
+      }
+      substance_limits: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          crop_code: string
+          default_loq: boolean
+          deleted_at: string | null
+          farm_id: string | null
+          id: string
+          market: string
+          mrl_mg_kg: number | null
+          notes: string | null
+          phi_days: number | null
+          retrieved_on: string | null
+          server_updated_at: string
+          source_url: string | null
+          substance_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          crop_code: string
+          default_loq?: boolean
+          deleted_at?: string | null
+          farm_id?: string | null
+          id?: string
+          market: string
+          mrl_mg_kg?: number | null
+          notes?: string | null
+          phi_days?: number | null
+          retrieved_on?: string | null
+          server_updated_at?: string
+          source_url?: string | null
+          substance_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          crop_code?: string
+          default_loq?: boolean
+          deleted_at?: string | null
+          farm_id?: string | null
+          id?: string
+          market?: string
+          mrl_mg_kg?: number | null
+          notes?: string | null
+          phi_days?: number | null
+          retrieved_on?: string | null
+          server_updated_at?: string
+          source_url?: string | null
+          substance_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "substance_limits_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "substance_limits_substance_id_fkey"
+            columns: ["substance_id"]
+            isOneToOne: false
+            referencedRelation: "active_substances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_admins: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          server_updated_at: string
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          server_updated_at?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          server_updated_at?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       varieties: {
         Row: {
           created_at: string
@@ -1920,6 +2765,56 @@ export type Database = {
           },
           {
             foreignKeyName: "varieties_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouses: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          farm_id: string
+          id: string
+          kind: string
+          name: string
+          notes: string | null
+          server_updated_at: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          farm_id: string
+          id?: string
+          kind?: string
+          name: string
+          notes?: string | null
+          server_updated_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          farm_id?: string
+          id?: string
+          kind?: string
+          name?: string
+          notes?: string | null
+          server_updated_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouses_farm_id_fkey"
             columns: ["farm_id"]
             isOneToOne: false
             referencedRelation: "farms"
@@ -2216,7 +3111,22 @@ export type Database = {
         Args: { p_location?: string; p_name: string }
         Returns: string
       }
+      farm_overview: {
+        Args: { p_date?: string; p_farm: string }
+        Returns: Json
+      }
+      request_password_reset: { Args: { p_email: string }; Returns: undefined }
       server_now: { Args: never; Returns: string }
+      store_balances: {
+        Args: { p_farm: string }
+        Returns: {
+          balance: number
+          nearest_expiry: string
+          product_id: string
+          unit: string
+          warehouse_id: string
+        }[]
+      }
     }
     Enums: {
       activity_type:
@@ -2224,6 +3134,7 @@ export type Database = {
         | "fertigation_injection"
         | "bio_release"
         | "cultural_operation"
+        | "foliar_nutrition"
       application_method:
         | "foliar_spray"
         | "fogging"
@@ -2261,6 +3172,11 @@ export type Database = {
         | "consultant"
         | "scout"
         | "executive"
+        | "irrigation"
+        | "operations"
+        | "supervisor"
+        | "storekeeper"
+        | "purchasing"
       operation_category:
         | "establishment"
         | "crop_maintenance"
@@ -2268,6 +3184,7 @@ export type Database = {
         | "hygiene"
         | "harvest"
         | "other"
+        | "land_preparation"
       pest_category:
         | "insect"
         | "mite"
@@ -2437,6 +3354,7 @@ export const Constants = {
         "fertigation_injection",
         "bio_release",
         "cultural_operation",
+        "foliar_nutrition",
       ],
       application_method: [
         "foliar_spray",
@@ -2478,6 +3396,11 @@ export const Constants = {
         "consultant",
         "scout",
         "executive",
+        "irrigation",
+        "operations",
+        "supervisor",
+        "storekeeper",
+        "purchasing",
       ],
       operation_category: [
         "establishment",
@@ -2486,6 +3409,7 @@ export const Constants = {
         "hygiene",
         "harvest",
         "other",
+        "land_preparation",
       ],
       pest_category: [
         "insect",

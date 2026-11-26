@@ -5,12 +5,15 @@ import { db, getMeta, setMeta } from '../lib/db';
 import { setCurrentUser } from '../lib/repo';
 import { pendingSummary, startAutoSync, syncNow } from '../lib/sync';
 import type { Row } from '../lib/schema';
+import { accessFor, ROLE_LABEL, type Access, type Role } from '../lib/access';
 
-type Role = Row<'farm_members'>['role'];
+export { ROLE_LABEL };
 
 export interface Identity {
   id: string;
   email: string;
+  /** كلمة مرور مؤقتة: لازم تتغير قبل أي عمل */
+  mustChange?: boolean;
 }
 
 interface AppCtx {
@@ -24,16 +27,11 @@ interface AppCtx {
   setFarmId: (id: string | null) => void;
   farm: Row<'farms'> | undefined;
   role: Role | null;
-  can: {
-    manage: boolean; // تعديل هيكل المزرعة
-    record: boolean; // التسجيل الميداني
-    admin: boolean;
-    invite: boolean;
-    /** تعديل سجلات الآخرين الميدانية (مدير المزرعة/النظام) */
-    supervise: boolean;
-    /** كتابة التوصيات وإدارة الكتالوج */
-    advise: boolean;
-  };
+  /** مدير نظام: كل المشاريع */
+  isSystemAdmin: boolean;
+  can: Access;
+  /** تغيير كلمة المرور (ويلغي إجبار التغيير) — يرجع رسالة خطأ أو null */
+  changePassword: (password: string) => Promise<string | null>;
   toast: (msg: string) => void;
 }
 
@@ -78,7 +76,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
       setLive(!!session);
       if (session?.user) {
-        const id = { id: session.user.id, email: session.user.email ?? '' };
+        const id = { id: session.user.id, email: session.user.email ?? '', mustChange: !!session.user.user_metadata?.must_change_password };
         localStorage.setItem(IDENTITY_KEY, JSON.stringify(id));
         setUser(id);
       }
@@ -109,11 +107,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setFarmIdState(null);
     }
     await setMeta('owner', data.user.id);
-    const id = { id: data.user.id, email: data.user.email ?? email };
+    const id = { id: data.user.id, email: data.user.email ?? email, mustChange: !!data.user.user_metadata?.must_change_password };
     localStorage.setItem(IDENTITY_KEY, JSON.stringify(id));
     setUser(id);
     setCurrentUser(id.id);
     void syncNow(); // التحميل الأول يكمل في الخلفية — لا ننتظره حتى لا نقاطع المستخدم
+    return null;
+  }, []);
+
+  const changePassword = useCallback(async (password: string) => {
+    const { data, error } = await supabase.auth.updateUser({ password, data: { must_change_password: false } });
+    if (error) {
+      if (/fetch|network/i.test(error.message)) return 'تغيير كلمة المرور يحتاج اتصال بالإنترنت.';
+      if (/different|same/i.test(error.message)) return 'كلمة المرور الجديدة لازم تختلف عن الحالية.';
+      if (/weak|least|short|pwned|leak/i.test(error.message)) return 'كلمة المرور ضعيفة أو ظهرت في تسريبات معروفة. اختر كلمة أقوى.';
+      return 'تعذر تغيير كلمة المرور. حاول مرة أخرى.';
+    }
+    if (data.user) {
+      const id = { id: data.user.id, email: data.user.email ?? '', mustChange: false };
+      localStorage.setItem(IDENTITY_KEY, JSON.stringify(id));
+      setUser(id);
+    }
     return null;
   }, []);
 
@@ -141,7 +155,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => (farmId && user ? db.farm_members.get([farmId, user.id]) : undefined),
     [farmId, user?.id],
   );
-  const role = membership?.role ?? null;
+  const sysRows = useLiveQuery(
+    () => (user ? db.system_admins.where('user_id').equals(user.id).filter((r) => !r.deleted_at).count() : 0),
+    [user?.id],
+  );
+  const isSystemAdmin = (sysRows ?? 0) > 0;
+  const role: Role | null = isSystemAdmin ? 'admin' : (membership?.role as Role | undefined) ?? null;
+  const can = useMemo(() => accessFor(role, isSystemAdmin), [role, isSystemAdmin]);
 
   const value = useMemo<AppCtx>(
     () => ({
@@ -154,17 +174,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setFarmId,
       farm,
       role,
-      can: {
-        manage: role === 'admin' || role === 'farm_manager' || role === 'consultant',
-        record: !!role && role !== 'executive',
-        admin: role === 'admin',
-        invite: role === 'admin' || role === 'farm_manager',
-        supervise: role === 'admin' || role === 'farm_manager',
-        advise: role === 'admin' || role === 'farm_manager' || role === 'consultant',
-      },
+      isSystemAdmin,
+      can,
+      changePassword,
       toast,
     }),
-    [ready, user, hasLiveSession, signIn, signOut, farmId, setFarmId, farm, role, toast],
+    [ready, user, hasLiveSession, signIn, signOut, farmId, setFarmId, farm, role, isSystemAdmin, can, changePassword, toast],
   );
 
   return (
@@ -185,10 +200,4 @@ export function useApp(): AppCtx {
   return c;
 }
 
-export const ROLE_LABEL: Record<Role, string> = {
-  admin: 'مدير النظام',
-  farm_manager: 'مدير المزرعة',
-  consultant: 'استشاري',
-  scout: 'مهندس فحص',
-  executive: 'إدارة تنفيذية',
-};
+

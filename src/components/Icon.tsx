@@ -38,6 +38,15 @@ const P: Record<string, string> = {
   pin: 'M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12Zm0-9.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z',
   folder: 'M3 6h6l2 2h10v11H3V6Z',
   info: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-11v6m0-9h.01',
+  leaf: 'M5 19c0-8 6-14 15-14 0 9-6 15-14 15H5v-1Zm0 0 8-8',
+  store: 'M3 10 12 4l9 6v10H3V10Zm4 10v-6h10v6M7 17h10',
+  cart: 'M3 4h2l2.4 11h10.2L20 7H6.2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z',
+  scale: 'M12 4v16M5 20h14M5 8h14M5 8l-3 6a3 3 0 0 0 6 0L5 8Zm14 0-3 6a3 3 0 0 0 6 0l-3-6Z',
+  lock: 'M6 11h12v10H6V11Zm2 0V8a4 4 0 0 1 8 0v3m-4 4v2',
+  globe: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3 12h18M12 3c2.5 2.4 3.8 5.4 3.8 9s-1.3 6.6-3.8 9c-2.5-2.4-3.8-5.4-3.8-9S9.5 5.4 12 3Z',
+  tag: 'M3 12V4h8l10 10-8 8L3 12Zm5-4h.01',
+  eye: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
+  worker: 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 10v-1a6 6 0 0 1 12 0v1M7 7h10',
 };
 
 export function Icon({ name, size = 24, stroke = 2 }: { name: keyof typeof P | string; size?: number; stroke?: number }) {

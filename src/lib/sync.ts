@@ -215,6 +215,32 @@ async function pullFull(table: TableName): Promise<number> {
   return data?.length ?? 0;
 }
 
+/**
+ * لو صلاحيات المستخدم اتغيرت (دور جديد، مشروع جديد، مدير نظام) نعيد تحميل البيانات من الأول:
+ * المؤشر التزايدي لا يرجع للسجلات القديمة التي أصبحت مرئية، والسجلات التي لم تعد مسموحة تُحذف من الجهاز.
+ */
+async function refreshOnAccessChange(userId: string) {
+  const { data: sa, error } = await supabase.from('system_admins').select('id').eq('user_id', userId).is('deleted_at', null);
+  if (error) {
+    if (isNetworkError(error)) throw new RetryableError(error.message);
+    return;
+  }
+  const mem = await db.farm_members.where('user_id').equals(userId).toArray();
+  const fp = JSON.stringify({ sys: (sa ?? []).length > 0, m: mem.map((m) => `${m.farm_id}:${m.role}`).sort() });
+  const prev = await getMeta<string | null>('accessFingerprint', null);
+  if (prev === fp) return;
+  if (prev !== null) {
+    for (const table of INCREMENTAL_PULL) {
+      const t = db.tableOf(table);
+      await db.transaction('rw', t, async () => {
+        await t.filter((r: any) => !r._dirty).delete();
+      });
+      await setMeta(`cursor:${table}`, null);
+    }
+  }
+  await setMeta('accessFingerprint', fp);
+}
+
 async function checkClock() {
   const before = Date.now();
   const { data, error } = await supabase.rpc('server_now');
@@ -265,6 +291,7 @@ async function runOnce() {
     for (const table of PUSH_ORDER) await pushTable(table);
     set({ phase: 'تحديث البيانات' });
     for (const table of FULL_PULL) await pullFull(table);
+    await refreshOnAccessChange(sess.session.user.id);
     for (const table of INCREMENTAL_PULL) await pullIncremental(table);
     await checkClock();
     const now = new Date().toISOString();

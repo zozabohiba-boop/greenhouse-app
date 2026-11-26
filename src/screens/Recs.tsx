@@ -17,6 +17,7 @@ import { Icon } from '../components/Icon';
 import { useAdviceData } from '../components/Advice';
 import { adviceText, buildAdvice } from '../lib/advice';
 import type { Row } from '../lib/schema';
+import { DOMAIN_LABEL, FIELD_DOMAINS } from '../lib/access';
 
 type Rec = Row<'recommendations'>;
 const PRIORITIES = Object.keys(PRIORITY_LABEL) as Rec['priority'][];
@@ -25,6 +26,7 @@ const PRIO_CLASS: Record<Rec['priority'], string> = { low: '', normal: 'info', h
 export function RecList() {
   const { farmId, user, can, toast } = useApp();
   const [tab, setTab] = useState<'open' | 'closed'>('open');
+  const [dom, setDom] = useState<string>('');
   const people = usePeople();
   const data = useLiveQuery(async () => {
     const [recs, ghs, acts, obs, pests] = await Promise.all([
@@ -50,7 +52,7 @@ export function RecList() {
   const statusOf = (r: Rec): Rec['status'] => (data.executed.has(r.id) && (r.status === 'open' || r.status === 'in_progress') ? 'done' : r.status);
   const rank: Record<Rec['priority'], number> = { urgent: 0, high: 1, normal: 2, low: 3 };
   const list = data.recs
-    .filter((r) => (tab === 'open') === ['open', 'in_progress'].includes(statusOf(r)))
+    .filter((r) => (tab === 'open') === ['open', 'in_progress'].includes(statusOf(r)) && (!dom || r.domain === dom))
     .sort((a, b) => tab === 'open'
       ? rank[a.priority] - rank[b.priority] || (a.due_on ?? '9') .localeCompare(b.due_on ?? '9')
       : (b.resolved_at ?? b.updated_at).localeCompare(a.resolved_at ?? a.updated_at));
@@ -68,6 +70,12 @@ export function RecList() {
           <button aria-pressed={tab === 'open'} onClick={() => setTab('open')}>المفتوحة</button>
           <button aria-pressed={tab === 'closed'} onClick={() => setTab('closed')}>المنتهية</button>
         </div>
+        {can.full && (
+          <div className="seg" role="group" aria-label="المجال">
+            <button aria-pressed={!dom} onClick={() => setDom('')}>كل المجالات</button>
+            {(['general', ...FIELD_DOMAINS] as const).map((d) => <button key={d} aria-pressed={dom === d} onClick={() => setDom(d)}>{DOMAIN_LABEL[d]}</button>)}
+          </div>
+        )}
       </div>
       {list.length === 0 && <div className="panel empty"><h3>{tab === 'open' ? 'لا توجد توصيات مفتوحة' : 'لا توجد توصيات منتهية'}</h3></div>}
       <div className="rec-list">
@@ -82,6 +90,7 @@ export function RecList() {
             <article key={r.id} className="panel rec" data-p={r.priority}>
               <header className="row">
                 <span className={`chip ${PRIO_CLASS[r.priority]}`}>{PRIORITY_LABEL[r.priority]}</span>
+                {r.domain !== 'general' && <span className="chip">{DOMAIN_LABEL[r.domain as keyof typeof DOMAIN_LABEL]}</span>}
                 {r.greenhouse_id && <span className="chip lbl">{data.ghCode.get(r.greenhouse_id)}</span>}
                 <span className={`chip ${st === 'done' ? 'ok' : st === 'cancelled' ? '' : st === 'in_progress' ? 'info' : ''}`}>{REC_STATUS_LABEL[st]}</span>
                 {r.due_on && <span className={`chip ${overdue ? 'bad' : ''}`}><Icon name="clock" size={13} /> {overdue ? 'متأخرة — ' : ''}{formatDate(r.due_on)}</span>}
@@ -96,8 +105,8 @@ export function RecList() {
               <footer className="row">
                 <small className="faint grow">{people.get(r.author_id ?? r.created_by ?? '') ?? ''}، {formatDate(r.created_at.slice(0, 10))}</small>
                 {act && <Link to={`/activities/${act.id}`} className="btn ghost"><Icon name="check" size={18} /> نُفذت {formatDate(act.performed_on)}</Link>}
-                {!act && can.record && (st === 'open' || st === 'in_progress') && (
-                  <Link className="btn primary" to={`/activities/new?rec=${r.id}${r.greenhouse_id ? `&gh=${r.greenhouse_id}` : ''}${o ? `&pest=${o.pest_id}` : ''}`}><Icon name="spray" size={20} /> سجّل التنفيذ</Link>
+                {!act && (r.domain === 'general' ? can.record : can.canRecord(r.domain)) && (st === 'open' || st === 'in_progress') && (
+                  <Link className="btn primary" to={`/activities/new?rec=${r.id}${r.greenhouse_id ? `&gh=${r.greenhouse_id}` : ''}${o ? `&pest=${o.pest_id}` : ''}${r.domain === 'fertigation' ? '&type=fertigation_injection' : r.domain === 'operations' ? '&type=cultural_operation' : r.domain === 'ipm' ? '&type=chemical_spray' : ''}`}><Icon name="spray" size={20} /> سجّل التنفيذ</Link>
                 )}
                 {canStatus && st === 'open' && <button className="btn" onClick={async () => { await update('recommendations', r.id, { status: 'in_progress' }); toast('تم'); }}>جاري التنفيذ</button>}
                 {canStatus && (st === 'open' || st === 'in_progress') && !act && (
@@ -154,6 +163,7 @@ function RecFormInner({ existing, ghs, ctx, defaults, onDone, farmId }: {
     body: existing?.body ?? defaults.body,
     priority: existing?.priority ?? (ctx && ctx.o.severity >= 3 ? 'high' : 'normal') as Rec['priority'],
     due_on: existing?.due_on ?? '',
+    domain: existing?.domain ?? (ctx ? 'ipm' : 'general'),
   });
   const [err, setErr] = useState<string | null>(null);
   const adv = useAdviceData(farmId, ctx?.o.pest_id, f.greenhouse_id || undefined);
@@ -171,6 +181,7 @@ function RecFormInner({ existing, ghs, ctx, defaults, onDone, farmId }: {
       body: f.body.trim() || null,
       priority: f.priority,
       due_on: f.due_on || null,
+      domain: f.domain,
     };
     if (existing) {
       await update('recommendations', existing.id, values);
@@ -196,8 +207,14 @@ function RecFormInner({ existing, ghs, ctx, defaults, onDone, farmId }: {
           <Field label="موعد التنفيذ"><input className="input" type="date" value={f.due_on} min={existing ? undefined : today} onChange={(e) => setF({ ...f, due_on: e.target.value })} /></Field>
         </div>
         <div>
+          <p className="field-label">موجّهة إلى</p>
+          <div className="seg" role="group" aria-label="المجال المسؤول">
+            {(['general', ...FIELD_DOMAINS] as const).map((d) => <button type="button" key={d} aria-pressed={f.domain === d} onClick={() => setF({ ...f, domain: d })}>{d === 'general' ? 'الكل' : DOMAIN_LABEL[d]}</button>)}
+          </div>
+        </div>
+        <div>
           <p className="field-label">الأولوية</p>
-          <div className="seg" role="group">
+          <div className="seg" role="group" aria-label="الأولوية">
             {PRIORITIES.map((p) => <button type="button" key={p} aria-pressed={f.priority === p} onClick={() => setF({ ...f, priority: p })}>{PRIORITY_LABEL[p]}</button>)}
           </div>
         </div>

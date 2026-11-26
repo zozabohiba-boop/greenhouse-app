@@ -132,7 +132,7 @@ export function FilesHome() {
       <Link to="/" className="back"><Icon name="back" size={18} /> الرئيسية</Link>
       <div className="page-head">
         <div><h1>الملفات والتقارير</h1><p>تقارير الزيارات، التحاليل، برامج التسميد والمكافحة، والعروض</p></div>
-        {can.record && <button className="btn primary" onClick={() => setUpload(true)}><Icon name="upload" size={20} /> رفع ملف</button>}
+        {can.upload && <button className="btn primary" onClick={() => setUpload(true)}><Icon name="upload" size={20} /> رفع ملف</button>}
       </div>
 
       <div className="panel panel-pad form files-filter">
@@ -154,7 +154,7 @@ export function FilesHome() {
         <div className="panel empty">
           <h3>{data.docs.length ? 'لا توجد ملفات بهذا التصفية' : 'لا توجد ملفات بعد'}</h3>
           <p>ارفع تقارير الزيارات والتحاليل وبرامج التسميد هنا، وتكون متاحة لكل الفريق.</p>
-          {can.record && !data.docs.length && <button className="btn primary" onClick={() => setUpload(true)}><Icon name="upload" size={20} /> رفع أول ملف</button>}
+          {can.upload && !data.docs.length && <button className="btn primary" onClick={() => setUpload(true)}><Icon name="upload" size={20} /> رفع أول ملف</button>}
         </div>
       ) : (
         <ul className="list panel docs">
@@ -163,7 +163,7 @@ export function FilesHome() {
             return (
               <DocRow key={d.id} d={d} place={placeText(idx, ghMap, labels, d)} pending={b?.pending === 1} error={b?.error}
                 who={d.created_by ? people.get(d.created_by) : undefined}
-                onEdit={can.record && (d.created_by === user?.id || can.supervise) ? () => setEdit(d) : undefined} />
+                onEdit={can.upload && (d.created_by === user?.id || can.supervise) ? () => setEdit(d) : undefined} />
             );
           })}
         </ul>
@@ -315,7 +315,7 @@ export function DocSection({ greenhouseId, zoneId }: { greenhouseId?: string; zo
         <span>الملفات والتقارير</span>
         <span className="row">
           {docs.length > 5 && <Link className="btn" to={`/files?p=${place}`}>كل الملفات ({docs.length})</Link>}
-          {can.record && <button className="btn" onClick={() => setUpload(true)}><Icon name="upload" size={20} /> رفع ملف</button>}
+          {can.upload && <button className="btn" onClick={() => setUpload(true)}><Icon name="upload" size={20} /> رفع ملف</button>}
         </span>
       </h2>
       {docs.length === 0 ? (
@@ -327,7 +327,7 @@ export function DocSection({ greenhouseId, zoneId }: { greenhouseId?: string; zo
             return (
               <DocRow key={d.id} d={d} place={placeText(idx, ghMap, labels, d)} pending={b?.pending === 1} error={b?.error}
                 who={d.created_by ? people.get(d.created_by) : undefined}
-                onEdit={can.record && (d.created_by === user?.id || can.supervise) ? () => setEdit(d) : undefined} />
+                onEdit={can.upload && (d.created_by === user?.id || can.supervise) ? () => setEdit(d) : undefined} />
             );
           })}
         </ul>

@@ -21,6 +21,11 @@ import { Field, numStr, toNum } from '../components/Field';
 import { Icon } from '../components/Icon';
 import { doseText, repeatedMoa } from '../lib/advice';
 import { Sheet } from '../components/Sheet';
+import { ACTIVITY_DOMAIN, DOMAIN_LABEL, type Domain } from '../lib/access';
+import { MAJORS_FOR, complianceFor, cropKey, productMatches, useCatalog, useRegistry } from '../lib/catalog';
+import { CategoryField, ProductPickButton, ProductPickerSheet } from '../components/Catalog';
+import { mixWarnings } from '../lib/mixing';
+import { QUALITY_LABEL } from '../lib/labels';
 import { PhotoStrip } from '../components/Photos';
 import type { Row } from '../lib/schema';
 
@@ -32,12 +37,14 @@ const TYPES = Object.keys(ACTIVITY_TYPE_LABEL) as AType[];
 const DEFAULT_METHOD: Record<AType, Activity['method']> = {
   chemical_spray: 'foliar_spray',
   fertigation_injection: 'fertigation',
+  foliar_nutrition: 'foliar_spray',
   bio_release: 'release',
   cultural_operation: 'manual',
 };
 const METHODS_FOR: Record<AType, NonNullable<Activity['method']>[]> = {
   chemical_spray: ['foliar_spray', 'fogging', 'drench'],
   fertigation_injection: ['fertigation', 'drench'],
+  foliar_nutrition: ['foliar_spray'],
   bio_release: ['release'],
   cultural_operation: ['manual'],
 };
@@ -67,6 +74,9 @@ export function ActivityList() {
   const { farmId, can } = useApp();
   const [sp, setSp] = useSearchParams();
   const type = (sp.get('type') as AType | null) ?? null;
+  const domain = (sp.get('domain') as Domain | null) ?? null;
+  const visibleTypes = TYPES.filter((t) => can.canRead(ACTIVITY_DOMAIN[t]) && (!domain || ACTIVITY_DOMAIN[t] === domain));
+  const recordTypes = visibleTypes.filter((t) => can.canRecord(ACTIVITY_DOMAIN[t]));
   const ghFilter = sp.get('gh');
   const [days, setDays] = useState(60);
   const ghs = useGreenhouses(farmId);
@@ -83,7 +93,7 @@ export function ActivityList() {
     const phi = phiByGreenhouse(data.acts, data.ags, data.aps, data.prods, today);
     const from = addDays(today, -days);
     const items = data.acts
-      .filter((a) => a.performed_on >= from && (!type || a.activity_type === type))
+      .filter((a) => a.performed_on >= from && (!type || a.activity_type === type) && (!domain || ACTIVITY_DOMAIN[a.activity_type] === domain))
       .map((a) => {
         const ghIds = data.ags.filter((x) => x.activity_id === a.id).map((x) => x.greenhouse_id);
         const products = data.aps.filter((x) => x.activity_id === a.id).map((x) => ({ ap: x, p: prod.get(x.product_id) }));
@@ -98,7 +108,7 @@ export function ActivityList() {
       byDate.get(it.a.performed_on)!.push(it);
     }
     return { byDate, ghCode, phi, count: items.length, older: data.acts.some((a) => a.performed_on < from) };
-  }, [data, ghs, labels, type, ghFilter, days, today]);
+  }, [data, ghs, labels, type, domain, ghFilter, days, today]);
 
   const setParam = (k: string, v: string | null) => {
     const n = new URLSearchParams(sp);
@@ -110,10 +120,10 @@ export function ActivityList() {
     <main className="page">
       <Link to="/" className="back"><Icon name="back" size={18} /> الرئيسية</Link>
       <div className="page-head">
-        <div><h1>سجل المعاملات</h1><p>الرش والحقن والإطلاق الحيوي والعمليات الزراعية</p></div>
+        <div><h1>{domain ? `سجل ${DOMAIN_LABEL[domain]}` : 'سجل المعاملات'}</h1><p>{visibleTypes.map((t) => ACTIVITY_TYPE_LABEL[t]).join('، ')}</p></div>
         <div className="row">
-          {can.advise && <Link to="/products" className="btn"><Icon name="box" size={20} /> المواد</Link>}
-          {can.record && <Link to={`/activities/new${type ? `?type=${type}` : ''}`} className="btn primary"><Icon name="plus" /> معاملة جديدة</Link>}
+          <Link to="/products" className="btn"><Icon name="box" size={20} /> المواد</Link>
+          {recordTypes.length > 0 && <Link to={`/activities/new${type && recordTypes.includes(type) ? `?type=${type}` : `?type=${recordTypes[0]}`}`} className="btn primary"><Icon name="plus" /> معاملة جديدة</Link>}
         </div>
       </div>
 
@@ -134,7 +144,7 @@ export function ActivityList() {
       <div className="filters">
         <div className="seg" role="group" aria-label="نوع المعاملة">
           <button aria-pressed={!type} onClick={() => setParam('type', null)}>الكل</button>
-          {TYPES.map((t) => <button key={t} aria-pressed={type === t} onClick={() => setParam('type', t)}>{ACTIVITY_TYPE_LABEL[t]}</button>)}
+          {visibleTypes.map((t) => <button key={t} aria-pressed={type === t} onClick={() => setParam('type', t)}>{ACTIVITY_TYPE_LABEL[t]}</button>)}
         </div>
         <select className="select" style={{ width: 'auto', minWidth: 150 }} value={ghFilter ?? ''} onChange={(e) => setParam('gh', e.target.value || null)} aria-label="الصوبة">
           <option value="">كل الصوب</option>
@@ -145,7 +155,7 @@ export function ActivityList() {
       {view && view.count === 0 && (
         <div className="panel empty">
           <h3>لا توجد معاملات {type ? `(${ACTIVITY_TYPE_LABEL[type]})` : ''} في آخر {days} يوم</h3>
-          {can.record && <Link to="/activities/new" className="btn primary"><Icon name="plus" /> سجّل أول معاملة</Link>}
+          {recordTypes.length > 0 && <Link to={`/activities/new?type=${type && recordTypes.includes(type) ? type : recordTypes[0]}`} className="btn primary"><Icon name="plus" /> سجّل أول معاملة</Link>}
         </div>
       )}
 
@@ -159,6 +169,7 @@ export function ActivityList() {
                   <span className="act-ico" data-t={a.activity_type}><Icon name={ACTIVITY_ICON[a.activity_type]} size={22} /></span>
                   <span className="grow" style={{ minWidth: 0 }}>
                     <b>{ACTIVITY_TYPE_LABEL[a.activity_type]}{op ? ` — ${op.name_ar}` : ''}</b>
+                    {(a.workers_count != null || a.quality != null) && <small className="muted" style={{ display: 'block' }}>{[a.workers_count != null && `${a.workers_count} عامل`, a.labor_hours != null && `${Number(a.labor_hours)} ساعة عمل`, a.quality != null && `التنفيذ: ${QUALITY_LABEL[a.quality]}`].filter(Boolean).join(' · ')}</small>}
                     <small className="muted" style={{ display: 'block' }}>
                       {products.length ? products.map(({ ap, p }) => `${p?.name ?? 'مادة'}${ap.dose != null ? ` ${ap.dose} ${ap.dose_unit ? DOSE_UNIT_LABEL[ap.dose_unit] : ''}` : ''}`).join('، ') : a.notes || a.reason || ''}
                     </small>
@@ -210,7 +221,7 @@ export function ActivityDetail() {
   if (data === undefined) return null;
   if (data === null) return <main className="page"><div className="panel empty"><h3>المعاملة غير موجودة</h3><Link to="/activities" className="btn">سجل المعاملات</Link></div></main>;
   const { a, op, pest, rec, ags, aps } = data;
-  const editable = can.record && (a.created_by === user?.id || can.supervise);
+  const editable = can.canRecord(ACTIVITY_DOMAIN[a.activity_type]) && (a.created_by === user?.id || can.supervise);
   const maxPhi = Math.max(-1, ...aps.map((x) => x.p?.phi_days ?? -1));
   const until = maxPhi >= 0 ? addDays(a.performed_on, maxPhi) : null;
   const today = todayLocal();
@@ -224,7 +235,7 @@ export function ActivityDetail() {
           <p>{formatDate(a.performed_on)}{a.start_time ? `، ${a.start_time.slice(0, 5)}` : ''}{a.end_time ? ` – ${a.end_time.slice(0, 5)}` : ''}</p>
         </div>
         <div className="row">
-          {can.record && <Link to={`/activities/new?copy=${a.id}`} className="btn"><Icon name="sync" size={20} /> كرّر المعاملة</Link>}
+          {can.canRecord(ACTIVITY_DOMAIN[a.activity_type]) && <Link to={`/activities/new?copy=${a.id}`} className="btn"><Icon name="sync" size={20} /> كرّر المعاملة</Link>}
           {editable && <Link to={`/activities/${a.id}/edit`} className="btn"><Icon name="edit" size={20} /> تعديل</Link>}
         </div>
       </div>
@@ -242,6 +253,8 @@ export function ActivityDetail() {
         {a.water_volume_l != null && <Detail k="حجم المحلول"><span className="num">{a.water_volume_l}</span> لتر</Detail>}
         {pest && <Detail k="الآفة المستهدفة">{pest.name_ar}</Detail>}
         {a.performed_by_name && <Detail k="المنفّذ">{a.performed_by_name}</Detail>}
+        {a.workers_count != null && <Detail k="العمالة"><span className="num">{a.workers_count}</span> عامل{a.labor_hours != null ? <> — <span className="num">{Number(a.labor_hours)}</span> ساعة عمل</> : null}</Detail>}
+        {a.quality != null && <Detail k="جودة التنفيذ"><span className="quality-chip" data-q={a.quality}>{QUALITY_LABEL[a.quality]}</span></Detail>}
         <Detail k="سجّلها">{people.get(a.created_by ?? '') ?? '—'}</Detail>
         {a.reason && <Detail k="السبب">{a.reason}</Detail>}
         {rec && <Detail k="تنفيذ توصية"><Link to="/recs">{rec.title}</Link></Detail>}
@@ -253,7 +266,7 @@ export function ActivityDetail() {
           <h2 className="section-title">المواد المستخدمة</h2>
           <div className="panel scroll-x">
             <table className="tbl">
-              <thead><tr><th>المادة</th><th>النوع</th><th>الجرعة</th><th>الكمية الكلية</th><th>المجموعة</th><th>فترة الأمان</th><th>التشغيلة</th></tr></thead>
+              <thead><tr><th>المادة</th><th>النوع</th><th>الجرعة</th><th>الكمية المستخدمة فعليًا</th><th>المجموعة</th><th>فترة الأمان</th><th>التشغيلة</th></tr></thead>
               <tbody>
                 {aps.map(({ ap, p }) => (
                   <tr key={ap.id}>
@@ -324,6 +337,7 @@ export function ActivityForm() {
   }, [id, copyId]);
   if (!can.record) return <Navigate to="/activities" replace />;
   if ((id || copyId) && existing === undefined) return null;
+  if (existing && !can.canRecord(ACTIVITY_DOMAIN[existing.a.activity_type])) return <Navigate to="/activities" replace />;
   if (id && !existing) return <Navigate to="/activities" replace />;
   if (copyId) return <ActivityFormInner key={`copy-${copyId}`} existing={null} template={existing ?? null} />;
   if (existing && existing.a.created_by !== user?.id && !can.supervise) return <Navigate to={`/activities/${id}`} replace />;
@@ -340,7 +354,16 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
   const labels = useGhLabels(farmId);
   const pests = usePests(farmId);
   const products = useProducts(farmId);
+  const cat = useCatalog(farmId);
+  const reg = useRegistry(farmId);
+  const markets = useLiveQuery(async () => ((await db.farm_profiles.where('farm_id').equals(farmId!).first())?.export_markets ?? []) as string[], [farmId]);
+  const cropCodes = useLiveQuery(async () => {
+    const [cycles, crops] = await Promise.all([db.crop_cycles.where('farm_id').equals(farmId!).toArray(), db.crops.toArray()]);
+    const code = new Map(crops.map((c) => [c.id, c.code]));
+    return new Map(cycles.filter((c) => alive(c) && c.status !== 'finished').map((c) => [c.greenhouse_id, code.get(c.crop_id) ?? null]));
+  }, [farmId]);
   const actData = useActivityData(farmId);
+  const formTypes = TYPES.filter((t) => can.canRecord(ACTIVITY_DOMAIN[t]));
   const ops = useLiveQuery(async () => (await db.operation_types.toArray()).filter((o) => alive(o) && (o.farm_id == null || o.farm_id === farmId)).sort((a, b) => a.sort_order - b.sort_order), [farmId]);
   const openRecs = useLiveQuery(async () => (await db.recommendations.where('farm_id').equals(farmId!).toArray())
     .filter((r) => alive(r) && (r.status === 'open' || r.status === 'in_progress' || r.id === existing?.a.recommendation_id)), [farmId]);
@@ -350,7 +373,8 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
   const a = src?.a;
 
   const recParam = sp.get('rec');
-  const [type, setType] = useState<AType>(a?.activity_type ?? (sp.get('type') as AType) ?? 'chemical_spray');
+  const wanted = (a?.activity_type ?? sp.get('type')) as AType | null;
+  const [type, setType] = useState<AType>(wanted && formTypes.includes(wanted) ? wanted : formTypes[0] ?? 'chemical_spray');
   const [f, setF] = useState({
     performed_on: existing ? a!.performed_on : today,
     start_time: existing ? a!.start_time?.slice(0, 5) ?? '' : '',
@@ -364,7 +388,13 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
     reason: a?.reason ?? '',
     notes: a?.notes ?? '',
     recommendation_id: (existing ? a!.recommendation_id : null) ?? recParam ?? '',
+    workers_count: numStr(a?.workers_count),
+    labor_hours: numStr(a?.labor_hours),
+    quality: a?.quality ?? null as number | null,
+    op_search: '',
   });
+  const [picking, setPicking] = useState<string | null>(null); // مفتاح السطر الذي يختار مادة
+  const [newOp, setNewOp] = useState<string | null>(null);
   const [ghIds, setGhIds] = useState<Set<string>>(() => new Set(src ? src.ags.map((x) => x.greenhouse_id) : sp.get('gh') ? [sp.get('gh')!] : []));
   const [lines, setLines] = useState<Line[]>(() => src?.aps.length
     ? src.aps.map((x) => ({ key: x.id, id: existing ? x.id : undefined, product_id: x.product_id, dose: numStr(x.dose), dose_unit: x.dose_unit ?? '', total_quantity: numStr(x.total_quantity), total_unit: x.total_unit ?? '', batch_no: x.batch_no ?? '' }))
@@ -372,12 +402,18 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
   const [files, setFiles] = useState<{ id: string; file: File; url: string }[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [newProduct, setNewProduct] = useState<string | null>(null); // مفتاح السطر الذي يضيف منتجًا
+  const [newProduct, setNewProduct] = useState<{ key: string; name: string; category: string | null } | null>(null); // سطر يضيف منتجًا
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((x) => ({ ...x, [k]: v }));
 
-  const usesProducts = type !== 'cultural_operation';
+  // المواد المستخدمة: إلزامية لكل المعاملات ماعدا العمليات الزراعية (اختيارية فيها)
+  const usesProducts = true;
+  const requireProducts = type !== 'cultural_operation';
   const allowedTypes = PRODUCT_TYPES_FOR[type];
-  const choosable = (products ?? []).filter((p) => allowedTypes.includes(p.product_type));
+  const majorCodes = MAJORS_FOR[type];
+  const choosable = (products ?? []).filter((p) => {
+    const m = cat?.majorOf(p.category_id);
+    return m ? majorCodes.includes(m.code) : allowedTypes.includes(p.product_type);
+  });
   const prodById = new Map((products ?? []).map((p) => [p.id, p]));
 
   // فترة الأمان المتوقعة + تحذير تكرار نفس المجموعة
@@ -400,13 +436,32 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
     return [...new Set(out)];
   }, [actData, ghs, labels, ghIds, chosen.map((p) => p.id).join(), f.performed_on, type]);
 
+  // فحص التصدير: اعتماد الاتحاد الأوروبي + حدود المتبقيات لكل سوق على محاصيل الصوب المختارة
+  const compliance = useMemo(() => {
+    if (!reg || !chosen.length || type === 'cultural_operation' || type === 'bio_release') return [];
+    const crops = [...new Set([...ghIds].map((g) => cropKey(cropCodes?.get(g))).filter(Boolean) as string[])];
+    const out = new Map<string, { level: string; text: string }>();
+    for (const p of chosen) {
+      for (const c of crops.length ? crops : [null]) for (const x of complianceFor(p, reg, c, markets ?? [])) out.set(x.text, x);
+    }
+    return [...out.values()].sort((x, y) => (x.level === 'bad' ? -1 : 0) - (y.level === 'bad' ? -1 : 0));
+  }, [reg, chosen.map((p) => p.id).join(), [...ghIds].join(), cropCodes, markets, type]);
+  // توافق الخلط في نفس التنك
+  const mix = useMemo(() => (chosen.length > 1 && type !== 'bio_release' && type !== 'cultural_operation' ? mixWarnings(chosen, cat) : []),
+    [chosen.map((p) => p.id).join(), cat, type]);
+
   const recs = (openRecs ?? []).filter((r) => !r.greenhouse_id || ghIds.size === 0 || ghIds.has(r.greenhouse_id));
 
   function switchType(t: AType) {
     setType(t);
     setF((x) => ({ ...x, method: DEFAULT_METHOD[t] }));
     setLines((ls) => {
-      const ok = ls.filter((l) => l.product_id && PRODUCT_TYPES_FOR[t].includes(prodById.get(l.product_id)?.product_type as any));
+      const ok = ls.filter((l) => {
+        const p = prodById.get(l.product_id);
+        if (!p) return false;
+        const m = cat?.majorOf(p.category_id);
+        return m ? MAJORS_FOR[t].includes(m.code) : PRODUCT_TYPES_FOR[t].includes(p.product_type);
+      });
       return ok.length ? ok : [blankLine()];
     });
   }
@@ -418,7 +473,11 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
     if (ghIds.size === 0) return setErr('اختر صوبة واحدة على الأقل');
     if (type === 'cultural_operation' && !f.operation_type_id) return setErr('اختر العملية الزراعية');
     const filled = usesProducts ? lines.filter((l) => l.product_id) : [];
-    if (usesProducts && filled.length === 0) return setErr('أضف مادة واحدة على الأقل');
+    if (requireProducts && filled.length === 0) return setErr('أضف مادة واحدة على الأقل');
+    const workers = toNum(f.workers_count);
+    const hours = toNum(f.labor_hours);
+    if (workers != null && (workers < 0 || !Number.isInteger(workers) || workers > 2000)) return setErr('عدد العمال رقم صحيح');
+    if (hours != null && hours < 0) return setErr('ساعات العمل غير صحيحة');
     for (const l of filled) {
       const d = toNum(l.dose);
       const q = toNum(l.total_quantity);
@@ -438,8 +497,11 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
         start_time: f.start_time || null,
         end_time: f.end_time || null,
         performed_by_name: f.performed_by_name.trim() || null,
-        water_volume_l: usesProducts && type !== 'bio_release' ? water : null,
-        target_pest_id: type !== 'cultural_operation' && f.target_pest_id ? f.target_pest_id : null,
+        water_volume_l: type !== 'bio_release' && type !== 'cultural_operation' ? water : null,
+        target_pest_id: (type === 'chemical_spray' || type === 'bio_release' || type === 'fertigation_injection') && f.target_pest_id ? f.target_pest_id : null,
+        workers_count: workers,
+        labor_hours: hours,
+        quality: type === 'cultural_operation' ? f.quality : null,
         recommendation_id: f.recommendation_id || null,
         reason: f.reason.trim() || null,
         notes: f.notes.trim() || null,
@@ -481,7 +543,47 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
     }
   }
 
-  if (!ghs || !products || !pests || !ops) return null;
+  if (!ghs || !products || !pests || !ops || !cat) return null;
+  const linesUi = (
+    <div className="lines">
+              {lines.map((l, i) => {
+                const p = prodById.get(l.product_id);
+                return (
+                  <div key={l.key} className="line">
+                    <div className="line-head">
+                      <b>{i + 1}</b>
+                      <ProductPickButton product={p} cat={cat} onOpen={() => setPicking(l.key)} />
+                      {lines.length > 1 && <button type="button" className="iconbtn" aria-label="حذف السطر" onClick={() => setLines(lines.filter((x) => x.key !== l.key))}><Icon name="close" size={18} /></button>}
+                    </div>
+                    {p && (
+                      <p className="faint line-meta">
+                        {[p.moa_code && `مجموعة ${p.moa_code}`, p.phi_days != null && `فترة أمان ${p.phi_days} يوم`, p.rei_hours != null && `منع دخول ${p.rei_hours} ساعة`, p.bio_species].filter(Boolean).join(' · ') || PRODUCT_TYPE_LABEL[p.product_type]}
+                      </p>
+                    )}
+                    <div className="form-grid tight">
+                      <Field label="الجرعة"><input className="input ltr" inputMode="decimal" value={l.dose} onChange={(e) => setLines(lines.map((x) => x.key === l.key ? { ...x, dose: e.target.value } : x))} /></Field>
+                      <Field label="وحدة الجرعة">
+                        <select className="select" value={l.dose_unit} onChange={(e) => setLines(lines.map((x) => x.key === l.key ? { ...x, dose_unit: e.target.value } : x))}>
+                          <option value="">—</option>
+                          {Object.entries(DOSE_UNIT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                        </select>
+                      </Field>
+                      <Field label="الكمية المستخدمة فعليًا"><input className="input ltr" inputMode="decimal" value={l.total_quantity} onChange={(e) => setLines(lines.map((x) => x.key === l.key ? { ...x, total_quantity: e.target.value } : x))} /></Field>
+                      <Field label="وحدة الكمية"><input className="input" list="total-units" value={l.total_unit} onChange={(e) => setLines(lines.map((x) => x.key === l.key ? { ...x, total_unit: e.target.value } : x))} /></Field>
+                      <Field label="رقم التشغيلة"><input className="input ltr" value={l.batch_no} onChange={(e) => setLines(lines.map((x) => x.key === l.key ? { ...x, batch_no: e.target.value } : x))} /></Field>
+                    </div>
+                  </div>
+                );
+              })}
+              <datalist id="total-units">{['لتر', 'مل', 'كجم', 'جم', 'عبوة', 'خلية', 'كرتونة'].map((u) => <option key={u} value={u} />)}</datalist>
+              <button type="button" className="btn ghost" onClick={() => setLines([...lines, blankLine()])}><Icon name="plus" /> مادة أخرى</button>
+              {choosable.length === 0 && (
+                <p className="banner warn" style={{ margin: 0 }}><Icon name="alert" /> لا توجد مواد من هذا النوع بعد. افتح اختيار المادة واضغط "إضافة مادة جديدة".</p>
+              )}
+            </div>
+  );
+  const opTerm = f.op_search.trim();
+  const opsShown = ops.filter((o) => !opTerm || productMatches({ name: o.name_ar, active_ingredient: o.name_en } as Product, opTerm));
 
   return (
     <main className="page">
@@ -490,7 +592,7 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
 
       <form className="form act-form" onSubmit={submit}>
         <div className="type-pick" role="group" aria-label="نوع المعاملة">
-          {TYPES.map((t) => (
+          {formTypes.map((t) => (
             <button type="button" key={t} aria-pressed={type === t} data-t={t} onClick={() => switchType(t)}>
               <Icon name={ACTIVITY_ICON[t]} size={26} /><span>{ACTIVITY_TYPE_LABEL[t]}</span>
             </button>
@@ -504,28 +606,67 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
             <Field label="التاريخ"><input className="input" type="date" max={today} value={f.performed_on} onChange={(e) => set('performed_on', e.target.value)} /></Field>
             <Field label="من الساعة"><input className="input" type="time" value={f.start_time} onChange={(e) => set('start_time', e.target.value)} /></Field>
             <Field label="إلى الساعة"><input className="input" type="time" value={f.end_time} onChange={(e) => set('end_time', e.target.value)} /></Field>
-            <Field label="نطاق التطبيق" hint="مثلًا: الخطوط 1–12، أو البؤرة فقط"><input className="input" value={f.rows_scope} onChange={(e) => set('rows_scope', e.target.value)} /></Field>
+            <Field label={type === 'cultural_operation' ? 'الخطوط / النطاق' : 'مكان المعالجة'} hint="مثلًا: الخطوط 1–12، أو البؤرة فقط"><input className="input" value={f.rows_scope} onChange={(e) => set('rows_scope', e.target.value)} /></Field>
           </div>
         </section>
 
         {type === 'cultural_operation' ? (
+          <>
           <section className="panel panel-pad form">
             <h2 className="form-h">العملية</h2>
+            <label className="search-box">
+              <Icon name="search" size={20} />
+              <input className="input" placeholder="ابحث عن العملية (حرث، تسوية، توريق، تطويش…)" value={f.op_search} onChange={(e) => set('op_search', e.target.value)} aria-label="بحث في العمليات" />
+            </label>
             <div className="op-pick">
-              {Object.entries(OP_CATEGORY_LABEL).map(([cat, label]) => {
-                const list = ops.filter((o) => o.category === cat);
-                if (!list.length) return null;
+              {Object.entries(OP_CATEGORY_LABEL).map(([cat2, label]) => {
+                const list = opsShown.filter((o) => o.category === cat2);
+                if (!list.length && !can.addCatalog) return null;
+                if (!list.length && opTerm) return null;
                 return (
-                  <div key={cat}>
+                  <div key={cat2}>
                     <h3>{label}</h3>
                     <div className="chips-pick">
                       {list.map((o) => <button type="button" key={o.id} aria-pressed={f.operation_type_id === o.id} onClick={() => set('operation_type_id', o.id)}>{o.name_ar}</button>)}
+                      {can.addCatalog && <button type="button" className="add" onClick={() => setNewOp(cat2)}><Icon name="plus" size={16} /> عملية جديدة</button>}
                     </div>
                   </div>
                 );
               })}
             </div>
+            {newOp && (
+              <div className="inline-add">
+                <input className="input" autoFocus placeholder={`عملية جديدة في ${OP_CATEGORY_LABEL[newOp as keyof typeof OP_CATEGORY_LABEL]}`} defaultValue={opTerm} id="new-op-name" />
+                <button type="button" className="btn primary" onClick={async () => {
+                  const el = document.getElementById('new-op-name') as HTMLInputElement | null;
+                  const name = el?.value.trim();
+                  if (!name) return;
+                  const o = await create('operation_types', { farm_id: farmId!, code: `farm_${Date.now().toString(36)}`, name_ar: name, name_en: name, category: newOp as Row<'operation_types'>['category'], sort_order: 900 });
+                  set('operation_type_id', o.id);
+                  setNewOp(null);
+                }}>إضافة</button>
+                <button type="button" className="btn" onClick={() => setNewOp(null)}>إلغاء</button>
+              </div>
+            )}
           </section>
+          <section className="panel panel-pad form">
+            <h2 className="form-h">التنفيذ</h2>
+            <div className="form-grid">
+              <Field label="عدد العمال"><input className="input ltr" inputMode="numeric" value={f.workers_count} onChange={(e) => set('workers_count', e.target.value)} /></Field>
+              <Field label="إجمالي ساعات العمل" hint="عدد العمال × ساعات كل عامل"><input className="input ltr" inputMode="decimal" value={f.labor_hours} onChange={(e) => set('labor_hours', e.target.value)} /></Field>
+            </div>
+            <div className="field">
+              <span>جودة التنفيذ</span>
+              <div className="quality-pick" role="group" aria-label="جودة التنفيذ">
+                {[1, 2, 3, 4].map((q) => <button type="button" key={q} data-q={q} aria-pressed={f.quality === q} onClick={() => set('quality', f.quality === q ? null : q)}>{QUALITY_LABEL[q]}</button>)}
+              </div>
+            </div>
+          </section>
+          <section className="panel panel-pad form">
+            <h2 className="form-h">مواد مستخدمة (اختياري)</h2>
+            {linesUi}
+          </section>
+          </>
         ) : (
           <section className="panel panel-pad form">
             <h2 className="form-h">{type === 'bio_release' ? 'الأعداء الحيوية والملقحات' : 'المواد والجرعات'}</h2>
@@ -548,57 +689,7 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
               </Field>
             </div>
 
-            <div className="lines">
-              {lines.map((l, i) => {
-                const p = prodById.get(l.product_id);
-                return (
-                  <div key={l.key} className="line">
-                    <div className="line-head">
-                      <b>{i + 1}</b>
-                      <select className="select" value={l.product_id} aria-label="المادة" onChange={(e) => {
-                        if (e.target.value === '__new') return setNewProduct(l.key);
-                        const np = prodById.get(e.target.value);
-                        setLines(lines.map((x) => x.key === l.key ? {
-                          ...x, product_id: e.target.value,
-                          dose: x.dose || (np?.default_dose != null ? String(Number(np.default_dose)) : ''),
-                          dose_unit: x.dose_unit || np?.default_dose_unit || '',
-                        } : x));
-                      }}>
-                        <option value="">اختر المادة…</option>
-                        {allowedTypes.map((t) => {
-                          const opts = choosable.filter((x) => x.product_type === t);
-                          return opts.length ? <optgroup key={t} label={PRODUCT_TYPE_LABEL[t]}>{opts.map((x) => <option key={x.id} value={x.id}>{x.name}{x.active_ingredient ? ` — ${x.active_ingredient}` : ''}</option>)}</optgroup> : null;
-                        })}
-                        {can.advise && <option value="__new">+ مادة جديدة…</option>}
-                      </select>
-                      {lines.length > 1 && <button type="button" className="iconbtn" aria-label="حذف السطر" onClick={() => setLines(lines.filter((x) => x.key !== l.key))}><Icon name="close" size={18} /></button>}
-                    </div>
-                    {p && (
-                      <p className="faint line-meta">
-                        {[p.moa_code && `مجموعة ${p.moa_code}`, p.phi_days != null && `فترة أمان ${p.phi_days} يوم`, p.rei_hours != null && `منع دخول ${p.rei_hours} ساعة`, p.bio_species].filter(Boolean).join(' · ') || PRODUCT_TYPE_LABEL[p.product_type]}
-                      </p>
-                    )}
-                    <div className="form-grid tight">
-                      <Field label="الجرعة"><input className="input ltr" inputMode="decimal" value={l.dose} onChange={(e) => setLines(lines.map((x) => x.key === l.key ? { ...x, dose: e.target.value } : x))} /></Field>
-                      <Field label="وحدة الجرعة">
-                        <select className="select" value={l.dose_unit} onChange={(e) => setLines(lines.map((x) => x.key === l.key ? { ...x, dose_unit: e.target.value } : x))}>
-                          <option value="">—</option>
-                          {Object.entries(DOSE_UNIT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                        </select>
-                      </Field>
-                      <Field label="الكمية الكلية"><input className="input ltr" inputMode="decimal" value={l.total_quantity} onChange={(e) => setLines(lines.map((x) => x.key === l.key ? { ...x, total_quantity: e.target.value } : x))} /></Field>
-                      <Field label="وحدة الكمية"><input className="input" list="total-units" value={l.total_unit} onChange={(e) => setLines(lines.map((x) => x.key === l.key ? { ...x, total_unit: e.target.value } : x))} /></Field>
-                      <Field label="رقم التشغيلة"><input className="input ltr" value={l.batch_no} onChange={(e) => setLines(lines.map((x) => x.key === l.key ? { ...x, batch_no: e.target.value } : x))} /></Field>
-                    </div>
-                  </div>
-                );
-              })}
-              <datalist id="total-units">{['لتر', 'مل', 'كجم', 'جم', 'عبوة', 'خلية', 'كرتونة'].map((u) => <option key={u} value={u} />)}</datalist>
-              <button type="button" className="btn ghost" onClick={() => setLines([...lines, blankLine()])}><Icon name="plus" /> مادة أخرى</button>
-              {choosable.length === 0 && (
-                <p className="banner warn" style={{ margin: 0 }}><Icon name="alert" /> {can.advise ? 'لا توجد مواد من هذا النوع بعد. اختر "مادة جديدة" لإضافتها.' : 'لا توجد مواد من هذا النوع بعد. يضيفها الاستشاري أو مدير المزرعة من شاشة المواد.'}</p>
-              )}
-            </div>
+            {linesUi}
 
             {phiUntil && (
               <div className={`banner ${phiUntil > today ? 'bad' : 'info'}`} style={{ margin: 0 }}>
@@ -606,6 +697,16 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
               </div>
             )}
             {moaWarn.map((w) => <div key={w} className="banner warn" style={{ margin: 0 }}><Icon name="alert" /> {w}</div>)}
+            {mix.map((w) => <div key={w.text} className={`banner ${w.level}`} style={{ margin: 0 }}><Icon name="alert" /> <span><b>توافق الخلط:</b> {w.text}{w.source && <small className="faint" style={{ display: 'block' }}>المصدر: {w.source}</small>}</span></div>)}
+            {compliance.length > 0 && (
+              <div className="compliance">
+                <h3><Icon name="globe" size={18} /> التصدير وحدود المتبقيات{markets?.length ? ` (${markets.join('، ')})` : ''}</h3>
+                {compliance.map((c) => <p key={c.text} className={`cmp ${c.level}`}>{c.text}</p>)}
+              </div>
+            )}
+            {!markets?.length && type === 'chemical_spray' && chosen.length > 0 && (
+              <p className="faint" style={{ margin: 0 }}>حدّد أسواق التصدير من بيانات الموقع لعرض حدود المتبقيات واعتماد الاتحاد الأوروبي لكل مادة.</p>
+            )}
           </section>
         )}
 
@@ -642,14 +743,35 @@ function ActivityFormInner({ existing, template = null }: { existing: ActBundle 
         </div>
       </form>
 
+      {picking && (
+        <ProductPickerSheet
+          products={choosable}
+          cat={cat}
+          majorCodes={majorCodes}
+          title={type === 'bio_release' ? 'اختيار العدو الحيوي' : 'اختيار المادة'}
+          canAdd={can.addCatalog}
+          onClose={() => setPicking(null)}
+          onPick={(np) => {
+            setLines(lines.map((x) => x.key === picking ? {
+              ...x, product_id: np.id,
+              dose: x.dose || (np.default_dose != null ? String(Number(np.default_dose)) : ''),
+              dose_unit: x.dose_unit || np.default_dose_unit || '',
+            } : x));
+            setPicking(null);
+          }}
+          onAddNew={(name, sub) => { setNewProduct({ key: picking, name, category: sub }); setPicking(null); }}
+        />
+      )}
       {newProduct && (
         <ProductSheet
           farmId={farmId!}
           defaultType={allowedTypes[0]}
-          allowedTypes={allowedTypes}
+          defaultName={newProduct.name}
+          defaultCategory={newProduct.category}
+          majorCodes={majorCodes}
           onClose={() => setNewProduct(null)}
           onSaved={(p) => {
-            setLines(lines.map((x) => x.key === newProduct ? { ...x, product_id: p.id, dose_unit: x.dose_unit || p.default_dose_unit || '' } : x));
+            setLines(lines.map((x) => x.key === newProduct.key ? { ...x, product_id: p.id, dose_unit: x.dose_unit || p.default_dose_unit || '' } : x));
             setNewProduct(null);
           }}
         />
@@ -673,83 +795,140 @@ function lineValues(l: Line) {
   };
 }
 
-// ── كتالوج المواد ────────────────────────────────────────────────────
+// ── كتالوج المواد (بالتصنيف العلمي) ─────────────────────────────────
 export function ProductList() {
   const { farmId, can } = useApp();
   const products = useProducts(farmId, true);
-  const [edit, setEdit] = useState<{ existing?: Product; base?: Product } | null>(null);
-  const [type, setType] = useState<string>('');
+  const cat = useCatalog(farmId);
+  const reg = useRegistry(farmId);
+  const [sp, setSp] = useSearchParams();
+  const major = sp.get('m') ?? '';
+  const sub = sp.get('s') ?? '';
+  const [edit, setEdit] = useState<{ existing?: Product; base?: Product; category?: string | null; name?: string } | null>(null);
   const [kind, setKind] = useState<'' | 'bio' | 'chem'>('');
   const [q, setQ] = useState('');
-  if (!can.advise) return <Navigate to="/activities" replace />;
-  const term = q.trim().toLowerCase();
-  const list = (products ?? []).filter((p) => (!type || p.product_type === type)
-    && (!kind || (kind === 'bio') === !!p.is_bio)
-    && (!term || [p.name, p.active_ingredient, p.bio_species, p.targets, p.moa_code].some((x) => x?.toLowerCase().includes(term))));
-  const types = [...new Set((products ?? []).map((p) => p.product_type))];
+  if (!products || !cat) return null;
+  const setParam = (m: string, s2: string) => {
+    const n = new URLSearchParams(sp);
+    if (m) n.set('m', m); else n.delete('m');
+    if (s2) n.set('s', s2); else n.delete('s');
+    setSp(n, { replace: true });
+  };
+  const inMajor = (p: Product) => !major || cat.majorOf(p.category_id)?.id === major || (major === 'none' && !p.category_id);
+  const list = products.filter((p) => inMajor(p) && (!sub || p.category_id === sub)
+    && (!kind || (kind === 'bio') === !!p.is_bio) && productMatches(p, q, cat));
+  const count = (mid: string) => products.filter((p) => cat.majorOf(p.category_id)?.id === mid).length;
+  const uncategorized = products.filter((p) => !p.category_id || !cat.byId.has(p.category_id)).length;
+  const groups = new Map<string, Product[]>();
+  for (const p of list) {
+    const k = p.category_id && cat.byId.has(p.category_id) ? p.category_id : '';
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k)!.push(p);
+  }
+  const order = [...groups.keys()].sort((a, b) => {
+    const ma = cat.majorOf(a), mb = cat.majorOf(b);
+    return ((ma?.sort_order ?? 9999) - (mb?.sort_order ?? 9999)) || ((cat.byId.get(a)?.sort_order ?? 9999) - (cat.byId.get(b)?.sort_order ?? 9999));
+  });
+  const scopeName = sub ? cat.byId.get(sub)?.name_ar : major && major !== 'none' ? cat.byId.get(major)?.name_ar : major === 'none' ? 'غير المصنّف' : 'كل المواد';
+  const euBadge = (p: Product) => {
+    const subs = reg?.substancesOf(p) ?? [];
+    if (!subs.length) return null;
+    const bad = subs.some((x) => x.eu_status === 'not_approved');
+    const ok = subs.every((x) => x.eu_status === 'approved');
+    return bad ? <span className="chip bad sm" title="غير معتمدة في الاتحاد الأوروبي">EU ✕</span> : ok ? <span className="chip ok sm" title="معتمدة في الاتحاد الأوروبي">EU ✓</span> : null;
+  };
   return (
     <main className="page">
       <Link to="/activities" className="back"><Icon name="back" size={18} /> سجل المعاملات</Link>
       <div className="page-head">
-        <div><h1>المواد</h1><p>{products?.length ?? 0} مادة: مبيدات ومركبات حيوية وأسمدة وأعداء حيوية، بالجرعات ومجموعات المقاومة</p></div>
-        <button className="btn primary" onClick={() => setEdit({})}><Icon name="plus" /> مادة جديدة</button>
+        <div><h1>كتالوج المواد</h1><p>{products.length} مادة مصنّفة علميًا: أسمدة ومنشطات ومبيدات كيميائية وحيوية وأعداء حيوية وزيوت ومصائد ومواد خدمة الأرض</p></div>
+        <div className="row">
+          <Link to="/registry" className="btn"><Icon name="globe" size={20} /> سجل المبيدات</Link>
+          {can.addCatalog && <button className="btn primary" onClick={() => setEdit({ category: sub || null, name: q.trim() })}><Icon name="plus" /> مادة جديدة</button>}
+        </div>
       </div>
+      <div className="cat-tabs" role="group" aria-label="الفئة الكبرى">
+        <button type="button" aria-pressed={!major} onClick={() => setParam('', '')}>الكل <span className="num">{products.length}</span></button>
+        {cat.majors.map((m) => (
+          <button type="button" key={m.id} aria-pressed={major === m.id} onClick={() => setParam(m.id, '')}>{m.name_ar} <span className="num">{count(m.id)}</span></button>
+        ))}
+        {uncategorized > 0 && <button type="button" aria-pressed={major === 'none'} onClick={() => setParam('none', '')}>غير مصنّف <span className="num">{uncategorized}</span></button>}
+      </div>
+      {major && major !== 'none' && (
+        <div className="chips-scroll sub" role="group" aria-label="الفئة الصغرى">
+          <button type="button" aria-pressed={!sub} onClick={() => setParam(major, '')}>كل {cat.byId.get(major)?.name_ar}</button>
+          {cat.subs(major).map((s2) => <button type="button" key={s2.id} aria-pressed={sub === s2.id} onClick={() => setParam(major, s2.id)}>{s2.name_ar}</button>)}
+        </div>
+      )}
       <div className="filters">
         <label className="search-box" style={{ flex: '1 1 220px' }}>
           <Icon name="search" size={20} />
-          <input className="input" placeholder="ابحث بالاسم أو المادة الفعالة أو الآفة" value={q} onChange={(e) => setQ(e.target.value)} aria-label="بحث في المواد" />
+          <input className="input" placeholder={`ابحث في ${scopeName} بالاسم أو المادة الفعالة أو الآفة`} value={q} onChange={(e) => setQ(e.target.value)} aria-label="بحث في المواد" />
         </label>
         <div className="seg" role="group" aria-label="المصدر">
           {([['', 'الكل'], ['bio', 'حيوي وطبيعي'], ['chem', 'كيميائي وأسمدة']] as const).map(([k, l]) => (
             <button type="button" key={k} aria-pressed={kind === k} onClick={() => setKind(k)}>{l}</button>
           ))}
         </div>
-        <select className="select" style={{ width: 'auto' }} value={type} onChange={(e) => setType(e.target.value)} aria-label="النوع">
-          <option value="">كل الأنواع</option>
-          {types.map((t) => <option key={t} value={t}>{PRODUCT_TYPE_LABEL[t]}</option>)}
-        </select>
       </div>
-      <div className="panel scroll-x">
-        <table className="tbl prod-tbl">
-          <thead><tr><th>المادة</th><th>النوع</th><th>المادة الفعالة</th><th>المجموعة</th><th>الجرعة</th><th>فترة الأمان</th><th /></tr></thead>
-          <tbody>
-            {list.map((p) => (
-              <tr key={p.id} style={!p.is_active ? { opacity: 0.5 } : undefined}>
-                <td>
-                  <b>{p.name}</b>{p.is_bio && <span className="chip ok" style={{ marginInlineStart: 6 }}>حيوي</span>}
-                  {p.targets && <small className="muted" style={{ display: 'block' }}>{p.targets}</small>}
-                  {p.farm_id == null && <small className="faint" style={{ display: 'block' }}>كتالوج عام</small>}
-                </td>
-                <td>{PRODUCT_TYPE_LABEL[p.product_type]}</td>
-                <td>{p.active_ingredient ?? p.bio_species ?? '—'}{p.concentration ? ` ${p.concentration}` : ''}</td>
-                <td className="n">{p.moa_code ?? '—'}</td>
-                <td className="n">{doseText(p) ?? '—'}</td>
-                <td className="n">{p.phi_days != null ? `${p.phi_days} يوم` : '—'}</td>
-                <td>
-                  {p.farm_id
-                    ? <button className="btn ghost" onClick={() => setEdit({ existing: p })}><Icon name="edit" size={18} /> تعديل</button>
-                    : <button className="btn ghost" title="انسخها للمزرعة لتسجيل فترة الأمان والجرعة حسب العبوة المسجلة" onClick={() => setEdit({ base: p })}><Icon name="edit" size={18} /> خصّص</button>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {list.length === 0 && <div className="panel empty" style={{ marginTop: 12 }}><h3>لا توجد مواد مطابقة</h3><p>غيّر البحث أو أضف المادة بفترة الأمان المكتوبة على العبوة.</p></div>}
-      {edit && <ProductSheet farmId={farmId!} existing={edit.existing} base={edit.base} onClose={() => setEdit(null)} onSaved={() => setEdit(null)} />}
+      {order.map((k) => (
+        <section key={k || 'none'} className="cat-section">
+          <h2 className="section-title">
+            <span>{k ? cat.path(k) : 'غير مصنّف'} <span className="faint num">({groups.get(k)!.length})</span></span>
+            {can.addCatalog && k && <button className="btn ghost" onClick={() => setEdit({ category: k, name: q.trim() })}><Icon name="plus" size={18} /> إضافة في {cat.byId.get(k)?.name_ar}</button>}
+          </h2>
+          <div className="panel scroll-x">
+            <table className="tbl prod-tbl">
+              <thead><tr><th>المادة</th><th>المادة الفعالة</th><th>المجموعة</th><th>الجرعة</th><th>فترة الأمان</th><th /></tr></thead>
+              <tbody>
+                {groups.get(k)!.map((p) => (
+                  <tr key={p.id} style={!p.is_active ? { opacity: 0.5 } : undefined}>
+                    <td>
+                      <b>{p.name}</b>{p.is_bio && <span className="chip ok sm" style={{ marginInlineStart: 6 }}>حيوي</span>}{euBadge(p)}
+                      {p.targets && <small className="muted" style={{ display: 'block' }}>{p.targets}</small>}
+                      {p.farm_id == null ? <small className="faint" style={{ display: 'block' }}>كتالوج عام</small> : <small className="faint" style={{ display: 'block' }}>خاص بالمشروع{p.eg_reg_no ? ` · تسجيل ${p.eg_reg_no}` : ''}</small>}
+                    </td>
+                    <td>{p.active_ingredient ?? p.bio_species ?? '—'}{p.concentration ? ` ${p.concentration}` : ''}</td>
+                    <td className="n">{p.moa_code ?? '—'}</td>
+                    <td className="n">{doseText(p) ?? '—'}</td>
+                    <td className="n">{p.phi_days != null ? `${p.phi_days} يوم` : '—'}</td>
+                    <td>
+                      {p.farm_id
+                        ? (can.addCatalog && <button className="btn ghost" onClick={() => setEdit({ existing: p })}><Icon name="edit" size={18} /> تعديل</button>)
+                        : (can.addCatalog && <button className="btn ghost" title="انسخها للمشروع لتسجيل فترة الأمان والجرعة حسب العبوة المسجلة" onClick={() => setEdit({ base: p })}><Icon name="edit" size={18} /> خصّص</button>)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ))}
+      {list.length === 0 && (
+        <div className="panel empty" style={{ marginTop: 12 }}>
+          <h3>لا توجد مواد مطابقة في {scopeName}</h3>
+          {can.addCatalog && <button className="btn primary" onClick={() => setEdit({ category: sub || null, name: q.trim() })}><Icon name="plus" /> {q.trim() ? `إضافة "${q.trim()}"` : 'إضافة مادة'}</button>}
+        </div>
+      )}
+      {edit && <ProductSheet farmId={farmId!} existing={edit.existing} base={edit.base} defaultCategory={edit.category} defaultName={edit.name} onClose={() => setEdit(null)} onSaved={() => setEdit(null)} />}
     </main>
   );
 }
 
-export function ProductSheet({ farmId, existing, base, defaultType, allowedTypes, onClose, onSaved }: {
+export function ProductSheet({ farmId, existing, base, defaultType, allowedTypes, defaultName, defaultCategory, majorCodes, onClose, onSaved }: {
   farmId: string; existing?: Product; base?: Product; defaultType?: Product['product_type']; allowedTypes?: Product['product_type'][];
+  defaultName?: string; defaultCategory?: string | null; majorCodes?: string[];
   onClose: () => void; onSaved: (p: Product) => void;
 }) {
-  const { toast } = useApp();
+  const { toast, can } = useApp();
+  const cat = useCatalog(farmId);
   // base = نسخة من مادة الكتالوج العام تُحفظ للمزرعة (تغطي الأصل بنفس الاسم)
   const src = existing ?? base;
   const [f, setF] = useState({
-    name: src?.name ?? '',
+    name: src?.name ?? defaultName ?? '',
+    category_id: (src?.category_id ?? defaultCategory ?? null) as string | null,
+    eg_reg_no: src?.eg_reg_no ?? '',
+    eg_registered_crops: src?.eg_registered_crops ?? '',
     product_type: src?.product_type ?? defaultType ?? 'insecticide',
     active_ingredient: src?.active_ingredient ?? '',
     concentration: src?.concentration ?? '',
@@ -793,6 +972,7 @@ export function ProductSheet({ farmId, existing, base, defaultType, allowedTypes
           default_dose_unit: (f.default_dose_unit || null) as Product['default_dose_unit'], manufacturer: f.manufacturer.trim() || null,
           notes: f.notes.trim() || null, is_active: f.is_active,
           default_dose: dose, is_bio: bio || f.is_bio, targets: f.targets.trim() || null,
+          category_id: f.category_id, eg_reg_no: f.eg_reg_no.trim() || null, eg_registered_crops: f.eg_registered_crops.trim() || null,
         };
         if (existing) {
           await update('products', existing.id, values);
@@ -804,6 +984,14 @@ export function ProductSheet({ farmId, existing, base, defaultType, allowedTypes
           onSaved(p);
         }
       }}>
+        {cat && (
+          <CategoryField cat={cat} value={f.category_id} farmId={farmId} canAdd={can.addCatalog} majorCodes={existing || base ? undefined : majorCodes}
+            onChange={(id, c) => setF((x) => ({
+              ...x, category_id: id,
+              product_type: c?.default_product_type && (!allowedTypes?.length || allowedTypes.includes(c.default_product_type)) ? c.default_product_type : x.product_type,
+              is_bio: c ? c.is_bio || x.is_bio : x.is_bio,
+            }))} />
+        )}
         <div className="form-grid tight">
           <Field label="الاسم التجاري"><input className="input" value={f.name} onChange={(e) => set('name', e.target.value)} autoFocus /></Field>
           <Field label="النوع">
@@ -824,6 +1012,8 @@ export function ProductSheet({ farmId, existing, base, defaultType, allowedTypes
               <Field label="مجموعة IRAC / FRAC" hint="مثل 6 أو 4A أو M5"><input className="input ltr" value={f.moa_code} onChange={(e) => set('moa_code', e.target.value)} /></Field>
               <Field label="فترة الأمان (يوم)"><input className="input ltr" inputMode="numeric" value={f.phi_days} onChange={(e) => set('phi_days', e.target.value)} /></Field>
               <Field label="منع الدخول (ساعة)"><input className="input ltr" inputMode="numeric" value={f.rei_hours} onChange={(e) => set('rei_hours', e.target.value)} /></Field>
+              <Field label="رقم التسجيل (لجنة المبيدات)"><input className="input ltr" value={f.eg_reg_no} onChange={(e) => set('eg_reg_no', e.target.value)} /></Field>
+              <Field label="المحاصيل المسجّل عليها"><input className="input" value={f.eg_registered_crops} onChange={(e) => set('eg_registered_crops', e.target.value)} /></Field>
             </>
           )}
           <Field label="الجرعة المعتادة" hint="تُملأ تلقائيًا عند التسجيل"><input className="input ltr" inputMode="decimal" value={f.default_dose} onChange={(e) => set('default_dose', e.target.value)} /></Field>

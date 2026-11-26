@@ -37,12 +37,17 @@ export function Shell() {
 }
 
 function Menu({ onClose }: { onClose: () => void }) {
-  const { user, signOut, can } = useApp();
+  const { user, signOut, can, isSystemAdmin } = useApp();
   const nav = useNavigate();
   const [err, setErr] = useState<string | null>(null);
   const [pw, setPw] = useState(false);
   const [newFarm, setNewFarm] = useState(false);
-  const farms = useLiveQuery(() => db.farm_members.where('user_id').equals(user?.id ?? '').count(), [user?.id]);
+  const farms = useLiveQuery(
+    async () => isSystemAdmin
+      ? (await db.farms.toArray()).filter((f) => !f.deleted_at).length
+      : db.farm_members.where('user_id').equals(user?.id ?? '').count(),
+    [user?.id, isSystemAdmin],
+  );
   const go = (to: string) => { onClose(); nav(to); };
   return (
     <Sheet title="القائمة" onClose={onClose}>
@@ -50,12 +55,18 @@ function Menu({ onClose }: { onClose: () => void }) {
       <ul className="list panel">
         <li><button className="list-item btn ghost block" onClick={() => go('/farm')}><Icon name="pin" /> <span className="grow" style={{ textAlign: 'start' }}>بيانات الموقع</span></button></li>
         {can.manage && <li><button className="list-item btn ghost block" onClick={() => go('/setup')}><Icon name="layers" /> <span className="grow" style={{ textAlign: 'start' }}>هيكل الموقع والصوب</span></button></li>}
+        {can.store && <li><button className="list-item btn ghost block" onClick={() => go('/store')}><Icon name="store" /> <span className="grow" style={{ textAlign: 'start' }}>المخزن والحصاد</span></button></li>}
+        {can.requestPurchase && <li><button className="list-item btn ghost block" onClick={() => go('/purchases')}><Icon name="cart" /> <span className="grow" style={{ textAlign: 'start' }}>المشتريات</span></button></li>}
+        <li><button className="list-item btn ghost block" onClick={() => go('/products')}><Icon name="box" /> <span className="grow" style={{ textAlign: 'start' }}>كتالوج المواد</span></button></li>
+        <li><button className="list-item btn ghost block" onClick={() => go('/registry')}><Icon name="globe" /> <span className="grow" style={{ textAlign: 'start' }}>سجل المبيدات والتصدير</span></button></li>
         <li><button className="list-item btn ghost block" onClick={() => go('/files')}><Icon name="folder" /> <span className="grow" style={{ textAlign: 'start' }}>الملفات والتقارير</span></button></li>
         <li><button className="list-item btn ghost block" onClick={() => go('/weather')}><Icon name="sun" /> <span className="grow" style={{ textAlign: 'start' }}>الطقس والمناخ</span></button></li>
-        {can.invite && <li><button className="list-item btn ghost block" onClick={() => go('/team')}><Icon name="users" /> <span className="grow" style={{ textAlign: 'start' }}>فريق العمل والدعوات</span></button></li>}
+        {!can.full && <li><button className="list-item btn ghost block" onClick={() => go('/overview')}><Icon name="eye" /> <span className="grow" style={{ textAlign: 'start' }}>لوحة المزرعة العامة</span></button></li>}
+        {can.invite && <li><button className="list-item btn ghost block" onClick={() => go('/team')}><Icon name="users" /> <span className="grow" style={{ textAlign: 'start' }}>فريق العمل</span></button></li>}
         {((farms ?? 0) > 1 || can.admin) && <li><button className="list-item btn ghost block" onClick={() => go('/projects')}><Icon name="map" /> <span className="grow" style={{ textAlign: 'start' }}>كل المشاريع{(farms ?? 0) > 1 ? ` (${farms})` : ''}</span></button></li>}
         {can.admin && <li><button className="list-item btn ghost block" onClick={() => setNewFarm(true)}><Icon name="plus" /> <span className="grow" style={{ textAlign: 'start' }}>مشروع جديد</span></button></li>}
-        <li><button className="list-item btn ghost block" onClick={() => setPw(true)}><Icon name="edit" /> <span className="grow" style={{ textAlign: 'start' }}>تغيير كلمة المرور</span></button></li>
+        {can.admin && <li><button className="list-item btn ghost block" onClick={() => go('/admins')}><Icon name="shield" /> <span className="grow" style={{ textAlign: 'start' }}>مديرو النظام</span></button></li>}
+        <li><button className="list-item btn ghost block" onClick={() => setPw(true)}><Icon name="lock" /> <span className="grow" style={{ textAlign: 'start' }}>تغيير كلمة المرور</span></button></li>
         <li><button className="list-item btn ghost block" style={{ color: 'var(--tomato)' }} onClick={async () => {
           const e = await signOut();
           if (e) setErr(e); else { onClose(); nav('/login'); }

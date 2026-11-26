@@ -1,7 +1,7 @@
 // اختبار شامل من البداية للنهاية على نسخة محلية من Supabase
 // تسجيل دخول ← تجهيز صوبة ودورة ونباتات ← تسجيل أسبوعي بدون إنترنت ← إعادة فتح التطبيق أوفلاين ← مزامنة ← تحقق من قاعدة البيانات
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, existsSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 import { startGateway } from './gateway.mjs';
 
@@ -27,14 +27,33 @@ for (let i = 0; i < 40; i++) {
   await sleep(250);
 }
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-sandbox'] });
+const CHROME = ['/opt/pw-browsers/chromium-1194/chrome-linux/chrome', '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome'].find((p) => existsSync(p))
+  ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 const consoleErrors = [];
 async function newTablet(viewport = { width: 1180, height: 820 }) {
   const ctx = await browser.newContext({ viewport, locale: 'ar-EG', hasTouch: true, timezoneId: 'Africa/Cairo' });
+  await ctx.route('https://api.pwnedpasswords.com/**', (r) => r.fulfill({ status: 200, body: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:1\n' }));
   const page = await ctx.newPage();
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|ERR_INTERNET_DISCONNECTED|net::ERR/.test(m.text())) consoleErrors.push(m.text()); });
   page.on('pageerror', (e) => consoleErrors.push(String(e)));
   return { ctx, page };
+}
+const asUser = (uid, q) => sql(`select set_config('request.jwt.claims', json_build_object('sub', '${uid}', 'role', 'authenticated')::text, false); set role authenticated; ${q}`);
+const UID = { admin: 'aaaaaaaa-0000-0000-0000-000000000001', scout: 'bbbbbbbb-0000-0000-0000-000000000002', ops: 'bbbbbbbb-0000-0000-0000-000000000003', irr: 'bbbbbbbb-0000-0000-0000-000000000004', manager: 'bbbbbbbb-0000-0000-0000-000000000005', store: 'bbbbbbbb-0000-0000-0000-000000000006' };
+const FARM = 'dddddddd-0000-0000-0000-000000000001';
+async function login(page, email, password, waitFor = 'h1:has-text("الأسبوع")') {
+  await page.goto(APP + '#/login');
+  await page.fill('input[type=email]', email);
+  await page.fill('input[type=password]', password);
+  await page.click('button:has-text("دخول")');
+  if (waitFor) await page.locator(waitFor).first().waitFor({ timeout: 20000 });
+}
+/** اختيار مادة من المنتقي (بحث مباشر) */
+async function pickProduct(page, term, rowText = term, nth = 0) {
+  await page.locator('.pick-btn').nth(nth).click();
+  await page.locator('input[aria-label="بحث عن مادة"]').fill(term);
+  await page.locator('.pick-row', { hasText: rowText }).first().click();
 }
 const waitSynced = async (page, timeout = 15000) => {
   await page.locator('.sync-pill', { hasText: 'متزامن' }).waitFor({ timeout });
@@ -211,49 +230,50 @@ try {
   ok(pct === '83.3', `نسبة العقد محسوبة في السيرفر لـ R1-P1: ${pct}%`);
   ok(sql("select leaf_count_remaining from plant_measurements m join reference_plants p on p.id=m.reference_plant_id where p.label='R1-P1'") === '18', 'القيمة المصححة (18) هي اللي اترفعت');
 
-  // ── 11. مهندس الفحص على تابلت آخر (عمودي) ─────────────────────────
-  const scout = await newTablet({ width: 800, height: 1280 });
-  await scout.page.goto(APP + '#/login');
-  await scout.page.fill('input[type=email]', 'scout@test.local');
-  await scout.page.fill('input[type=password]', 'Scout#2026');
-  await scout.page.click('button:has-text("دخول")');
-  await scout.page.locator('.gh', { hasText: 'GH-07' }).waitFor({ timeout: 15000 });
-  ok(await scout.page.locator('.gh .chip', { hasText: '7 من 8' }).waitFor({ timeout: 8000 }).then(() => true, () => false), 'المهندس الثاني يرى تقدم التسجيل من الجهاز الأول');
-  ok(!(await scout.page.locator('a:has-text("إدارة الصوب")').count()), 'مهندس الفحص لا يرى إدارة الصوب');
-  await scout.page.goto(APP + '#/setup');
-  await scout.page.locator('h1', { hasText: 'الأسبوع' }).waitFor();
+  // ── 11. مهندس العمليات الزراعية على تابلت آخر (عمودي) ─────────────────────────
+  const ops = await newTablet({ width: 800, height: 1280 });
+  await ops.page.goto(APP + '#/login');
+  await ops.page.fill('input[type=email]', 'ops@test.local');
+  await ops.page.fill('input[type=password]', 'Ops#2026x');
+  await ops.page.click('button:has-text("دخول")');
+  await ops.page.locator('.gh', { hasText: 'GH-07' }).waitFor({ timeout: 15000 });
+  ok(await ops.page.locator('.gh .chip', { hasText: '7 من 8' }).waitFor({ timeout: 8000 }).then(() => true, () => false), 'المهندس الثاني يرى تقدم التسجيل من الجهاز الأول');
+  ok(!(await ops.page.locator('a:has-text("إدارة الصوب")').count()), 'مهندس العمليات لا يرى إدارة الصوب');
+  ok(!(await ops.page.locator('a.action:has-text("الفحص الحشري")').count()) && await ops.page.locator('a.action:has-text("العمليات الزراعية")').isVisible(), 'مهندس العمليات يرى مجاله فقط (بدون الفحص الحشري)');
+  await ops.page.goto(APP + '#/setup');
+  await ops.page.locator('h1', { hasText: 'الأسبوع' }).waitFor();
   ok(true, 'محاولة فتح الإعداد بالرابط ترجعه للرئيسية');
-  await scout.page.screenshot({ path: `${SHOTS}/11-scout-home-portrait.png` });
+  await ops.page.screenshot({ path: `${SHOTS}/11-scout-home-portrait.png` });
 
   // المهندس يسجل النبات الأخير
-  await scout.page.click('.gh:has-text("GH-07")');
-  await scout.page.click('.rail button:has-text("R5-P2")');
-  await scout.page.locator('.plant-head .big', { hasText: 'R5-P2' }).waitFor();
+  await ops.page.click('.gh:has-text("GH-07")');
+  await ops.page.click('.rail button:has-text("R5-P2")');
+  await ops.page.locator('.plant-head .big', { hasText: 'R5-P2' }).waitFor();
   for (const v of ['23', '12', '', '7', '22', '4', '5', '6', '5', '18', '', '22', '18']) {
-    if (v) await scout.page.keyboard.type(v);
-    await scout.page.keyboard.press('Enter');
+    if (v) await ops.page.keyboard.type(v);
+    await ops.page.keyboard.press('Enter');
   }
   await sleep(1200);
-  await scout.page.screenshot({ path: `${SHOTS}/12-register-portrait.png` });
-  await waitSynced(scout.page, 20000);
+  await ops.page.screenshot({ path: `${SHOTS}/12-register-portrait.png` });
+  await waitSynced(ops.page, 20000);
   ok(sql('select count(*) from plant_measurements') === '8', 'قياس المهندس اترفع (8 من 8)');
-  ok(sql("select m.created_by from plant_measurements m join reference_plants p on p.id=m.reference_plant_id where p.label='R5-P2'") === 'bbbbbbbb-0000-0000-0000-000000000002', 'القياس مسجل باسم مهندس الفحص');
+  ok(sql("select m.created_by from plant_measurements m join reference_plants p on p.id=m.reference_plant_id where p.label='R5-P2'") === 'bbbbbbbb-0000-0000-0000-000000000003', 'القياس مسجل باسم مهندس العمليات');
 
   // المهندس يحاول تعديل قياس سجله المدير ← السيرفر يرفض (RLS) والتطبيق يوضح السبب
-  await scout.page.click('.rail button:has-text("R1-P1")');
-  await scout.page.locator('.plant-head .big', { hasText: 'R1-P1' }).waitFor();
-  await scout.page.click('.mfield:has-text("الأزهار المتفتحة")');
-  await scout.page.keyboard.press('Delete');
-  await scout.page.keyboard.type('9');
+  await ops.page.click('.rail button:has-text("R1-P1")');
+  await ops.page.locator('.plant-head .big', { hasText: 'R1-P1' }).waitFor();
+  await ops.page.click('.mfield:has-text("الأزهار المتفتحة")');
+  await ops.page.keyboard.press('Delete');
+  await ops.page.keyboard.type('9');
   await sleep(1500);
-  await scout.page.locator('.sync-pill', { hasText: 'مرفوض' }).waitFor({ timeout: 20000 });
-  await scout.page.click('.sync-pill');
-  const rejectedOk = await scout.page.locator('.sheet', { hasText: 'ليس لديك صلاحية' }).waitFor({ timeout: 5000 }).then(() => true).catch(() => false);
-  ok(rejectedOk, 'سجل مرفوض يظهر بسبب واضح بالعربي' + (rejectedOk ? '' : ` — ${(await scout.page.locator('.sheet').innerText().catch(() => '')).replace(/\n+/g, ' / ')}`));
-  await scout.page.screenshot({ path: `${SHOTS}/13-rejected.png` });
-  await scout.page.click('.sheet button:has-text("تجاهل التعديل")');
-  await scout.page.click('.sheet button:has-text("زامن الآن")');
-  await scout.page.locator('.sync-pill', { hasText: 'متزامن' }).waitFor({ timeout: 20000 });
+  await ops.page.locator('.sync-pill', { hasText: 'مرفوض' }).waitFor({ timeout: 20000 });
+  await ops.page.click('.sync-pill');
+  const rejectedOk = await ops.page.locator('.sheet', { hasText: 'ليس لديك صلاحية' }).waitFor({ timeout: 5000 }).then(() => true).catch(() => false);
+  ok(rejectedOk, 'سجل مرفوض يظهر بسبب واضح بالعربي' + (rejectedOk ? '' : ` — ${(await ops.page.locator('.sheet').innerText().catch(() => '')).replace(/\n+/g, ' / ')}`));
+  await ops.page.screenshot({ path: `${SHOTS}/13-rejected.png` });
+  await ops.page.click('.sheet button:has-text("تجاهل التعديل")');
+  await ops.page.click('.sheet button:has-text("زامن الآن")');
+  await ops.page.locator('.sync-pill', { hasText: 'متزامن' }).waitFor({ timeout: 20000 });
   ok(sql("select open_flowers_count from plant_measurements m join reference_plants p on p.id=m.reference_plant_id where p.label='R1-P1'") === '4', 'قيمة المدير الأصلية سليمة على السيرفر');
 
   // ── 12. المدير يرى قياس المهندس ونسبة الاكتمال ────────────────────
@@ -267,6 +287,10 @@ try {
   await page.screenshot({ path: `${SHOTS}/14-home-complete.png` });
 
   // ── 14. الفحص الحشري بدون إنترنت (المهندس، تابلت عمودي) ───────────
+  const scout = await newTablet({ width: 800, height: 1280 });
+  await login(scout.page, 'scout@test.local', 'Scout#2026');
+  ok(!(await scout.page.locator('a.action:has-text("تسجيل المحصول")').count()) && await scout.page.locator('a.action:has-text("معاملات المكافحة")').isVisible(), 'مهندس المكافحة يرى مجاله فقط (بدون تسجيل المحصول)');
+  await waitSynced(scout.page, 20000);
   const sp = scout.page;
   await sp.keyboard.press('Escape');
   await scout.ctx.setOffline(true);
@@ -332,8 +356,10 @@ try {
   await page.goto(APP + '#/products');
   await page.click('button:has-text("مادة جديدة")');
   const ps = page.locator('.sheet');
+  await ps.locator('select[aria-label="الفئة الكبرى"]').selectOption({ label: 'المبيدات الكيميائية المُخلَّقة' });
+  await ps.locator('.cat-field .chips-pick button', { hasText: 'أكاروس' }).first().click();
+  ok(await ps.locator('label:has-text("النوع") select').first().inputValue() === 'acaricide', 'اختيار الفئة الصغرى يحدد نوع المادة تلقائيًا');
   await ps.locator('label:has-text("الاسم التجاري") input').fill('فيرتميك');
-  await ps.locator('label:has-text("النوع") select').first().selectOption('acaricide');
   await ps.locator('label:has-text("المادة الفعالة") input').fill('أبامكتين');
   await ps.locator('label:has-text("مجموعة IRAC") input').fill('6');
   await ps.locator('label:has-text("فترة الأمان") input').fill('3');
@@ -353,7 +379,8 @@ try {
     const body = await page.locator('label:has-text("التفاصيل") textarea').inputValue();
     ok(body.includes('تجاوزت حد التدخل') && body.includes('Phytoseiulus persimilis') && body.includes('إجراءات زراعية'), 'تفاصيل التوصية مكتوبة تلقائيًا من قاعدة المعرفة');
   }
-  ok((await page.locator('.seg button[aria-pressed="true"]').textContent()) === 'مهمة', 'الأولوية "مهمة" تلقائيًا لشدة 3');
+  ok((await page.locator('.seg[aria-label="الأولوية"] button[aria-pressed="true"]').textContent()) === 'مهمة', 'الأولوية "مهمة" تلقائيًا لشدة 3');
+  ok((await page.locator('.seg[aria-label="المجال المسؤول"] button[aria-pressed="true"]').textContent()) === 'المكافحة', 'التوصية من ملاحظة فحص موجّهة لمجال المكافحة تلقائيًا');
   await page.fill('label:has-text("التفاصيل") textarea', 'رش أكاروسي موضعي للخطوط 2–4');
   await page.click('button:has-text("إرسال التوصية")');
   await page.locator('.rec h3', { hasText: 'مكافحة العنكبوت الأحمر' }).waitFor();
@@ -366,11 +393,11 @@ try {
   await sp.locator('.sheet button:has-text("زامن الآن")').click();
   await waitSynced(sp);
   await sp.keyboard.press('Escape');
-  await sp.click('a.action:has-text("التوصيات")');
+  await sp.click('a.action:has(b:text-is("التوصيات"))');
   await sp.click('.rec a:has-text("سجّل التنفيذ")');
   await sp.locator('.gh-pick button[aria-pressed="true"]', { hasText: 'GH-07' }).waitFor();
   ok(true, 'نموذج المعاملة يفتح بالصوبة من التوصية');
-  await sp.locator('.line select').first().selectOption({ label: 'فيرتميك — أبامكتين' });
+  await pickProduct(sp, 'فيرتميك');
   await sp.locator('.line label:has-text("الجرعة") input').first().fill('40');
   await sp.fill('label:has-text("حجم المحلول") input', '400');
   ok(await sp.locator('.banner', { hasText: 'فترة الأمان 3 يوم' }).isVisible(), 'فترة الأمان المتوقعة تظهر قبل الحفظ');
@@ -388,12 +415,12 @@ try {
   await sp.goto(APP + '#/activities/new?type=chemical_spray');
   await sp.click('.gh-pick button:has-text("GH-07")');
   await sp.fill('label:has-text("التاريخ") input', yesterday);
-  await sp.locator('.line select').first().selectOption({ label: 'فيرتميك — أبامكتين' });
+  await pickProduct(sp, 'فيرتميك');
   await sp.click('button:has-text("حفظ المعاملة")');
   await sp.locator('h1', { hasText: 'رش' }).waitFor();
   await sp.goto(APP + '#/activities/new?type=chemical_spray');
   await sp.click('.gh-pick button:has-text("GH-07")');
-  await sp.locator('.line select').first().selectOption({ label: 'فيرتميك — أبامكتين' });
+  await pickProduct(sp, 'فيرتميك');
   ok(await sp.locator('.banner.warn', { hasText: 'المجموعة 6' }).isVisible(), 'تحذير المقاومة: نفس المجموعة في آخر معاملتين');
   await sp.screenshot({ path: `${SHOTS}/19-moa-warning.png` });
   await sp.goto(APP + '#/activities');
@@ -556,7 +583,7 @@ try {
   await page.fill('.sheet label:has-text("اسم الموقع") input', 'موقع تجريبي 2');
   await page.click('.sheet button:has-text("إنشاء الموقع")');
   await page.locator('.topbar', { hasText: 'موقع تجريبي 2' }).waitFor({ timeout: 15000 });
-  ok(sql("select m.role from farms f join farm_members m on m.farm_id = f.id where f.name = 'موقع تجريبي 2'") === 'admin', 'موقع جديد: المنشئ مدير نظام فيه');
+  ok(sql("select count(*) from farms f join farm_members m on m.farm_id = f.id where f.name = 'موقع تجريبي 2'") === '0', 'موقع جديد: يظهر لمديري النظام تلقائيًا بدون عضوية');
   ok(await page.locator('h1', { hasText: 'موقع تجريبي 2' }).isVisible(), 'بعد الإنشاء يفتح بيانات الموقع الجديد');
   await page.goto(APP + '#/');
   ok(await page.locator('.zone-card').count() === 0 && await page.locator('.gh').count() === 0, 'الموقع الجديد فارغ ومستقل عن الأول');
@@ -571,7 +598,8 @@ try {
   ok(true, 'التنقل بين المشاريع من شاشة المشاريع');
 
   // ── 22. قاعدة المعرفة + الإدخال السريع ─────────────────────────────
-  ok(sql('select count(*) from pest_controls') === '209' && sql("select count(*) from products where farm_id is null") === '150', 'قاعدة المعرفة: 150 مادة و209 ربط آفة ← مكافحة');
+  ok(sql('select count(*) from pest_controls') === '209' && Number(sql("select count(*) from products where farm_id is null")) >= 300, 'قاعدة المعرفة: أكثر من 300 مادة و209 ربط آفة ← مكافحة');
+  ok(sql("select count(*) from products where farm_id is null and category_id is null") === '0', 'التصنيف العلمي: كل مواد الكتالوج العام مصنّفة (كبرى ← صغرى)');
   await page.goto(APP + '#/products');
   const search = page.locator('input[aria-label="بحث في المواد"]');
   await search.fill('سبينوساد');
@@ -590,7 +618,7 @@ try {
   ok(await page.locator('.prod-tbl tbody tr').count() === 1, 'تخصيص مادة عامة: نسخة المزرعة بفترة الأمان تحل محل الأصل');
 
   await page.goto(APP + '#/activities/new');
-  await page.locator('select[aria-label="المادة"]').first().selectOption({ label: 'كاني مايت — أسيكينوسيل' });
+  await pickProduct(page, 'كاني مايت');
   ok(await page.locator('.line label:has-text("الجرعة") input').first().inputValue() === '0.5', 'المعاملة: الجرعة تتملى تلقائيًا من المادة');
 
   const actsBefore = Number(sql('select count(*) from activities where deleted_at is null'));
@@ -599,7 +627,7 @@ try {
   await page.click('a:has-text("كرّر المعاملة")');
   await page.locator('h1', { hasText: 'معاملة' }).first().waitFor();
   ok(await page.locator('input[type=date]').first().inputValue() === new Date().toLocaleDateString('en-CA'), 'تكرار المعاملة: بتاريخ اليوم');
-  ok(await page.locator('.gh-pick button[aria-pressed="true"]').count() >= 1 && await page.locator('select[aria-label="المادة"]').first().inputValue() !== '', 'تكرار المعاملة: نفس الصوب والمواد');
+  ok(await page.locator('.gh-pick button[aria-pressed="true"]').count() >= 1 && ((await page.locator('.pick-btn b').first().textContent()) ?? '') !== '', 'تكرار المعاملة: نفس الصوب والمواد');
   await page.click('button:has-text("حفظ المعاملة")');
   await page.locator('h1', { hasText: 'رش' }).first().waitFor({ timeout: 10000 }).catch(() => {});
   await waitSynced(page, 20000);
@@ -627,6 +655,211 @@ try {
   ok(await page.locator('.sheet .banner.warn', { hasText: 'أعلى من المعتاد لمحصول فلفل' }).isVisible(), 'تنبيه: استطالة 60–75 سم غير منطقية للفلفل');
   await page.keyboard.press('Escape');
 
+  // ── 23. لكل مقام مقال: عزل المجالات على مستوى قاعدة البيانات ─────────
+  ok(asUser(UID.irr, 'select count(*) from scouting_observations') === '0' && sql('select count(*) from scouting_observations where deleted_at is null') !== '0', 'RLS: مهندس الري لا يقرأ ملاحظات الفحص');
+  ok(asUser(UID.irr, 'select count(*) from activities') === '0', 'RLS: مهندس الري لا يقرأ معاملات المكافحة');
+  ok(asUser(UID.scout, 'select count(*) from plant_measurements') === '0' && asUser(UID.ops, 'select count(*) from plant_measurements') === '8', 'RLS: تسجيل المحصول لمهندس العمليات فقط (والمكافحة لا تراه)');
+  {
+    let denied = false;
+    try { asUser(UID.irr, `insert into scouting_sessions (farm_id, greenhouse_id, scouted_on) select farm_id, id, current_date from greenhouses where code = 'GH-07' limit 1`); } catch { denied = true; }
+    ok(denied, 'RLS: مهندس الري لا يقدر يسجّل فحص حشري (بيانات غيره)');
+  }
+  ok(asUser(UID.manager, 'select count(*) from scouting_observations') === sql('select count(*) from scouting_observations') && asUser(UID.manager, 'select count(*) from farms') === '1', 'RLS: مدير الشركة يشوف كل بيانات مشروعه فقط (مش المشروع التاني)');
+  ok(asUser(UID.admin, 'select count(*) from farms') === '2', 'RLS: مدير النظام يشوف كل المشاريع بدون عضوية');
+  ok(asUser(UID.irr, `select farm_overview('${FARM}', current_date)->'totals'->>'worst'`) === '3', 'اللوحة العامة: مهندس الري يشوف أعلى شدة إصابة (أرقام مجمّعة فقط)');
+  {
+    let denied = false;
+    try { asUser(UID.manager, `select farm_overview(id, current_date) from farms where name = 'موقع تجريبي 2'`); } catch { denied = true; }
+    ok(asUser(UID.manager, "select count(*) from farms where name = 'موقع تجريبي 2'") === '0', 'مدير الشركة لا يرى المشروع التاني نهائيًا');
+    void denied;
+  }
+
+  // مهندس الري: مجاله + اللوحة العامة للقراءة فقط + تغذية ورقية
+  const irr = await newTablet();
+  await login(irr.page, 'irr@test.local', 'Irr#2026x');
+  const ip = irr.page;
+  ok(await ip.locator('a.action:has-text("الري والتسميد")').isVisible() && !(await ip.locator('a.action:has-text("الفحص الحشري")').count()) && !(await ip.locator('a.action:has-text("تسجيل المحصول")').count()), 'مهندس الري: الرئيسية فيها مجاله فقط');
+  await ip.click('a.action:has-text("لوحة المزرعة العامة")');
+  await ip.locator('.kpi', { hasText: 'فحص هذا الأسبوع' }).waitFor({ timeout: 15000 });
+  ok(await ip.locator('.readonly-note').isVisible() && !(await ip.locator('main button:has-text("حفظ")').count()), 'اللوحة العامة: للقراءة فقط');
+  ok(await ip.locator('.kpi', { hasText: 'فترة أمان' }).locator('b', { hasText: '1' }).isVisible(), 'اللوحة العامة: صوبة في فترة أمان (من معاملات مجال آخر)');
+  await ip.screenshot({ path: `${SHOTS}/29-overview-irrigation.png`, fullPage: true });
+  await ip.goto(APP + '#/activities/new');
+  ok(await ip.locator('.type-pick button').count() === 2 && await ip.locator('.type-pick button', { hasText: 'تغذية ورقية' }).isVisible(), 'نموذج المعاملة: مهندس الري يشوف أنواع مجاله فقط (حقن بالري + تغذية ورقية)');
+  await ip.click('.type-pick button:has-text("تغذية ورقية")');
+  await ip.click('.gh-pick button:has-text("GH-07")');
+  await ip.locator('.pick-btn').first().click();
+  ok(await ip.locator('.sheet .chips-scroll button', { hasText: 'الأسمدة والعناصر الغذائية' }).isVisible() && !(await ip.locator('.sheet .chips-scroll button', { hasText: 'الأعداء الحيوية' }).count()), 'منتقي المواد: الفئات المناسبة لنوع المعاملة فقط');
+  await ip.click('.sheet .chips-scroll button:has-text("الأسمدة والعناصر الغذائية")');
+  await ip.locator('.sheet .chips-scroll.sub button').nth(1).waitFor();
+  ok(await ip.locator('.sheet .chips-scroll.sub button').count() >= 6, 'منتقي المواد: فئات صغرى (آزوتي، فوسفاتي، بوتاسي، ثانوية، صغرى، مركبة…)');
+  await ip.locator('.sheet input[aria-label="بحث عن مادة"]').fill('نترات');
+  await ip.locator('.sheet .pick-row').first().click();
+  await ip.screenshot({ path: `${SHOTS}/30-foliar-form.png`, fullPage: true });
+  await ip.click('button:has-text("حفظ المعاملة")');
+  await ip.locator('h1', { hasText: 'تغذية ورقية' }).waitFor({ timeout: 10000 });
+  await waitSynced(ip, 20000);
+  ok(sql(`select domain||'|'||created_by from activities where activity_type = 'foliar_nutrition'`) === `fertigation|${UID.irr}`, 'السيرفر: التغذية الورقية مسجلة في مجال الري والتسميد باسم مهندس الري');
+  await ip.click('button[aria-label="القائمة"]');
+  await ip.click('.sheet button:has-text("كتالوج المواد")');
+  await ip.locator('.cat-tabs button').nth(5).waitFor();
+  ok(await ip.locator('.cat-tabs button').count() >= 12, 'كتالوج المواد: تبويب لكل فئة كبرى');
+  await ip.click('.cat-tabs button:has-text("الزيوت والمستخلصات")');
+  await ip.locator('.chips-scroll.sub button', { hasText: 'معدنية' }).first().click();
+  ok(await ip.locator('.prod-tbl tbody tr').count() >= 3, 'الزيوت المعدنية موجودة ومصنّفة');
+  await ip.screenshot({ path: `${SHOTS}/31-catalog.png`, fullPage: true });
+
+  // مهندس العمليات: خدمة أرضية بالعمالة وجودة التنفيذ
+  const op = ops.page;
+  await op.goto(APP + '#/activities/new');
+  ok(await op.locator('.type-pick button').count() === 1, 'مهندس العمليات: نوع معاملة واحد (عمليات زراعية)');
+  await op.click('.gh-pick button:has-text("GH-07")');
+  await op.locator('input[aria-label="بحث في العمليات"]').fill('حرث');
+  await op.locator('.op-pick .chips-pick button', { hasText: 'حرث' }).first().click();
+  ok(await op.locator('.op-pick h3', { hasText: 'الخدمة الأرضية' }).isVisible(), 'عمليات الخدمة الأرضية في فئتها');
+  await op.fill('label:has-text("الخطوط / النطاق") input', 'الخطوط 1–6');
+  await op.fill('label:has-text("عدد العمال") input', '6');
+  await op.fill('label:has-text("إجمالي ساعات العمل") input', '24');
+  await op.click('.quality-pick button:has-text("ممتاز")');
+  await op.click('button:has-text("حفظ المعاملة")');
+  await op.locator('.detail', { hasText: 'جودة التنفيذ' }).waitFor({ timeout: 10000 });
+  await waitSynced(op, 20000);
+  ok(sql(`select a.workers_count||'|'||a.labor_hours||'|'||a.quality||'|'||a.domain||'|'||ag.rows_scope from activities a join activity_greenhouses ag on ag.activity_id = a.id where a.activity_type = 'cultural_operation'`) === '6|24.0|4|operations|الخطوط 1–6', 'السيرفر: العملية بالخطوط والعمالة وجودة التنفيذ');
+
+  // نسيت كلمة المرور ← الطلب يوصل لمدير الشركة ← كلمة مؤقتة ← تغيير إجباري
+  const fp = await newTablet();
+  await fp.page.goto(APP + '#/login');
+  await fp.page.click('button:has-text("نسيت كلمة المرور")');
+  await fp.page.fill('.sheet input[type=email]', 'scout@test.local');
+  await fp.page.click('.sheet button:has-text("إرسال الطلب")');
+  await fp.page.locator('.sheet .banner.ok').waitFor();
+  ok(sql("select count(*) from password_reset_requests where email = 'scout@test.local' and resolved_at is null") === '1', 'نسيت كلمة المرور: الطلب اتسجل');
+  const mg = await newTablet();
+  await login(mg.page, 'manager@test.local', 'Manager#2026');
+  const mp = mg.page;
+  ok(await mp.locator('.topbar', { hasText: 'مدير الشركة' }).isVisible() && await mp.locator('a:has-text("لوحة المتابعة")').isVisible(), 'مدير الشركة: لوحة المتابعة الكاملة');
+  ok(!(await mp.locator('.proj-card').count()), 'مدير الشركة يدخل مشروعه مباشرة');
+  await mp.click('button[aria-label="القائمة"]');
+  ok(!(await mp.locator('.sheet button:has-text("مشروع جديد")').count()) && !(await mp.locator('.sheet button:has-text("مديرو النظام")').count()), 'مدير الشركة لا يملك إنشاء مشاريع أو مديري نظام');
+  await mp.click('.sheet button:has-text("فريق العمل")');
+  await mp.locator('.reset-requests', { hasText: 'scout@test.local' }).waitFor({ timeout: 10000 });
+  ok(!(await mp.locator('.team-group', { hasText: 'مدير النظام' }).count()), 'مديرو النظام لا يظهرون في فريق المشروع');
+  await mp.click('.reset-requests button:has-text("كلمة مرور مؤقتة")');
+  const tempPw = (await mp.locator('[data-testid="temp-password"]').textContent())?.trim();
+  ok(!!tempPw && sql("select count(*) from password_reset_requests where resolved_at is null") === '0', 'مدير الشركة عيّن كلمة مرور مؤقتة والطلب اتقفل');
+  await mp.click('.sheet button:has-text("تم")');
+  await login(fp.page, 'scout@test.local', tempPw, '.login h1:has-text("اختر كلمة مرور جديدة")');
+  ok(true, 'الدخول بكلمة مؤقتة يفتح شاشة تغيير إجباري');
+  await fp.page.fill('label:has-text("كلمة المرور الجديدة") input', '12345678');
+  await fp.page.fill('label:has-text("تأكيد كلمة المرور") input', '12345678');
+  await fp.page.click('button:has-text("حفظ والمتابعة")');
+  ok(await fp.page.locator('.form-error', { hasText: 'حروف' }).isVisible() || await fp.page.locator('.form-error', { hasText: 'شائعة' }).isVisible(), 'كلمة مرور ضعيفة مرفوضة برسالة واضحة');
+  await fp.page.fill('label:has-text("كلمة المرور الجديدة") input', 'Mokafha#2027');
+  await fp.page.fill('label:has-text("تأكيد كلمة المرور") input', 'Mokafha#2027');
+  await fp.page.click('button:has-text("حفظ والمتابعة")');
+  await fp.page.locator('h1', { hasText: 'الأسبوع' }).waitFor({ timeout: 15000 });
+  ok(true, 'بعد تغيير كلمة المرور يكمل للرئيسية');
+
+  // مدير الشركة يضيف أمين مخزن جديد ← تغيير إجباري عند أول دخول
+  await mp.click('button:has-text("إضافة عضو")');
+  await mp.fill('.sheet label:has-text("الاسم") input', 'أمين مخزن جديد');
+  await mp.fill('.sheet label:has-text("البريد الإلكتروني") input', 'store2@test.local');
+  await mp.click('.sheet .role-pick label:has-text("أمين المخزن")');
+  await mp.click('.sheet button:has-text("إنشاء الحساب")');
+  const pw2 = (await mp.locator('[data-testid="temp-password"]').textContent())?.trim();
+  ok(!!pw2 && sql("select m.role from farm_members m join profiles p on p.id = m.user_id where p.email = 'store2@test.local'") === 'storekeeper', 'مدير الشركة أضاف أمين مخزن بكلمة مرور مؤقتة');
+  await mp.click('.sheet button:has-text("تم")');
+
+  // أمين المخزن: استلام وصرف بالتشغيلة، ورفض صرف أكبر من الرصيد، ووزن الحصاد مع فترة الأمان
+  const stk = await newTablet();
+  await login(stk.page, 'store@test.local', 'Store#2026');
+  const tp = stk.page;
+  ok(await tp.locator('a.action:has-text("المخزن والحصاد")').isVisible() && !(await tp.locator('a.action:has-text("الفحص الحشري")').count()), 'أمين المخزن: الرئيسية فيها المخزن والمشتريات');
+  await tp.click('a.action:has-text("المخزن والحصاد")');
+  await tp.click('button:has-text("إنشاء المخازن الأساسية")');
+  await tp.locator('.store-actions').waitFor();
+  await tp.click('.store-actions button:has-text("استلام")');
+  await pickProduct(tp, 'كبريت ميكروني');
+  await tp.selectOption('.sheet label:has-text("المخزن") select', { label: 'مخزن المبيدات' });
+  await tp.fill('.sheet label:has-text("الكمية") input', '10');
+  await tp.selectOption('.sheet label:has-text("الوحدة") select', 'كجم');
+  await tp.fill('.sheet label:has-text("رقم التشغيلة") input', 'B-01');
+  await tp.fill('.sheet label:has-text("تاريخ انتهاء الصلاحية") input', '2027-06-30');
+  await tp.fill('.sheet label:has-text("المورد") input', 'مورد اختبار');
+  await tp.click('.sheet button:has-text("حفظ")');
+  await tp.locator('.tbl td', { hasText: 'كبريت ميكروني' }).waitFor();
+  await tp.locator('.tbl tr', { hasText: 'كبريت ميكروني' }).locator('button:has-text("صرف")').click();
+  await tp.fill('.sheet label:has-text("الكمية") input', '25');
+  await tp.click('.sheet button:has-text("حفظ")');
+  ok(await tp.locator('.sheet .form-error', { hasText: 'الرصيد غير كافٍ' }).isVisible(), 'المخزن: صرف أكبر من الرصيد مرفوض');
+  await tp.fill('.sheet label:has-text("الكمية") input', '3');
+  ok(await tp.locator('.sheet .chips-pick button[aria-pressed]', { hasText: 'B-01' }).count() === 1, 'الصرف يعرض التشغيلات بالأقرب انتهاءً');
+  await tp.click('.sheet .chips-pick button:has-text("B-01")');
+  await tp.fill('.sheet label:has-text("المستلم") input', 'م. المكافحة');
+  await tp.click('.sheet button:has-text("حفظ")');
+  await tp.locator('.tbl tr', { hasText: 'كبريت ميكروني' }).locator('b', { hasText: '7' }).waitFor({ timeout: 8000 });
+  ok(true, 'المخزن: الرصيد 7 بعد استلام 10 وصرف 3');
+  await tp.screenshot({ path: `${SHOTS}/32-store.png`, fullPage: true });
+  await tp.goto(APP + '#/harvest');
+  await tp.selectOption('label:has-text("الصوبة") select', { label: 'GH-07' });
+  await tp.fill('label:has-text("الوزن") input', '120.5');
+  await tp.click('.chips-pick button:has-text("تصدير")');
+  await tp.locator('.banner.bad', { hasText: 'فترة أمان' }).waitFor({ timeout: 10000 });
+  ok(true, 'الحصاد: تنبيه فترة الأمان للصوبة المرشوشة');
+  await tp.click('button:has-text("تسجيل الوزنة")');
+  ok(await tp.locator('.form-error', { hasText: 'أكّد' }).isVisible(), 'الحصاد في فترة أمان يحتاج تأكيد صريح');
+  await tp.check('.banner.bad input[type=checkbox]');
+  await tp.click('button:has-text("تسجيل الوزنة")');
+  await tp.locator('.list-item', { hasText: '120.5' }).waitFor();
+  await tp.screenshot({ path: `${SHOTS}/33-harvest.png`, fullPage: true });
+  // طلب شراء ← اعتماد المدير ← استلام
+  await tp.goto(APP + '#/purchases');
+  await tp.click('button:has-text("طلب شراء جديد")');
+  await pickProduct(tp, 'كبريت ميكروني');
+  await tp.fill('.sheet label:has-text("الكمية") input', '20');
+  await tp.click('.sheet button:has-text("تقديم الطلب")');
+  await tp.locator('.pr-card', { hasText: 'بانتظار الاعتماد' }).waitFor();
+  await waitSynced(tp, 20000);
+  ok(sql("select m.qty||'|'||m.batch_no||'|'||m.direction from stock_movements m where m.movement_type = 'issue'") === '3.000|B-01|-1', 'السيرفر: حركة الصرف بالتشغيلة');
+  ok(sql("select weight_kg||'|'||grade||'|'||phi_warning from harvest_records") === '120.50|export|true', 'السيرفر: وزنة الحصاد بالدرجة وتنبيه فترة الأمان');
+  let denied = false;
+  try { asUser(UID.store, "update purchase_requests set status = 'approved'"); } catch { denied = true; }
+  ok(denied && sql('select status from purchase_requests') === 'submitted', 'السيرفر: أمين المخزن لا يقدر يعتمد طلب الشراء');
+  await mp.goto(APP + '#/');
+  await mp.locator('.sync-pill').click();
+  await mp.locator('.sheet button:has-text("زامن الآن")').click();
+  await waitSynced(mp);
+  await mp.keyboard.press('Escape');
+  await mp.click('a.action:has(b:text-is("المشتريات"))');
+  await mp.click('.pr-card button:has-text("اعتماد")');
+  await mp.click('.sheet button:has-text("اعتماد")');
+  await mp.locator('.pr-card .chip', { hasText: 'معتمد' }).waitFor();
+  await waitSynced(mp, 20000);
+  ok(sql("select status||'|'||(approved_by = 'bbbbbbbb-0000-0000-0000-000000000005') from purchase_requests") === 'approved|true', 'مدير الشركة اعتمد طلب الشراء (باسمه)');
+  await tp.goto(APP + '#/');
+  await tp.locator('.sync-pill').click();
+  await tp.locator('.sheet button:has-text("زامن الآن")').click();
+  await waitSynced(tp);
+  await tp.keyboard.press('Escape');
+  await tp.goto(APP + '#/purchases');
+  await tp.click('.pr-card button:has-text("استلام في المخزن")');
+  await tp.click('.sheet button:has-text("تسجيل الاستلام")');
+  await tp.locator('.pr-card .chip', { hasText: 'تم الاستلام' }).waitFor({ timeout: 10000 });
+  await waitSynced(tp, 20000);
+  ok(sql("select status from purchase_requests") === 'received' && sql("select count(*) from stock_movements where purchase_request_id is not null") === '1', 'الاستلام مرتبط بطلب الشراء والطلب اتقفل');
+
+  // مدير النظام: إدارة مديري النظام
+  await page.goto(APP + '#/admins');
+  await page.locator('h1', { hasText: 'مديرو النظام' }).waitFor();
+  await page.click('button:has-text("إضافة مدير نظام")');
+  await page.fill('.sheet label:has-text("الاسم") input', 'المطور');
+  await page.fill('.sheet label:has-text("البريد الإلكتروني") input', 'dev@test.local');
+  await page.click('.sheet button:has-text("إضافة")');
+  await page.locator('[data-testid="temp-password"]').waitFor();
+  ok(sql("select count(*) from system_admins s join profiles p on p.id = s.user_id where p.email = 'dev@test.local' and s.deleted_at is null") === '1', 'مدير النظام أضاف مدير نظام جديد');
+  await page.click('.sheet button:has-text("تم")');
+  for (const t of [irr, fp, mg, stk]) await t.ctx.close();
+
   // ── 13. موبايل ────────────────────────────────────────────────────
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'ar-EG', hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
   const pp = await phone.newPage();
@@ -635,11 +868,11 @@ try {
   const hScroll = await pp.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   // باقي الشاشات على الموبايل بدخول المهندس
   await pp.fill('input[type=email]', 'scout@test.local');
-  await pp.fill('input[type=password]', 'Scout#2026');
+  await pp.fill('input[type=password]', 'Mokafha#2027');
   await pp.click('button:has-text("دخول")');
   await pp.locator('.gh').first().waitFor({ timeout: 15000 });
   const wide = [];
-  for (const r of ['#/', '#/scout', '#/activities', '#/activities/new', '#/recs', '#/dashboard', '#/files', '#/weather', '#/farm']) {
+  for (const r of ['#/', '#/scout', '#/activities', '#/activities/new', '#/recs', '#/dashboard', '#/overview', '#/products', '#/registry', '#/purchases', '#/files', '#/weather', '#/farm']) {
     await pp.goto(APP + r);
     await sleep(700);
     if (await pp.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) wide.push(r);

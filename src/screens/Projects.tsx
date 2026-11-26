@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp, ROLE_LABEL } from '../app/context';
+import type { Role } from '../lib/access';
 import { db } from '../lib/db';
 import { alive } from '../lib/repo';
 import { formatDate, isoWeek, todayLocal, weekBounds } from '../lib/dates';
@@ -26,10 +27,12 @@ interface Card {
   lastActivity: string | null;
 }
 
-export function useProjects(userId: string | undefined) {
+export function useProjects(userId: string | undefined, isSystemAdmin = false) {
   return useLiveQuery(async () => {
     if (!userId) return [];
-    const mem = await db.farm_members.where('user_id').equals(userId).toArray();
+    const mem: { farm_id: string; role: Row<'farm_members'>['role'] }[] = isSystemAdmin
+      ? (await db.farms.toArray()).filter((f) => !f.deleted_at).map((f) => ({ farm_id: f.id, role: 'admin' as const }))
+      : await db.farm_members.where('user_id').equals(userId).toArray();
     const today = todayLocal();
     const { start, end } = weekBounds(today);
     const [crops, profiles] = await Promise.all([db.crops.toArray(), db.farm_profiles.toArray()]);
@@ -68,13 +71,13 @@ export function useProjects(userId: string | undefined) {
       });
     }
     return out.sort((a, b) => a.f.name.localeCompare(b.f.name, 'ar'));
-  }, [userId]);
+  }, [userId, isSystemAdmin]);
 }
 
 export function ProjectsBoard({ canCreate }: { canCreate?: boolean }) {
-  const { user, farmId, setFarmId, can } = useApp();
+  const { user, farmId, setFarmId, can, isSystemAdmin } = useApp();
   const nav = useNavigate();
-  const cards = useProjects(user?.id);
+  const cards = useProjects(user?.id, isSystemAdmin);
   const [newFarm, setNewFarm] = useState(false);
   const { week } = isoWeek(todayLocal());
   if (!cards) return null;
@@ -93,7 +96,7 @@ export function ProjectsBoard({ canCreate }: { canCreate?: boolean }) {
             onClick={() => { setFarmId(c.f.id); nav('/'); }}>
             <span className="proj-top">
               <b>{c.f.name}</b>
-              <span className="chip">{ROLE_LABEL[c.role]}</span>
+              <span className="chip">{ROLE_LABEL[c.role as Role]}</span>
             </span>
             {c.location && <span className="muted proj-loc"><Icon name="pin" size={14} /> {c.location}</span>}
             <span className="proj-crops">{c.ghs} صوبة{c.crops.length ? `، ${c.crops.join('، ')}` : ''}</span>

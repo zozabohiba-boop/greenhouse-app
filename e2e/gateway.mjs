@@ -4,9 +4,14 @@ import crypto from 'node:crypto';
 
 export const JWT_SECRET = 'e2e-super-secret-jwt-token-with-at-least-32-chars';
 const USERS = {
-  'admin@test.local': { id: 'aaaaaaaa-0000-0000-0000-000000000001', password: 'Admin#2026' },
-  'scout@test.local': { id: 'bbbbbbbb-0000-0000-0000-000000000002', password: 'Scout#2026' },
+  'admin@test.local': { id: 'aaaaaaaa-0000-0000-0000-000000000001', password: 'Admin#2026', meta: {} },
+  'scout@test.local': { id: 'bbbbbbbb-0000-0000-0000-000000000002', password: 'Scout#2026', meta: {} },
+  'ops@test.local': { id: 'bbbbbbbb-0000-0000-0000-000000000003', password: 'Ops#2026x', meta: {} },
+  'irr@test.local': { id: 'bbbbbbbb-0000-0000-0000-000000000004', password: 'Irr#2026x', meta: {} },
+  'manager@test.local': { id: 'bbbbbbbb-0000-0000-0000-000000000005', password: 'Manager#2026', meta: {} },
+  'store@test.local': { id: 'bbbbbbbb-0000-0000-0000-000000000006', password: 'Store#2026', meta: {} },
 };
+export const TEST_USERS = USERS;
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 export function sign(payload) {
   const h = b64({ alg: 'HS256', typ: 'JWT' });
@@ -15,12 +20,13 @@ export function sign(payload) {
   return `${h}.${p}.${s}`;
 }
 export const ANON_KEY = sign({ role: 'anon', iss: 'e2e', iat: 1700000000, exp: 2100000000 });
+const SERVICE_KEY = sign({ role: 'service_role', iss: 'e2e', iat: 1700000000, exp: 2100000000 });
 function decode(t) {
   try { return JSON.parse(Buffer.from(t.split('.')[1], 'base64url').toString()); } catch { return null; }
 }
 function userObj(email) {
   const u = USERS[email];
-  return { id: u.id, aud: 'authenticated', role: 'authenticated', email, app_metadata: { provider: 'email' }, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' };
+  return { id: u.id, aud: 'authenticated', role: 'authenticated', email, app_metadata: { provider: 'email' }, user_metadata: { ...(u.meta || {}) }, created_at: '2026-01-01T00:00:00Z' };
 }
 function session(email, ttl = 3600) {
   const now = Math.floor(Date.now() / 1000);
@@ -112,7 +118,18 @@ export function startGateway({ port = 54321, rest = 'http://127.0.0.1:3001' } = 
       if (path === 'user') {
         const t = (req.headers.authorization || '').replace(/^Bearer /, '');
         const p = decode(t);
-        if (!p?.email) return send(res, 401, { code: 'no_authorization', msg: 'invalid JWT' });
+        if (!p?.email || !USERS[p.email]) return send(res, 401, { code: 'no_authorization', msg: 'invalid JWT' });
+        if (req.method === 'PUT') {
+          const j = body ? JSON.parse(body) : {};
+          const u = USERS[p.email];
+          if (j.password) {
+            if (String(j.password).length < 8) return send(res, 422, { code: 'weak_password', msg: 'Password should be at least 8 characters.' });
+            if (j.password === u.password) return send(res, 422, { code: 'same_password', msg: 'New password should be different from the old password.' });
+            u.password = j.password;
+          }
+          if (j.data) u.meta = { ...(u.meta || {}), ...j.data };
+          stats.passwordChanges = (stats.passwordChanges ?? 0) + (j.password ? 1 : 0);
+        }
         return send(res, 200, userObj(p.email));
       }
       if (path === 'logout') return send(res, 204);
@@ -137,6 +154,81 @@ export function startGateway({ port = 54321, rest = 'http://127.0.0.1:3001' } = 
         return res.end(out);
       } catch (e) {
         return send(res, 502, { message: String(e) });
+      }
+    }
+    // محاكاة Edge Function team-admin (نفس قواعد supabase/functions/team-admin) عبر PostgREST بدور service_role
+    if (url.pathname === '/functions/v1/team-admin' && req.method === 'POST') {
+      stats.team = (stats.team ?? 0) + 1;
+      const p = decode((req.headers.authorization || '').replace(/^Bearer /, ''));
+      if (!p?.sub) return send(res, 401, { error: 'unauthorized' });
+      const b = JSON.parse((await readBody(req)) || '{}');
+      const svc = { authorization: `Bearer ${SERVICE_KEY}`, 'content-type': 'application/json' };
+      const q = async (path, opts = {}) => {
+        const r = await fetch(`${rest}/${path}`, { ...opts, headers: { ...svc, ...(opts.headers || {}) } });
+        const txt = await r.text();
+        if (!r.ok) throw new Error(`${r.status} ${txt}`);
+        return txt ? JSON.parse(txt) : null;
+      };
+      const isSys = async (id) => (await q(`system_admins?user_id=eq.${id}&deleted_at=is.null&select=id`)).length > 0;
+      const roleIn = async (farm, id) => (await q(`farm_members?farm_id=eq.${farm}&user_id=eq.${id}&select=role`))[0]?.role ?? null;
+      const temp = () => `Tmp${crypto.randomBytes(3).toString('hex')}-${crypto.randomBytes(2).toString('hex')}`;
+      const ensure = async (email, name) => {
+        if (USERS[email]) return { id: USERS[email].id, password: null };
+        const id = await q('rpc/e2e_create_user', { method: 'POST', body: JSON.stringify({ p_email: email, p_name: name }) });
+        const password = temp();
+        USERS[email] = { id, password, meta: { must_change_password: true, ...(name ? { full_name: name } : {}) } };
+        return { id, password };
+      };
+      const ROLES = ['farm_manager', 'consultant', 'supervisor', 'scout', 'irrigation', 'operations', 'storekeeper', 'purchasing', 'executive'];
+      try {
+        const meSys = await isSys(p.sub);
+        if (b.action === 'create_member') {
+          const my = meSys ? 'admin' : await roleIn(b.farm_id, p.sub);
+          if (my !== 'admin' && my !== 'farm_manager') return send(res, 403, { error: 'forbidden' });
+          const email = String(b.email || '').trim().toLowerCase();
+          if (!ROLES.includes(b.role)) return send(res, 400, { error: 'bad_role' });
+          const acc = await ensure(email, b.full_name || null);
+          await q('farm_invitations?on_conflict=farm_id,email', { method: 'POST', headers: { prefer: 'resolution=merge-duplicates' },
+            body: JSON.stringify({ farm_id: b.farm_id, email, role: b.role, invited_by: p.sub, accepted_at: null, accepted_user_id: null }) });
+          await q('rpc/apply_invitation_for_email', { method: 'POST', body: JSON.stringify({ p_email: email }) });
+          return send(res, 200, { ok: true, existing_account: acc.password === null, temp_password: acc.password });
+        }
+        if (b.action === 'reset_password') {
+          if (!meSys) {
+            const my = await roleIn(b.farm_id, p.sub);
+            if (my !== 'admin' && my !== 'farm_manager') return send(res, 403, { error: 'forbidden' });
+            const tr = await roleIn(b.farm_id, b.user_id);
+            if (!tr || tr === 'admin' || (await isSys(b.user_id))) return send(res, 404, { error: 'not_member' });
+          }
+          const email = Object.keys(USERS).find((e) => USERS[e].id === b.user_id);
+          if (!email) return send(res, 404, { error: 'user_not_found' });
+          const password = temp();
+          USERS[email].password = password;
+          USERS[email].meta = { ...(USERS[email].meta || {}), must_change_password: true };
+          await q(`password_reset_requests?user_id=eq.${b.user_id}&resolved_at=is.null`, { method: 'PATCH',
+            body: JSON.stringify({ resolved_at: new Date().toISOString(), resolved_by: p.sub }) });
+          return send(res, 200, { ok: true, temp_password: password });
+        }
+        if (b.action === 'dismiss_reset') {
+          await q(`password_reset_requests?id=eq.${b.request_id}`, { method: 'PATCH', body: JSON.stringify({ resolved_at: new Date().toISOString(), resolved_by: p.sub }) });
+          return send(res, 200, { ok: true });
+        }
+        if (b.action === 'add_system_admin') {
+          if (!meSys) return send(res, 403, { error: 'forbidden' });
+          const acc = await ensure(String(b.email || '').trim().toLowerCase(), b.full_name || null);
+          await q('system_admins?on_conflict=user_id', { method: 'POST', headers: { prefer: 'resolution=merge-duplicates' },
+            body: JSON.stringify({ user_id: acc.id, deleted_at: null, created_by: p.sub }) });
+          return send(res, 200, { ok: true, existing_account: acc.password === null, temp_password: acc.password });
+        }
+        if (b.action === 'remove_system_admin') {
+          if (!meSys) return send(res, 403, { error: 'forbidden' });
+          if (b.user_id === p.sub) return send(res, 400, { error: 'cannot_remove_self' });
+          await q(`system_admins?user_id=eq.${b.user_id}`, { method: 'PATCH', body: JSON.stringify({ deleted_at: new Date().toISOString() }) });
+          return send(res, 200, { ok: true });
+        }
+        return send(res, 400, { error: 'unknown_action' });
+      } catch (e) {
+        return send(res, 500, { error: 'failed', detail: String(e) });
       }
     }
     // دالة الطقس (محاكاة Edge Function weather): العضوية والإحداثيات عبر PostgREST بهوية المستخدم
