@@ -13,9 +13,9 @@
    "strawberry": "209-214",
    "protected": "215-216"
   },
-  "method": "جداول التوصيات استُخرجت آليًا من طبقة النص في الـPDF بـpdfplumber (أرقام التسجيل وفترة الأمان وتصنيف السمية وأعمدة EPA/EU/Codex)، وأسماء المواد الفعالة صُحّحت على قاموس من الصفوف النظيفة. 25 صفًا لم يقرأها الاستخراج الآلي ونحو 8 صفوف كان الاستخراج فيها ناقصًا قُرئت بصريًا من صور الصفحات. الاسم التجاري والمعدل غير مُخزَّنين لأن طبقة النص عربيًا مشوّشة.",
+  "method": "جداول التوصيات استُخرجت آليًا من طبقة النص في الـPDF بـpdfplumber (أرقام التسجيل وفترة الأمان وتصنيف السمية وأعمدة EPA/EU/Codex)، وأسماء المواد الفعالة صُحّحت على قاموس من الصفوف النظيفة. 25 صفًا لم يقرأها الاستخراج الآلي ونحو 8 صفوف كان الاستخراج فيها ناقصًا قُرئت بصريًا من صور الصفحات. الاسم التجاري والمعدل غير مُخزَّنين لأن طبقة النص عربيًا مشوّشة. أُضيفت لاحقًا 14 صفًا ناقصة (كابسول برو 3162 وغيرها في صفحة 103، وأخرى في 79 و99 و151 و152) وصُحّح رقمان قُرئا خطأ من طبقة النص (1066 بدل 3510 في ص81، 3469 بدل 469 في ص84)، كلها بقراءة بصرية لصور الصفحات (read_by=visual).",
   "validation": "عمود EU في الكتاب قورن بحدود الاتحاد الأوروبي من تنزيل DG SANTE: تطابق 973 من 1042 مقارنة (93%)، والفروق غالبًا تحديثات لوائح بعد طبعة الكتاب. أرقام التسجيل ليست فريدة في الكتاب: 1215 و2805 و3097 تتكرر لمنتجين مختلفين.",
-  "not_extracted": "الأسماء التجارية، معدلات الاستخدام، صفحات الحشائش (الباب الثاني)، المحاصيل غير السبعة، ونصوص الإرشادات."
+  "not_extracted": "الأسماء التجارية ومعدلات الاستخدام للمحاصيل غير الطماطم والفلفل والباذنجان والخيار (هذه الأربعة في eg_trade_names.json)، صفحات الحشائش (الباب الثاني)، المحاصيل غير السبعة، ونصوص الإرشادات."
  },
  "rows": [
   {
@@ -2766,7 +2766,7 @@
    "crop": "tomato",
    "pdf_page": 81,
    "book_page": 68,
-   "reg_no": "3510",
+   "reg_no": "1066",
    "actives": [
     "imidacloprid"
    ],
@@ -4194,7 +4194,7 @@
    "crop": "tomato",
    "pdf_page": 84,
    "book_page": 71,
-   "reg_no": "469",
+   "reg_no": "3469",
    "actives": [
     "emamectin benzoate"
    ],
@@ -23284,6 +23284,300 @@
    "phi_days": null,
    "phi_note": null,
    "who": "U",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 79,
+   "book_page": 66,
+   "reg_no": "3318",
+   "actives": [
+    "dinotefuran"
+   ],
+   "values": [
+    {
+     "active": "dinotefuran",
+     "epa": "0.7",
+     "eu": "-",
+     "codex": "0.5"
+    }
+   ],
+   "phi_days": 5,
+   "phi_note": null,
+   "who": "U",
+   "read_by": "visual"
+  },
+  {
+   "crop": "cucumber",
+   "pdf_page": 151,
+   "book_page": 138,
+   "reg_no": "1027",
+   "actives": [
+    "azoxystrobin"
+   ],
+   "values": [
+    {
+     "active": "azoxystrobin",
+     "epa": "0.3",
+     "eu": "1",
+     "codex": "1"
+    }
+   ],
+   "phi_days": 3,
+   "phi_note": null,
+   "who": "U",
+   "read_by": "visual"
+  },
+  {
+   "crop": "cucumber",
+   "pdf_page": 152,
+   "book_page": 139,
+   "reg_no": "3948",
+   "actives": [
+    "azoxystrobin"
+   ],
+   "values": [
+    {
+     "active": "azoxystrobin",
+     "epa": "0.3",
+     "eu": "1",
+     "codex": "1"
+    }
+   ],
+   "phi_days": 7,
+   "phi_note": null,
+   "who": "U",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 99,
+   "book_page": 86,
+   "reg_no": "2938",
+   "actives": [
+    "azoxystrobin"
+   ],
+   "values": [
+    {
+     "active": "azoxystrobin",
+     "epa": "0.2",
+     "eu": "3",
+     "codex": "3"
+    }
+   ],
+   "phi_days": 14,
+   "phi_note": null,
+   "who": "U",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 103,
+   "book_page": 90,
+   "reg_no": "1139",
+   "actives": [
+    "fosthiazate"
+   ],
+   "values": [
+    {
+     "active": "fosthiazate",
+     "epa": "0.02",
+     "eu": "0.02",
+     "codex": "-"
+    }
+   ],
+   "phi_days": null,
+   "phi_note": null,
+   "who": "Mod II",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 103,
+   "book_page": 90,
+   "reg_no": "122",
+   "actives": [
+    "oxamyl"
+   ],
+   "values": [
+    {
+     "active": "oxamyl",
+     "epa": "2",
+     "eu": "0.002",
+     "codex": "0.01"
+    }
+   ],
+   "phi_days": 10,
+   "phi_note": null,
+   "who": "High Ib",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 103,
+   "book_page": 90,
+   "reg_no": "3162",
+   "actives": [
+    "fosthiazate"
+   ],
+   "values": [
+    {
+     "active": "fosthiazate",
+     "epa": "0.02",
+     "eu": "0.02",
+     "codex": "-"
+    }
+   ],
+   "phi_days": 45,
+   "phi_note": null,
+   "who": "Mod II",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 103,
+   "book_page": 90,
+   "reg_no": "3196",
+   "actives": [
+    "imicyafos"
+   ],
+   "values": [
+    {
+     "active": "imicyafos",
+     "epa": "-",
+     "eu": "0.01",
+     "codex": "-"
+    }
+   ],
+   "phi_days": 30,
+   "phi_note": null,
+   "who": "Mod II",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 103,
+   "book_page": 90,
+   "reg_no": "3779",
+   "actives": [
+    "fosthiazate"
+   ],
+   "values": [
+    {
+     "active": "fosthiazate",
+     "epa": "0.02",
+     "eu": "0.02",
+     "codex": "-"
+    }
+   ],
+   "phi_days": 45,
+   "phi_note": null,
+   "who": "Mod II",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 103,
+   "book_page": 90,
+   "reg_no": "3797",
+   "actives": [
+    "ethoprophos"
+   ],
+   "values": [
+    {
+     "active": "ethoprophos",
+     "epa": "-",
+     "eu": "0.01",
+     "codex": "0.01"
+    }
+   ],
+   "phi_days": 45,
+   "phi_note": null,
+   "who": "Mod II",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 103,
+   "book_page": 90,
+   "reg_no": "4277",
+   "actives": [
+    "oxamyl"
+   ],
+   "values": [
+    {
+     "active": "oxamyl",
+     "epa": "2",
+     "eu": "0.002",
+     "codex": "0.01"
+    }
+   ],
+   "phi_days": 30,
+   "phi_note": null,
+   "who": "High Ib",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 103,
+   "book_page": 90,
+   "reg_no": "5005",
+   "actives": [
+    "oxamyl"
+   ],
+   "values": [
+    {
+     "active": "oxamyl",
+     "epa": "2",
+     "eu": "0.002",
+     "codex": "0.01"
+    }
+   ],
+   "phi_days": 55,
+   "phi_note": null,
+   "who": "High Ib",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 103,
+   "book_page": 90,
+   "reg_no": "5167",
+   "actives": [
+    "oxamyl"
+   ],
+   "values": [
+    {
+     "active": "oxamyl",
+     "epa": "2",
+     "eu": "0.002",
+     "codex": "0.01"
+    }
+   ],
+   "phi_days": 45,
+   "phi_note": null,
+   "who": "High Ib",
+   "read_by": "visual"
+  },
+  {
+   "crop": "tomato",
+   "pdf_page": 103,
+   "book_page": 90,
+   "reg_no": "564",
+   "actives": [
+    "oxamyl"
+   ],
+   "values": [
+    {
+     "active": "oxamyl",
+     "epa": "2",
+     "eu": "0.002",
+     "codex": "0.01"
+    }
+   ],
+   "phi_days": 15,
+   "phi_note": null,
+   "who": "High Ib",
    "read_by": "visual"
   }
  ]

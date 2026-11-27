@@ -2,7 +2,7 @@
 """
 يحوّل scripts/knowledge/pesticides_data.json إلى ملف Excel واضح (يُحدَّث بعد كل دفعة بيانات):
   /mnt/user-data/outputs/سجل_المبيدات_المصادر_الرسمية.xlsx  (+ نسخة في scripts/knowledge/)
-الأوراق: المواد الفعالة | حدود المتبقيات MRL (وسوق EG = أيام الأمان من كتاب التوصيات) | مقارنة الأسواق | التسجيل في مصر | تسجيلات الكتاب 2026 | مواد الكتاب خارج السجل | المصادر | التقدم والناقص
+الأوراق: المواد الفعالة | حدود المتبقيات MRL (وسوق EG = أيام الأمان من كتاب التوصيات) | مقارنة الأسواق | التسجيل في مصر | تسجيلات الكتاب 2026 | منتجات الكتاب (أسماء وجرعات) | مواد الكتاب خارج السجل | المصادر | التقدم والناقص
 تشغيل: python3 scripts/knowledge/pesticides_to_xlsx.py
 """
 import json, os, shutil, sys
@@ -110,7 +110,21 @@ def main():
         note = ex.get('meta') or {}
         ws7.append([])
         ws7.append(['المصدر', note.get('source')])
-        ws7.append(['ملاحظة', 'أرقام التسجيل ليست فريدة في الكتاب (بعضها يتكرر على منتجات مختلفة). أسماء المنتجات والجرعات غير مستخرجة لأن طبقة النص العربية في الـPDF مشوهة.'])
+        ws7.append(['ملاحظة', 'أرقام التسجيل ليست فريدة في الكتاب (بعضها يتكرر على منتجات مختلفة). الأسماء التجارية والجرعات للطماطم والفلفل والباذنجان والخيار في ورقة «منتجات الكتاب (أسماء وجرعات)»؛ باقي المحاصيل غير مستخرجة لأن طبقة النص العربية في الـPDF مشوهة.'])
+        tn = os.path.join(HERE, 'eg_trade_names.json')
+        if os.path.exists(tn):
+            with open(tn, encoding='utf-8') as f:
+                tj = json.load(f)
+            ws9 = wb.create_sheet('منتجات الكتاب (أسماء وجرعات)')
+            hdr9 = ['المحصول', 'الآفة', 'صفحة الكتاب', 'رقم التسجيل', 'الاسم التجاري', 'الشكل', 'التركيز', 'المادة الفعالة', 'المعدل', 'فترة الأمان (يوم)', 'تصنيف السمية WHO']
+            ws9.append(hdr9)
+            for r in tj['rows']:
+                ws9.append([CROP_AR.get(r['crop'], r['crop']), r['pest_ar'], r['book_page'], r['reg_no'], r['trade_name_ar'], r['formulation'], r['concentration'],
+                            r['actives_text'], r['rate_ar'], r['phi_days'], r['who']])
+            style_header(ws9, len(hdr9)); autosize(ws9, 50)
+            ws9.sheet_properties.tabColor = '0A6F94'
+            ws9.append([])
+            ws9.append(['ملاحظة', (tj.get('meta') or {}).get('method')])
         miss = (d.get('progress') or {}).get('eg_book', {}).get('actives_in_book_not_in_registry') or []
         if miss:
             ws8 = wb.create_sheet('مواد الكتاب خارج السجل')
