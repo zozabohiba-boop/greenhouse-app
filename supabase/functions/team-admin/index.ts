@@ -15,7 +15,7 @@ const cors = {
 };
 
 // الأدوار المتاحة داخل المشروع (مدير النظام منفصل ولا يُمنح من هنا)
-const ROLES = ['farm_manager', 'consultant', 'supervisor', 'scout', 'irrigation', 'operations', 'executive'] as const;
+const ROLES = ['farm_manager', 'consultant', 'supervisor', 'scout', 'irrigation', 'operations', 'storekeeper', 'purchasing', 'executive'] as const;
 type Role = (typeof ROLES)[number] | 'admin';
 
 function json(body: unknown, status = 200) {
