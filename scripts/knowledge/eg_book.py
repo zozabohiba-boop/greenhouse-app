@@ -59,10 +59,19 @@ def main():
                 if x not in (None, '-'):
                     cand[(s, r['crop'], col)].append((float(x), r))
 
+    # معاملة البذور/التقاوى (FS أو معدل بالكجم تقاوى/بذرة) فترة أمانها ليست فاصل رش؛ تُستثنى من phi المادة وتُذكر في الملاحظة
+    seed = set()
+    tn = os.path.join(HERE, 'eg_trade_names.json')
+    if os.path.exists(tn):
+        for t in json.load(open(tn, encoding='utf-8'))['rows']:
+            if t['formulation'] == 'FS' or 'تقاوى' in t['rate_ar'] or 'بذرة' in t['rate_ar']:
+                seed.add((t['pdf_page'], t['reg_no']))
+
     eg = []
     for (s, crop), rs in sorted(prods.items()):
         regs = sorted({r['reg_no'] for r in rs})
-        single = [r['phi_days'] for r in rs if len(r['actives']) == 1 and r['phi_days'] is not None]
+        sd = [r for r in rs if (r['pdf_page'], r['reg_no']) in seed]
+        single = [r['phi_days'] for r in rs if len(r['actives']) == 1 and r['phi_days'] is not None and (r['pdf_page'], r['reg_no']) not in seed]
         allp = [r['phi_days'] for r in rs if r['phi_days'] is not None]
         # فترة الأمان على مستوى المادة = الأعلى بين منتجاتها المفردة فقط؛ المنتجات المركبة قد تتضمن معاملات بذور/تربة بفترات طويلة لا تخص المادة وحدها
         phi = max(single) if single else None
@@ -75,6 +84,8 @@ def main():
             note += '، في منتجات مركبة فقط: أمان %d–%d يوم حسب المنتج (لا قيمة موحدة للمادة)' % (min(allp), max(allp))
         else:
             note += '، أمان غير محدد بقيمة'
+        if sd:
+            note += '، ومعاملة البذور/التقاوى مستثناة من فترة الأمان'
         note += ' — %s ص %s' % (BOOK, pages(rs))
         eg.append({'substance': s, 'market': 'EG', 'crop': crop, 'mrl_mg_kg': None, 'default_loq': False, 'phi_days': phi,
                    'source': 'book:APC2026', 'retrieved_on': TODAY, 'commodity': note})
