@@ -36,7 +36,7 @@ export const ROLE_LABEL: Record<Role, string> = {
 export const ROLE_HINT: Record<Role, string> = {
   admin: 'كل المشاريع وكل الصلاحيات.',
   farm_manager: 'صلاحية كاملة على المشروع: الفريق والهيكل وكل البيانات، واعتماد طلبات الشراء.',
-  consultant: 'كل بيانات المشروع، ويكتب التوصيات، ويضبط الدورات والقيم المستهدفة.',
+  consultant: 'صلاحية كاملة زي مدير الشركة: الفريق والهيكل وكل البيانات والتوصيات واعتماد طلبات الشراء.',
   supervisor: 'يسجّل في كل المجالات الميدانية ويتابع كل بيانات المشروع، من غير إدارة الفريق أو الهيكل.',
   scout: 'الفحص اليومي وحالة النباتات، ومعاملات الرش والإطلاق الحيوي وتنفيذ توصيات المكافحة.',
   irrigation: 'معاملات الحقن بالري والتغذية الورقية وبرامج التسميد.',
@@ -53,28 +53,37 @@ export const PROJECT_ROLES: Role[] = [
 
 const FULL_ROLES: Role[] = ['admin', 'farm_manager', 'consultant', 'supervisor', 'executive'];
 
-export function readDomains(role: Role | null): Domain[] {
-  switch (role) {
-    case null: return [];
-    case 'scout': return ['ipm'];
-    case 'irrigation': return ['fertigation'];
-    case 'operations': return ['operations'];
-    case 'storekeeper': return ['store', 'purchasing'];
-    case 'purchasing': return ['purchasing', 'store'];
-    default: return ALL_DOMAINS;
-  }
+const uniq = <T,>(xs: T[]) => [...new Set(xs)];
+
+/** مجالات القراءة لدور أو أكثر (الاتحاد) */
+export function readDomains(role: Role | Role[] | null): Domain[] {
+  const rs = Array.isArray(role) ? role : role ? [role] : [];
+  return uniq(rs.flatMap((r): Domain[] => {
+    switch (r) {
+      case 'scout': return ['ipm'];
+      case 'irrigation': return ['fertigation'];
+      case 'operations': return ['operations'];
+      case 'storekeeper': return ['store', 'purchasing'];
+      case 'purchasing': return ['purchasing', 'store'];
+      default: return ALL_DOMAINS;
+    }
+  }));
 }
 
-export function writeDomains(role: Role | null): Domain[] {
-  switch (role) {
-    case null: case 'executive': return [];
-    case 'scout': return ['ipm'];
-    case 'irrigation': return ['fertigation'];
-    case 'operations': return ['operations'];
-    case 'storekeeper': return ['store'];
-    case 'purchasing': return ['purchasing'];
-    default: return ALL_DOMAINS;
-  }
+/** مجالات التسجيل لدور أو أكثر (الاتحاد؛ «متابعة فقط» لا يسجّل) */
+export function writeDomains(role: Role | Role[] | null): Domain[] {
+  const rs = Array.isArray(role) ? role : role ? [role] : [];
+  return uniq(rs.flatMap((r): Domain[] => {
+    switch (r) {
+      case 'executive': return [];
+      case 'scout': return ['ipm'];
+      case 'irrigation': return ['fertigation'];
+      case 'operations': return ['operations'];
+      case 'storekeeper': return ['store'];
+      case 'purchasing': return ['purchasing'];
+      default: return ALL_DOMAINS;
+    }
+  }));
 }
 
 /** نوع المعاملة ← المجال المسؤول (نفس activities.domain على السيرفر) */
@@ -88,7 +97,10 @@ export const ACTIVITY_DOMAIN: Record<ActivityType, Domain> = {
 };
 
 export interface Access {
+  /** الدور الأساسي */
   role: Role | null;
+  /** كل أدوار العضو (الأساسي أولًا) */
+  roles: Role[];
   isSystemAdmin: boolean;
   /** يشوف كل تفاصيل المشروع */
   full: boolean;
@@ -120,15 +132,22 @@ export interface Access {
   requestPurchase: boolean;
 }
 
-export function accessFor(role: Role | null, isSystemAdmin: boolean): Access {
-  const r: Role | null = isSystemAdmin ? 'admin' : role;
-  const domains = readDomains(r);
-  const recordDomains = writeDomains(r);
-  const is = (...rs: Role[]) => !!r && rs.includes(r);
-  const canRead = (d: string | null | undefined) => !!r && (d === 'general' || domains.includes(d as Domain));
-  const canRecord = (d: string | null | undefined) => !!r && r !== 'executive' && (d === 'general' || recordDomains.includes(d as Domain));
+/**
+ * صلاحيات العضو من دور أو أكثر: الصلاحية = اتحاد كل أدواره.
+ * استشاري المشروع له نفس صلاحيات مدير الشركة (إدارة الفريق، اعتماد الشراء، تعديل سجلات الآخرين).
+ */
+export function accessFor(roleOrRoles: Role | Role[] | null, isSystemAdmin: boolean): Access {
+  const list: Role[] = isSystemAdmin ? ['admin'] : Array.isArray(roleOrRoles) ? roleOrRoles : roleOrRoles ? [roleOrRoles] : [];
+  const r: Role | null = list[0] ?? null;
+  const domains = readDomains(list);
+  const recordDomains = writeDomains(list);
+  const is = (...rs: Role[]) => list.some((x) => rs.includes(x));
+  const writer = list.some((x) => x !== 'executive');
+  const canRead = (d: string | null | undefined) => list.length > 0 && (d === 'general' || domains.includes(d as Domain));
+  const canRecord = (d: string | null | undefined) => writer && (d === 'general' || recordDomains.includes(d as Domain));
   return {
     role: r,
+    roles: list,
     isSystemAdmin,
     full: is(...FULL_ROLES),
     domains,
@@ -137,14 +156,28 @@ export function accessFor(role: Role | null, isSystemAdmin: boolean): Access {
     canRecord,
     record: FIELD_DOMAINS.some((d) => recordDomains.includes(d)),
     manage: is('admin', 'farm_manager', 'consultant'),
-    invite: is('admin', 'farm_manager'),
+    invite: is('admin', 'farm_manager', 'consultant'),
     advise: is('admin', 'farm_manager', 'consultant'),
-    supervise: is('admin', 'farm_manager'),
+    supervise: is('admin', 'farm_manager', 'consultant'),
     admin: isSystemAdmin,
-    addCatalog: !!r && r !== 'executive',
-    upload: !!r && r !== 'executive',
-    approvePurchases: is('admin', 'farm_manager'),
+    addCatalog: writer,
+    upload: writer,
+    approvePurchases: is('admin', 'farm_manager', 'consultant'),
     store: domains.includes('store'),
-    requestPurchase: !!r && r !== 'executive',
+    requestPurchase: writer,
   };
+}
+
+/** ترتيب الأدوار من الأعلى للأدنى كما في شاشة الفريق، ثم الأساسي أولًا */
+export function splitRoles(picked: Role[]): { role: Role; extra: Role[] } | null {
+  const ordered = PROJECT_ROLES.filter((r) => picked.includes(r));
+  return ordered.length ? { role: ordered[0], extra: ordered.slice(1) } : null;
+}
+
+export function rolesOf(m: { role: string; extra_roles?: string[] | null }): Role[] {
+  return [m.role as Role, ...((m.extra_roles ?? []) as Role[])];
+}
+
+export function roleLabels(roles: Role[]): string {
+  return roles.map((r) => ROLE_LABEL[r]).join(' + ');
 }

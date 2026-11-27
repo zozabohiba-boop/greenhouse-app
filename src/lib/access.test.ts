@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { accessFor, ACTIVITY_DOMAIN } from './access';
+import { accessFor, ACTIVITY_DOMAIN, splitRoles } from './access';
 import { computeBalances } from './store';
 import { mixWarnings, groupsOf } from './mixing';
 import { indexRegistry, complianceFor, cropKey } from './catalog';
@@ -15,6 +15,28 @@ describe('access (لكل مقام مقال)', () => {
     const a = accessFor('farm_manager', false);
     expect(a.full && a.invite && a.manage && a.approvePurchases).toBe(true);
     expect(a.admin).toBe(false);
+  });
+  it('consultant has the same powers as the company manager', () => {
+    const c = accessFor('consultant', false);
+    const m = accessFor('farm_manager', false);
+    for (const k of ['full', 'invite', 'manage', 'advise', 'supervise', 'approvePurchases', 'addCatalog', 'upload', 'requestPurchase', 'store'] as const) expect(c[k]).toBe(m[k]);
+    expect(c.admin).toBe(false);
+  });
+  it('a member with several roles gets the union of their permissions', () => {
+    const a = accessFor(['scout', 'irrigation'], false);
+    expect(a.canRecord('ipm') && a.canRecord('fertigation')).toBe(true);
+    expect(a.canRecord('operations') || a.canRead('store') || a.full).toBe(false);
+    expect(a.roles).toEqual(['scout', 'irrigation']);
+    const s = accessFor(['storekeeper', 'purchasing'], false);
+    expect(s.canRecord('store') && s.canRecord('purchasing')).toBe(true);
+    // «متابعة فقط» مع دور ميداني: يقرأ الكل ويسجّل في مجال الدور الميداني فقط
+    const e = accessFor(['executive', 'scout'], false);
+    expect(e.full && e.canRead('fertigation') && e.canRecord('ipm') && !e.canRecord('fertigation')).toBe(true);
+    expect(accessFor(['executive'], false).record).toBe(false);
+  });
+  it('splitRoles picks the highest role as primary', () => {
+    expect(splitRoles(['purchasing', 'storekeeper', 'scout'])).toEqual({ role: 'scout', extra: ['storekeeper', 'purchasing'] });
+    expect(splitRoles([])).toBeNull();
   });
   it('specialist engineers only read/write their own domain', () => {
     const s = accessFor('scout', false);

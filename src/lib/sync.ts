@@ -226,7 +226,7 @@ async function refreshOnAccessChange(userId: string) {
     return;
   }
   const mem = await db.farm_members.where('user_id').equals(userId).toArray();
-  const fp = JSON.stringify({ sys: (sa ?? []).length > 0, m: mem.map((m) => `${m.farm_id}:${m.role}`).sort() });
+  const fp = JSON.stringify({ sys: (sa ?? []).length > 0, m: mem.map((m) => `${m.farm_id}:${m.role}:${(m.extra_roles ?? []).join(',')}`).sort() });
   const prev = await getMeta<string | null>('accessFingerprint', null);
   if (prev === fp) return;
   if (prev !== null) {

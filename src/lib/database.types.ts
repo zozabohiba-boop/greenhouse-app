@@ -778,6 +778,7 @@ export type Database = {
       }
       farm_invitations: {
         Row: {
+          extra_roles: Database["public"]["Enums"]["member_role"][]
           accepted_at: string | null
           accepted_user_id: string | null
           created_at: string
@@ -788,6 +789,7 @@ export type Database = {
           role: Database["public"]["Enums"]["member_role"]
         }
         Insert: {
+          extra_roles?: Database["public"]["Enums"]["member_role"][]
           accepted_at?: string | null
           accepted_user_id?: string | null
           created_at?: string
@@ -798,6 +800,7 @@ export type Database = {
           role: Database["public"]["Enums"]["member_role"]
         }
         Update: {
+          extra_roles?: Database["public"]["Enums"]["member_role"][]
           accepted_at?: string | null
           accepted_user_id?: string | null
           created_at?: string
@@ -819,18 +822,21 @@ export type Database = {
       }
       farm_members: {
         Row: {
+          extra_roles: Database["public"]["Enums"]["member_role"][]
           created_at: string
           farm_id: string
           role: Database["public"]["Enums"]["member_role"]
           user_id: string
         }
         Insert: {
+          extra_roles?: Database["public"]["Enums"]["member_role"][]
           created_at?: string
           farm_id: string
           role: Database["public"]["Enums"]["member_role"]
           user_id: string
         }
         Update: {
+          extra_roles?: Database["public"]["Enums"]["member_role"][]
           created_at?: string
           farm_id?: string
           role?: Database["public"]["Enums"]["member_role"]

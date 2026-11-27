@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp } from '../app/context';
-import { PROJECT_ROLES, ROLE_HINT, ROLE_LABEL, type Role } from '../lib/access';
+import { PROJECT_ROLES, ROLE_HINT, ROLE_LABEL, rolesOf, splitRoles, type Role } from '../lib/access';
 import { db } from '../lib/db';
 import { supabase } from '../lib/supabase';
 import { syncNow } from '../lib/sync';
@@ -15,7 +15,7 @@ import type { Row } from '../lib/schema';
 
 const ERR: Record<string, string> = {
   bad_email: 'البريد الإلكتروني غير صحيح',
-  bad_role: 'الدور غير متاح',
+  bad_role: 'اختر دورًا واحدًا على الأقل من الأدوار المتاحة',
   forbidden: 'ليس لديك صلاحية لهذا الإجراء',
   not_member: 'المستخدم ليس عضوًا في هذا المشروع',
   cannot_remove_self: 'لا يمكنك إلغاء صلاحيتك بنفسك',
@@ -108,6 +108,7 @@ export function Team() {
               <li key={m.user_id} className="list-item">
                 <span className="grow">
                   <b>{p?.full_name || p?.email || 'عضو'}</b>{m.user_id === user?.id && <span className="chip" style={{ marginInlineStart: 8 }}>أنت</span>}
+                  {(m.extra_roles ?? []).map((x) => <span key={x} className="chip info" style={{ marginInlineStart: 6 }}>{ROLE_LABEL[x as Role]}</span>)}
                   <p className="muted num" style={{ fontSize: 'var(--fs-sm)' }}>{p?.email}</p>
                 </span>
                 {m.user_id !== user?.id && (
@@ -151,18 +152,21 @@ export function SecretSheet({ secret, onClose }: { secret: { email: string; pass
   );
 }
 
-function RolePicker({ value, onChange }: { value: Role; onChange: (r: Role) => void }) {
+/** اختيار دور أو أكثر للعضو: الصلاحية = اتحاد كل الأدوار المختارة */
+function RolePicker({ value, onChange }: { value: Role[]; onChange: (r: Role[]) => void }) {
+  const toggle = (r: Role) => onChange(value.includes(r) ? value.filter((x) => x !== r) : [...value, r]);
   return (
     <div className="field">
-      <span>الدور</span>
+      <span>الأدوار <small className="muted">(ممكن تختار أكتر من دور)</small></span>
       <div className="list panel role-pick">
         {PROJECT_ROLES.map((r) => (
           <label key={r} className="list-item" style={{ minHeight: 56, cursor: 'pointer' }}>
-            <input type="radio" name="role" checked={value === r} onChange={() => onChange(r)} style={{ width: 22, height: 22 }} />
+            <input type="checkbox" name="role" checked={value.includes(r)} onChange={() => toggle(r)} style={{ width: 22, height: 22 }} />
             <span className="grow"><b>{ROLE_LABEL[r]}</b><p className="muted" style={{ fontSize: 'var(--fs-sm)' }}>{ROLE_HINT[r]}</p></span>
           </label>
         ))}
       </div>
+      {value.length === 0 && <small className="scan-issue">اختر دورًا واحدًا على الأقل</small>}
     </div>
   );
 }
@@ -170,7 +174,7 @@ function RolePicker({ value, onChange }: { value: Role; onChange: (r: Role) => v
 function AddMember({ farmId, onClose, onDone }: { farmId: string; onClose: () => void; onDone: (email: string, password: string | null) => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<Role>('scout');
+  const [roles, setRoles] = useState<Role[]>(['scout']);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   return (
@@ -178,16 +182,16 @@ function AddMember({ farmId, onClose, onDone }: { farmId: string; onClose: () =>
       <form className="form" onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true); setErr(null);
-        const r = await callTeam({ action: 'create_member', farm_id: farmId, email, role, full_name: name });
+        const r = await callTeam({ action: 'create_member', farm_id: farmId, email, roles, full_name: name });
         setBusy(false);
         if (r.error) setErr(r.error); else onDone(email.trim().toLowerCase(), r.temp_password ?? null);
       }}>
         <Field label="الاسم"><input className="input" value={name} onChange={(e) => setName(e.target.value)} required /></Field>
         <Field label="البريد الإلكتروني"><input className="input ltr" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></Field>
-        <RolePicker value={role} onChange={setRole} />
+        <RolePicker value={roles} onChange={setRoles} />
         {err && <p className="form-error" role="alert">{err}</p>}
         <div className="form-actions">
-          <button className="btn primary" disabled={busy}>{busy ? 'جاري الإنشاء…' : 'إنشاء الحساب'}</button>
+          <button className="btn primary" disabled={busy || roles.length === 0}>{busy ? 'جاري الإنشاء…' : 'إنشاء الحساب'}</button>
           <button type="button" className="btn" onClick={onClose}>إلغاء</button>
         </div>
       </form>
@@ -197,7 +201,8 @@ function AddMember({ farmId, onClose, onDone }: { farmId: string; onClose: () =>
 
 function EditMember({ item, farmId, onClose, onPassword }: { item: { m: Row<'farm_members'>; p?: Row<'profiles'> }; farmId: string; onClose: () => void; onPassword: (p: string) => void }) {
   const { toast } = useApp();
-  const [role, setRole] = useState<Role>(item.m.role as Role);
+  const [roles, setRoles] = useState<Role[]>(rolesOf(item.m));
+  const same = roles.length === rolesOf(item.m).length && roles.every((r) => rolesOf(item.m).includes(r));
   const [err, setErr] = useState<string | null>(null);
   const online = async (fn: () => Promise<{ error: { message: string } | null }>, ok: string) => {
     if (!navigator.onLine) return setErr('يحتاج اتصال بالإنترنت');
@@ -210,11 +215,15 @@ function EditMember({ item, farmId, onClose, onPassword }: { item: { m: Row<'far
   return (
     <Sheet title={item.p?.full_name || item.p?.email || 'عضو'} onClose={onClose}>
       <div className="form">
-        <RolePicker value={role} onChange={setRole} />
+        <RolePicker value={roles} onChange={setRoles} />
         {err && <p className="form-error">{err}</p>}
         <div className="form-actions">
-          <button className="btn primary" disabled={role === item.m.role}
-            onClick={() => online(async () => await supabase.from('farm_members').update({ role }).eq('farm_id', farmId).eq('user_id', item.m.user_id), 'تم تغيير الدور')}>حفظ الدور</button>
+          <button className="btn primary" disabled={same || roles.length === 0}
+            onClick={() => {
+              const sp = splitRoles(roles);
+              if (!sp) return;
+              void online(async () => await supabase.from('farm_members').update({ role: sp.role, extra_roles: sp.extra }).eq('farm_id', farmId).eq('user_id', item.m.user_id), 'تم حفظ الأدوار');
+            }}>حفظ الأدوار</button>
           <button className="btn" onClick={async () => {
             const r = await callTeam({ action: 'reset_password', farm_id: farmId, user_id: item.m.user_id });
             if (r.error || !r.temp_password) setErr(r.error ?? 'تعذر'); else onPassword(r.temp_password);

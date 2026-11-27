@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useApp, ROLE_LABEL } from '../app/context';
-import type { Role } from '../lib/access';
+import { useApp } from '../app/context';
+import { rolesOf, roleLabels, type Role } from '../lib/access';
 import { db } from '../lib/db';
 import { alive } from '../lib/repo';
 import { formatDate, isoWeek, todayLocal, weekBounds } from '../lib/dates';
@@ -15,7 +15,7 @@ import type { Row } from '../lib/schema';
 
 interface Card {
   f: Row<'farms'>;
-  role: Row<'farm_members'>['role'];
+  roles: Role[];
   location: string | null;
   ghs: number;
   crops: string[];
@@ -30,9 +30,9 @@ interface Card {
 export function useProjects(userId: string | undefined, isSystemAdmin = false) {
   return useLiveQuery(async () => {
     if (!userId) return [];
-    const mem: { farm_id: string; role: Row<'farm_members'>['role'] }[] = isSystemAdmin
-      ? (await db.farms.toArray()).filter((f) => !f.deleted_at).map((f) => ({ farm_id: f.id, role: 'admin' as const }))
-      : await db.farm_members.where('user_id').equals(userId).toArray();
+    const mem: { farm_id: string; roles: Role[] }[] = isSystemAdmin
+      ? (await db.farms.toArray()).filter((f) => !f.deleted_at).map((f) => ({ farm_id: f.id, roles: ['admin'] as Role[] }))
+      : (await db.farm_members.where('user_id').equals(userId).toArray()).map((m) => ({ farm_id: m.farm_id, roles: rolesOf(m) }));
     const today = todayLocal();
     const { start, end } = weekBounds(today);
     const [crops, profiles] = await Promise.all([db.crops.toArray(), db.farm_profiles.toArray()]);
@@ -58,7 +58,7 @@ export function useProjects(userId: string | undefined, isSystemAdmin = false) {
       const lastAct = acts.filter(alive).map((a) => a.performed_on).sort().pop() ?? null;
       const prof = profiles.find((p) => p.farm_id === f.id && alive(p));
       out.push({
-        f, role: m.role,
+        f, roles: m.roles,
         location: f.location_text ?? prof?.address ?? null,
         ghs: liveGh.length,
         crops: [...new Set(active.map((c) => cropName.get(c.crop_id)).filter((x): x is string => !!x))],
@@ -96,7 +96,7 @@ export function ProjectsBoard({ canCreate }: { canCreate?: boolean }) {
             onClick={() => { setFarmId(c.f.id); nav('/'); }}>
             <span className="proj-top">
               <b>{c.f.name}</b>
-              <span className="chip">{ROLE_LABEL[c.role as Role]}</span>
+              <span className="chip">{roleLabels(c.roles)}</span>
             </span>
             {c.location && <span className="muted proj-loc"><Icon name="pin" size={14} /> {c.location}</span>}
             <span className="proj-crops">{c.ghs} صوبة{c.crops.length ? `، ${c.crops.join('، ')}` : ''}</span>

@@ -1,6 +1,6 @@
 // Edge Function: team-admin
 // إدارة الحسابات من داخل التطبيق (التسجيل العام مقفول):
-//   create_member        مدير النظام / مدير المشروع: إضافة عضو لمشروع بكلمة مرور مؤقتة
+//   create_member        مدير النظام / مدير المشروع: إضافة عضو لمشروع بكلمة مرور مؤقتة (roles = دور أو أكثر)
 //   reset_password       مدير النظام (أي مستخدم) / مدير المشروع (أعضاء مشروعه): كلمة مرور مؤقتة جديدة
 //   dismiss_reset        إغلاق طلب "نسيت كلمة المرور" بدون إعادة تعيين
 //   add_system_admin     مدير نظام يضيف مدير نظام (ينشئ الحساب لو مش موجود)
@@ -59,10 +59,12 @@ Deno.serve(async (req) => {
     const { data } = await admin.from('system_admins').select('id').eq('user_id', userId).is('deleted_at', null).maybeSingle();
     return !!data;
   };
-  const roleIn = async (farmId: string, userId: string): Promise<Role | null> => {
-    const { data } = await admin.from('farm_members').select('role').eq('farm_id', farmId).eq('user_id', userId).maybeSingle();
-    return (data?.role as Role | undefined) ?? null;
+  /** كل أدوار المستخدم في المشروع (الأساسي + الإضافية) */
+  const rolesIn = async (farmId: string, userId: string): Promise<Role[]> => {
+    const { data } = await admin.from('farm_members').select('role, extra_roles').eq('farm_id', farmId).eq('user_id', userId).maybeSingle();
+    return data ? [data.role as Role, ...((data.extra_roles ?? []) as Role[])] : [];
   };
+  const canManage = (roles: Role[]) => roles.includes('admin') || roles.includes('farm_manager') || roles.includes('consultant');
   const meSys = await isSysAdmin(me.user.id);
 
   /** ينشئ الحساب لو مش موجود ويرجّع (id, كلمة المرور المؤقتة أو null لو الحساب موجود) */
@@ -98,18 +100,22 @@ Deno.serve(async (req) => {
     if (action === 'create_member') {
       const farmId = String(body.farm_id ?? '');
       if (!isUuid(farmId)) return json({ error: 'bad_farm' }, 400);
-      const myRole = meSys ? 'admin' : await roleIn(farmId, me.user.id);
-      if (myRole !== 'admin' && myRole !== 'farm_manager') return json({ error: 'forbidden' }, 403);
+      const myRoles: Role[] = meSys ? ['admin'] : await rolesIn(farmId, me.user.id);
+      if (!canManage(myRoles)) return json({ error: 'forbidden' }, 403);
       const email = String(body.email ?? '').trim().toLowerCase();
-      const role = String(body.role ?? '') as Role;
+      // أكثر من دور للعضو: roles (مصفوفة) أو role (قديم). الأساسي = الأعلى ترتيبًا في ROLES والباقي إضافية
+      const asked = Array.isArray(body.roles) ? body.roles.map(String) : [String(body.role ?? '')];
+      const picked = ROLES.filter((r) => asked.includes(r));
+      if (!picked.length || asked.some((r) => !(ROLES as readonly string[]).includes(r))) return json({ error: 'bad_role' }, 400);
+      const role = picked[0] as Role;
+      const extraRoles = picked.slice(1);
       const fullName = String(body.full_name ?? '').trim() || null;
       if (!isEmail(email)) return json({ error: 'bad_email' }, 400);
-      if (!(ROLES as readonly string[]).includes(role)) return json({ error: 'bad_role' }, 400);
 
       const acc = await ensureAccount(email, fullName);
       // الدعوة تربط الحساب بالمشروع فورًا (trigger على farm_invitations)
       const { error: iErr } = await admin.from('farm_invitations').upsert(
-        { farm_id: farmId, email, role, invited_by: me.user.id, accepted_at: null, accepted_user_id: null },
+        { farm_id: farmId, email, role, extra_roles: extraRoles, invited_by: me.user.id, accepted_at: null, accepted_user_id: null },
         { onConflict: 'farm_id,email' },
       );
       if (iErr) return json({ error: 'invite_failed', detail: iErr.message }, 500);
@@ -126,10 +132,9 @@ Deno.serve(async (req) => {
         // مدير المشروع: لأعضاء مشروعه فقط، وليس لمديري النظام
         const farmId = String(body.farm_id ?? '');
         if (!isUuid(farmId)) return json({ error: 'bad_farm' }, 400);
-        const myRole = await roleIn(farmId, me.user.id);
-        if (myRole !== 'admin' && myRole !== 'farm_manager') return json({ error: 'forbidden' }, 403);
-        const targetRole = await roleIn(farmId, userId);
-        if (!targetRole || targetRole === 'admin' || (await isSysAdmin(userId))) return json({ error: 'not_member' }, 404);
+        if (!canManage(await rolesIn(farmId, me.user.id))) return json({ error: 'forbidden' }, 403);
+        const targetRoles = await rolesIn(farmId, userId);
+        if (!targetRoles.length || targetRoles.includes('admin') || (await isSysAdmin(userId))) return json({ error: 'not_member' }, 404);
       }
       return json({ ok: true, temp_password: await resetUser(userId) });
     }

@@ -771,10 +771,12 @@ try {
   await mp.click('button:has-text("إضافة عضو")');
   await mp.fill('.sheet label:has-text("الاسم") input', 'أمين مخزن جديد');
   await mp.fill('.sheet label:has-text("البريد الإلكتروني") input', 'store2@test.local');
+  await mp.click('.sheet .role-pick label:has-text("مهندس مكافحة")'); // الافتراضي مختار؛ نلغيه
   await mp.click('.sheet .role-pick label:has-text("أمين المخزن")');
+  await mp.click('.sheet .role-pick label:has-text("مسؤول المشتريات")'); // دور ثانٍ للعضو نفسه
   await mp.click('.sheet button:has-text("إنشاء الحساب")');
   const pw2 = (await mp.locator('[data-testid="temp-password"]').textContent())?.trim();
-  ok(!!pw2 && sql("select m.role from farm_members m join profiles p on p.id = m.user_id where p.email = 'store2@test.local'") === 'storekeeper', 'مدير الشركة أضاف أمين مخزن بكلمة مرور مؤقتة');
+  ok(!!pw2 && sql("select m.role || '/' || m.extra_roles::text from farm_members m join profiles p on p.id = m.user_id where p.email = 'store2@test.local'") === 'storekeeper/{purchasing}', 'مدير الشركة أضاف عضوًا بدورين (أمين مخزن + مسؤول مشتريات) بكلمة مرور مؤقتة');
   await mp.click('.sheet button:has-text("تم")');
 
   // أمين المخزن: استلام وصرف بالتشغيلة، ورفض صرف أكبر من الرصيد، ووزن الحصاد مع فترة الأمان

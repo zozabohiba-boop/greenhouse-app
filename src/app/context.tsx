@@ -5,7 +5,7 @@ import { db, getMeta, setMeta } from '../lib/db';
 import { setCurrentUser } from '../lib/repo';
 import { pendingSummary, startAutoSync, syncNow } from '../lib/sync';
 import type { Row } from '../lib/schema';
-import { accessFor, ROLE_LABEL, type Access, type Role } from '../lib/access';
+import { accessFor, rolesOf, ROLE_LABEL, type Access, type Role } from '../lib/access';
 
 export { ROLE_LABEL };
 
@@ -27,6 +27,7 @@ interface AppCtx {
   setFarmId: (id: string | null) => void;
   farm: Row<'farms'> | undefined;
   role: Role | null;
+  roles: Role[];
   /** مدير نظام: كل المشاريع */
   isSystemAdmin: boolean;
   can: Access;
@@ -160,8 +161,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [user?.id],
   );
   const isSystemAdmin = (sysRows ?? 0) > 0;
-  const role: Role | null = isSystemAdmin ? 'admin' : (membership?.role as Role | undefined) ?? null;
-  const can = useMemo(() => accessFor(role, isSystemAdmin), [role, isSystemAdmin]);
+  const roles: Role[] = useMemo(
+    () => (isSystemAdmin ? ['admin'] : membership ? rolesOf(membership) : []),
+    [isSystemAdmin, membership],
+  );
+  const role: Role | null = roles[0] ?? null;
+  const can = useMemo(() => accessFor(roles, isSystemAdmin), [roles, isSystemAdmin]);
 
   const value = useMemo<AppCtx>(
     () => ({
@@ -174,12 +179,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setFarmId,
       farm,
       role,
+      roles,
       isSystemAdmin,
       can,
       changePassword,
       toast,
     }),
-    [ready, user, hasLiveSession, signIn, signOut, farmId, setFarmId, farm, role, isSystemAdmin, can, changePassword, toast],
+    [ready, user, hasLiveSession, signIn, signOut, farmId, setFarmId, farm, role, roles, isSystemAdmin, can, changePassword, toast],
   );
 
   return (

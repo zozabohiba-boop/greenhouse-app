@@ -73,7 +73,7 @@ export function useGreenhouseBoard(farmId: string | null) {
 }
 
 export function Home() {
-  const { farmId, can, role } = useApp();
+  const { farmId, can, role, roles } = useApp();
   const board = useGreenhouseBoard(farmId);
   const overview = useOverview(farmId, !can.full).data;
   const ov = new Map((overview?.greenhouses ?? []).map((x) => [x.id, x]));
@@ -103,21 +103,21 @@ export function Home() {
       </div>
 
       {!can.full && role && (
-        <div className="role-strip"><Icon name="worker" size={20} /> <b>{ROLE_LABEL[role]}</b><span className="muted">{ROLE_HINT[role]}</span></div>
+        <div className="role-strip"><Icon name="worker" size={20} /> <b>{roles.map((r) => ROLE_LABEL[r]).join(' + ')}</b><span className="muted">{roles.map((r) => ROLE_HINT[r]).join(' ')}</span></div>
       )}
 
       <WeatherStrip />
 
       <div className="actions">
         {can.canRecord('operations') && (
-          <Link to="/register" className={`action${can.full || role === 'operations' ? ' primary' : ''}`}>
+          <Link to="/register" className={`action${can.full || roles.includes('operations') ? ' primary' : ''}`}>
             <span className="ico"><Icon name="ruler" size={28} /></span>
             <b>تسجيل المحصول</b>
             <small>القياسات الأسبوعية للنباتات المرجعية</small>
           </Link>
         )}
         {can.canRecord('ipm') && (
-          <Link to="/scout" className={`action${role === 'scout' ? ' primary' : ''}`}>
+          <Link to="/scout" className={`action${roles.includes('scout') ? ' primary' : ''}`}>
             <span className="ico"><Icon name="bug" size={28} /></span>
             <b>الفحص الحشري</b>
             <small>{board ? `فُحصت ${scouted} من ${board.length} صوبة هذا الأسبوع` : 'الآفات والأمراض والبؤر'}</small>
@@ -138,7 +138,7 @@ export function Home() {
           </Link>
         )}
         {!can.full && can.canRecord('fertigation') && (
-          <Link to="/activities?domain=fertigation" className={`action${role === 'irrigation' ? ' primary' : ''}`}>
+          <Link to="/activities?domain=fertigation" className={`action${roles.includes('irrigation') ? ' primary' : ''}`}>
             <span className="ico"><Icon name="drop" size={28} /></span>
             <b>الري والتسميد</b>
             <small>الحقن بالري والتغذية الورقية</small>
@@ -152,14 +152,14 @@ export function Home() {
           </Link>
         )}
         {can.store && (
-          <Link to="/store" className={`action${role === 'storekeeper' ? ' primary' : ''}`}>
+          <Link to="/store" className={`action${roles.includes('storekeeper') ? ' primary' : ''}`}>
             <span className="ico"><Icon name="store" size={28} /></span>
             <b>المخزن والحصاد</b>
             <small>الرصيد والاستلام والصرف ووزن الحصاد</small>
           </Link>
         )}
         {can.requestPurchase && (
-          <Link to="/purchases" className={`action${role === 'purchasing' ? ' primary' : ''}`}>
+          <Link to="/purchases" className={`action${roles.includes('purchasing') ? ' primary' : ''}`}>
             <span className="ico"><Icon name="cart" size={28} /></span>
             <b>{can.canRead('purchasing') ? 'المشتريات' : 'طلب شراء'}</b>
             <small>{can.approvePurchases ? 'الطلبات والاعتماد والمتابعة' : can.canRead('purchasing') ? 'الطلبات حتى الاستلام' : 'اطلب مواد أو مستلزمات لمجالك'}</small>

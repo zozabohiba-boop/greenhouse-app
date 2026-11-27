@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useApp, ROLE_LABEL } from '../app/context';
+import { useApp } from '../app/context';
+import { roleLabels } from '../lib/access';
 import { db } from '../lib/db';
 import { SyncPill } from './Sync';
 import { Sheet } from './Sheet';
@@ -11,7 +12,7 @@ import { ChangePassword } from '../screens/Team';
 import { NewFarmSheet } from '../screens/Farm';
 
 export function Shell() {
-  const { farm, role, user } = useApp();
+  const { farm, roles, user } = useApp();
   const [menu, setMenu] = useState(false);
   return (
     <div className="shell">
@@ -20,7 +21,7 @@ export function Shell() {
           <img src="./icons/icon-192.png" alt="" />
           <span>
             <b>{farm?.name ?? 'Greenhouse Assistant'}</b>
-            <small>{role ? ROLE_LABEL[role] : user?.email}</small>
+            <small>{roles.length ? roleLabels(roles) : user?.email}</small>
           </span>
         </Link>
         <span className="spacer" />
