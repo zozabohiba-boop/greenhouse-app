@@ -790,3 +790,32 @@ tr.clickable:hover td { background: var(--surface-2); }
 .pr-meta { margin: 0; font-size: var(--fs-sm); }
 .pr-actions { gap: 8px; }
 .pr-actions:empty { display: none; }
+
+/* تصوير العبوة */
+.scan-tips { align-items: flex-start; }
+.scan-tips ul { margin: 6px 0 0; padding-inline-start: 18px; font-weight: 400; }
+.scan-tips li { margin-bottom: 3px; }
+.scan-slots { display: grid; gap: 10px; margin-bottom: 12px; }
+.scan-slot { display: flex; gap: 12px; padding: 10px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
+.scan-slot.good { border-color: var(--leaf-press); }
+.scan-slot.warn { border-color: var(--amber); }
+.scan-slot.bad { border-color: var(--tomato); }
+.scan-thumb { position: relative; flex: 0 0 96px; height: 120px; border: 1px dashed var(--line-strong); border-radius: var(--r-md); background: var(--surface-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; overflow: hidden; color: var(--ink-2); padding: 0; cursor: pointer; }
+.scan-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.scan-busy { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.8); display: flex; align-items: center; justify-content: center; font-size: var(--fs-xs); }
+.scan-slot-body { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-width: 0; }
+.scan-issue { color: var(--tomato); }
+.scan-slot-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.scan-note { font-size: var(--fs-xs); margin: 10px 0; }
+.scan-progress { display: flex; flex-direction: column; gap: 10px; align-items: stretch; padding: 12px 0; }
+.scan-progress progress { width: 100%; height: 12px; }
+.scan-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+.scan-table th { text-align: start; font-weight: 600; color: var(--ink-2); width: 34%; vertical-align: top; }
+.scan-table th, .scan-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); }
+.scan-cands { border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 12px; margin: 0 0 12px; }
+.scan-cand { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; }
+.scan-cand small { display: block; }
+.scan-raw { margin-bottom: 12px; }
+.scan-raw pre { white-space: pre-wrap; max-height: 200px; overflow: auto; background: var(--surface-2); padding: 8px; border-radius: var(--r-sm, 8px); font-size: var(--fs-xs); }
+.scanned-field input, .scanned-field select, .scanned-field textarea { background: var(--teal-soft); }
+.scan-open { width: 100%; margin-bottom: 14px; justify-content: center; }

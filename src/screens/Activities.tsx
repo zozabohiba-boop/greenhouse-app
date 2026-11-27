@@ -18,6 +18,8 @@ import {
   PRODUCT_TYPE_LABEL, PRODUCT_TYPES_FOR,
 } from '../lib/labels';
 import { Field, numStr, toNum } from '../components/Field';
+import { ScanLabel } from '../components/ScanLabel';
+import type { ScanFields } from '../lib/scan/match';
 import { Icon } from '../components/Icon';
 import { doseText, repeatedMoa } from '../lib/advice';
 import { Sheet } from '../components/Sheet';
@@ -945,14 +947,53 @@ export function ProductSheet({ farmId, existing, base, defaultType, allowedTypes
     is_active: existing?.is_active ?? true,
   });
   const [err, setErr] = useState<string | null>(null);
+  const [scanOpen, setScanOpen] = useState(false);
+  const [scanned, setScanned] = useState<Set<string>>(new Set());
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((x) => ({ ...x, [k]: v }));
   const bio = f.product_type === 'biocontrol_agent' || f.product_type === 'pollinator';
   const chemical = !bio && f.product_type !== 'fertilizer';
   const types = allowedTypes?.length ? allowedTypes : (Object.keys(PRODUCT_TYPE_LABEL) as Product['product_type'][]);
+  /** يملأ النموذج من نتيجة مسح العبوة (يكتب فوق ما هو فارغ فقط، ولا يلمس ما كتبه المهندس) */
+  const applyScan = (s: ScanFields) => {
+    const done = new Set<string>();
+    setF((x) => {
+      const n = { ...x };
+      const take = <K extends keyof typeof x>(k: K, v: (typeof x)[K] | undefined, force = false) => {
+        if (v == null || v === '') return;
+        const cur = x[k];
+        if (!force && cur != null && cur !== '' && cur !== false) return;
+        n[k] = v; done.add(String(k));
+      };
+      take('name', s.name);
+      if (s.product_type && (!allowedTypes?.length || allowedTypes.includes(s.product_type))) take('product_type', s.product_type, true);
+      take('active_ingredient', s.active_ingredient);
+      take('concentration', s.concentration);
+      take('moa_code', s.moa_code);
+      take('phi_days', s.phi_days != null ? String(s.phi_days) : undefined);
+      take('bio_species', s.bio_species);
+      take('default_dose', s.default_dose != null ? String(s.default_dose) : undefined);
+      take('default_dose_unit', s.default_dose_unit);
+      take('targets', s.targets);
+      take('manufacturer', s.manufacturer);
+      take('eg_reg_no', s.eg_reg_no);
+      take('eg_registered_crops', s.eg_registered_crops);
+      take('notes', s.notes);
+      if (s.is_bio) take('is_bio', true, true);
+      return n;
+    });
+    setScanned(done);
+    setScanOpen(false);
+    toast('تمت التعبئة من العبوة — راجع كل حقل قبل الحفظ');
+  };
+  const flag = (k: string) => scanned.has(k);
 
   return (
     <Sheet title={existing ? 'تعديل مادة' : base ? `تخصيص ${base.name} للمزرعة` : 'مادة جديدة'} onClose={onClose}>
       {base && <p className="banner info">تُحفظ نسخة خاصة بالمزرعة تحل محل مادة الكتالوج العام في القوائم والتوصيات. سجّل فترة الأمان والجرعة من ملصق العبوة المسجلة.</p>}
+      {!existing && !base && (
+        <button type="button" className="btn scan-open" onClick={() => setScanOpen(true)}><Icon name="camera" /> تصوير العبوة وتعبئة البيانات</button>
+      )}
+      {scanned.size > 0 && <p className="banner info"><Icon name="info" size={18} /> الحقول المظللة اتعبّت من العبوة — راجعها قبل الحفظ.</p>}
       <form className="form" onSubmit={async (e) => {
         e.preventDefault();
         const name = f.name.trim();
@@ -993,46 +1034,46 @@ export function ProductSheet({ farmId, existing, base, defaultType, allowedTypes
             }))} />
         )}
         <div className="form-grid tight">
-          <Field label="الاسم التجاري"><input className="input" value={f.name} onChange={(e) => set('name', e.target.value)} autoFocus /></Field>
-          <Field label="النوع">
+          <Field label="الاسم التجاري" flag={flag('name')}><input className="input" value={f.name} onChange={(e) => set('name', e.target.value)} autoFocus /></Field>
+          <Field label="النوع" flag={flag('product_type')}>
             <select className="select" value={f.product_type} onChange={(e) => set('product_type', e.target.value as Product['product_type'])}>
               {types.map((t) => <option key={t} value={t}>{PRODUCT_TYPE_LABEL[t]}</option>)}
             </select>
           </Field>
           {bio ? (
-            <Field label="النوع العلمي"><input className="input ltr" value={f.bio_species} onChange={(e) => set('bio_species', e.target.value)} /></Field>
+            <Field label="النوع العلمي" flag={flag('bio_species')}><input className="input ltr" value={f.bio_species} onChange={(e) => set('bio_species', e.target.value)} /></Field>
           ) : (
             <>
-              <Field label="المادة الفعالة"><input className="input" value={f.active_ingredient} onChange={(e) => set('active_ingredient', e.target.value)} /></Field>
-              <Field label="التركيز والمستحضر" hint="مثل 1.8% EC"><input className="input ltr" value={f.concentration} onChange={(e) => set('concentration', e.target.value)} /></Field>
+              <Field label="المادة الفعالة" flag={flag('active_ingredient')}><input className="input" value={f.active_ingredient} onChange={(e) => set('active_ingredient', e.target.value)} /></Field>
+              <Field label="التركيز والمستحضر" flag={flag('concentration')} hint="مثل 1.8% EC"><input className="input ltr" value={f.concentration} onChange={(e) => set('concentration', e.target.value)} /></Field>
             </>
           )}
           {chemical && (
             <>
-              <Field label="مجموعة IRAC / FRAC" hint="مثل 6 أو 4A أو M5"><input className="input ltr" value={f.moa_code} onChange={(e) => set('moa_code', e.target.value)} /></Field>
-              <Field label="فترة الأمان (يوم)"><input className="input ltr" inputMode="numeric" value={f.phi_days} onChange={(e) => set('phi_days', e.target.value)} /></Field>
+              <Field label="مجموعة IRAC / FRAC" flag={flag('moa_code')} hint="مثل 6 أو 4A أو M5"><input className="input ltr" value={f.moa_code} onChange={(e) => set('moa_code', e.target.value)} /></Field>
+              <Field label="فترة الأمان (يوم)" flag={flag('phi_days')}><input className="input ltr" inputMode="numeric" value={f.phi_days} onChange={(e) => set('phi_days', e.target.value)} /></Field>
               <Field label="منع الدخول (ساعة)"><input className="input ltr" inputMode="numeric" value={f.rei_hours} onChange={(e) => set('rei_hours', e.target.value)} /></Field>
-              <Field label="رقم التسجيل (لجنة المبيدات)"><input className="input ltr" value={f.eg_reg_no} onChange={(e) => set('eg_reg_no', e.target.value)} /></Field>
-              <Field label="المحاصيل المسجّل عليها"><input className="input" value={f.eg_registered_crops} onChange={(e) => set('eg_registered_crops', e.target.value)} /></Field>
+              <Field label="رقم التسجيل (لجنة المبيدات)" flag={flag('eg_reg_no')}><input className="input ltr" value={f.eg_reg_no} onChange={(e) => set('eg_reg_no', e.target.value)} /></Field>
+              <Field label="المحاصيل المسجّل عليها" flag={flag('eg_registered_crops')}><input className="input" value={f.eg_registered_crops} onChange={(e) => set('eg_registered_crops', e.target.value)} /></Field>
             </>
           )}
-          <Field label="الجرعة المعتادة" hint="تُملأ تلقائيًا عند التسجيل"><input className="input ltr" inputMode="decimal" value={f.default_dose} onChange={(e) => set('default_dose', e.target.value)} /></Field>
-          <Field label="وحدة الجرعة المعتادة">
+          <Field label="الجرعة المعتادة" flag={flag('default_dose')} hint="تُملأ تلقائيًا عند التسجيل"><input className="input ltr" inputMode="decimal" value={f.default_dose} onChange={(e) => set('default_dose', e.target.value)} /></Field>
+          <Field label="وحدة الجرعة المعتادة" flag={flag('default_dose_unit')}>
             <select className="select" value={f.default_dose_unit} onChange={(e) => set('default_dose_unit', e.target.value)}>
               <option value="">—</option>
               {Object.entries(DOSE_UNIT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </Field>
-          <Field label="الشركة"><input className="input" value={f.manufacturer} onChange={(e) => set('manufacturer', e.target.value)} /></Field>
+          <Field label="الشركة" flag={flag('manufacturer')}><input className="input" value={f.manufacturer} onChange={(e) => set('manufacturer', e.target.value)} /></Field>
         </div>
-        <Field label="الآفات المستهدفة / الاستخدام"><input className="input" value={f.targets} onChange={(e) => set('targets', e.target.value)} /></Field>
+        <Field label="الآفات المستهدفة / الاستخدام" flag={flag('targets')}><input className="input" value={f.targets} onChange={(e) => set('targets', e.target.value)} /></Field>
         {!bio && (
           <label className="toggle">
             <input type="checkbox" checked={f.is_bio} onChange={(e) => set('is_bio', e.target.checked)} />
             <span><b>منتج حيوي أو طبيعي</b><small>يظهر ضمن الخيارات الحيوية في التوصيات</small></span>
           </label>
         )}
-        <Field label="ملاحظات"><textarea className="textarea" value={f.notes} onChange={(e) => set('notes', e.target.value)} /></Field>
+        <Field label="ملاحظات" flag={flag('notes')}><textarea className="textarea" value={f.notes} onChange={(e) => set('notes', e.target.value)} /></Field>
         {existing && (
           <label className="toggle">
             <input type="checkbox" checked={f.is_active} onChange={(e) => set('is_active', e.target.checked)} />
@@ -1045,6 +1086,7 @@ export function ProductSheet({ farmId, existing, base, defaultType, allowedTypes
           <button className="btn" type="button" onClick={onClose}>إلغاء</button>
         </div>
       </form>
+    {scanOpen && <ScanLabel farmId={farmId} onApply={applyScan} onClose={() => setScanOpen(false)} />}
     </Sheet>
   );
 }

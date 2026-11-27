@@ -34,6 +34,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+        // ملفات قراءة العبوات (~10 ميجا) لا تدخل التخزين المسبق؛ تُحمَّل عند أول استخدام وتُحفظ بعدها
+        globIgnores: ['ocr/**'],
+        runtimeCaching: [
+          { urlPattern: ({ url }: { url: URL }) => url.pathname.includes('/ocr/'), handler: 'CacheFirst',
+            options: { cacheName: 'ocr-assets', expiration: { maxEntries: 10 }, cacheableResponse: { statuses: [200] } } },
+        ],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true
       }

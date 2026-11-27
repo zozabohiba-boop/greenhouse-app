@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
-export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function Field({ label, hint, flag, children }: { label: string; hint?: string; flag?: boolean; children: ReactNode }) {
   return (
-    <label className="field">
+    <label className={flag ? 'field scanned-field' : 'field'}>
       <span>{label}</span>
       {children}
       {hint && <small>{hint}</small>}
