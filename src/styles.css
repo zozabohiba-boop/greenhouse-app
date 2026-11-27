@@ -819,3 +819,13 @@ tr.clickable:hover td { background: var(--surface-2); }
 .scan-raw pre { white-space: pre-wrap; max-height: 200px; overflow: auto; background: var(--surface-2); padding: 8px; border-radius: var(--r-sm, 8px); font-size: var(--fs-xs); }
 .scanned-field input, .scanned-field select, .scanned-field textarea { background: var(--teal-soft); }
 .scan-open { width: 100%; margin-bottom: 14px; justify-content: center; }
+
+/* لوجو الشركة لكل مشروع */
+.logo-pick { display: flex; align-items: center; gap: 12px; }
+.logo-box { width: 72px; height: 72px; border: 1px solid var(--line); border-radius: var(--r-md); background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex: none; }
+.logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.logo-box b { font-size: 28px; color: var(--teal); }
+.logo-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.farm-mark { object-fit: contain; border-radius: 12px; background: #fff; padding: 2px; flex: none; }
+.farm-mark.fallback { display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: var(--teal); font-size: 20px; border: 1px solid var(--line); }
+.proj-top .farm-mark { margin-inline-end: 10px; }

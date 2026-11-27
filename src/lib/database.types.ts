@@ -1024,6 +1024,7 @@ export type Database = {
           deleted_at: string | null
           id: string
           location_text: string | null
+          logo_data: string | null
           name: string
           organization_id: string
           server_updated_at: string
@@ -1037,6 +1038,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           location_text?: string | null
+          logo_data?: string | null
           name: string
           organization_id: string
           server_updated_at?: string
@@ -1050,6 +1052,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           location_text?: string | null
+          logo_data?: string | null
           name?: string
           organization_id?: string
           server_updated_at?: string

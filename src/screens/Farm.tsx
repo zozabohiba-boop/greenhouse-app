@@ -11,6 +11,7 @@ import { parseCoords } from '../lib/weather';
 import { Field, numStr, toNum } from '../components/Field';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
+import { LogoPicker } from '../components/LogoPicker';
 import { useFarmProfile } from './Weather';
 import type { Row } from '../lib/schema';
 
@@ -104,7 +105,7 @@ function FarmProfileInner({ profile }: { profile: Row<'farm_profiles'> | null })
       <Link to="/" className="back"><Icon name="back" size={18} /> الرئيسية</Link>
       <div className="page-head">
         <div><h1>{farm?.name}</h1><p>{farm?.location_text || 'بيانات الموقع ومصادر المياه والإحداثيات'}</p></div>
-        {can.invite && <button className="btn" onClick={() => setRename(true)}><Icon name="edit" size={20} /> تعديل الاسم</button>}
+        {can.invite && <button className="btn" onClick={() => setRename(true)}><Icon name="edit" size={20} /> تعديل الاسم واللوجو</button>}
       </div>
 
       {stats && (
@@ -179,21 +180,23 @@ function RenameFarm({ onClose }: { onClose: () => void }) {
   const { farm, toast } = useApp();
   const [name, setName] = useState(farm?.name ?? '');
   const [location, setLocation] = useState(farm?.location_text ?? '');
+  const [logo, setLogo] = useState<string | null>(farm?.logo_data ?? null);
   const [err, setErr] = useState<string | null>(null);
   return (
-    <Sheet title="اسم الموقع" onClose={onClose}>
+    <Sheet title="اسم الموقع واللوجو" onClose={onClose}>
       <form className="form" onSubmit={async (e) => {
         e.preventDefault();
         if (!name.trim()) return setErr('الاسم مطلوب');
         if (!navigator.onLine) return setErr('تعديل الاسم يحتاج اتصال بالإنترنت');
-        const { error } = await supabase.from('farms').update({ name: name.trim(), location_text: location.trim() || null }).eq('id', farm!.id);
-        if (error) return setErr('تعذر الحفظ — تعديل الاسم لمدير النظام فقط');
+        const { error } = await supabase.from('farms').update({ name: name.trim(), location_text: location.trim() || null, logo_data: logo }).eq('id', farm!.id);
+        if (error) return setErr('تعذر الحفظ — التعديل لمدير المشروع أو الاستشاري فقط');
         await syncNow();
-        toast('تم تعديل الاسم');
+        toast('تم الحفظ');
         onClose();
       }}>
         <Field label="اسم الموقع"><input className="input" value={name} onChange={(e) => setName(e.target.value)} autoFocus /></Field>
         <Field label="المكان (المحافظة / المنطقة)"><input className="input" value={location} onChange={(e) => setLocation(e.target.value)} /></Field>
+        <LogoPicker value={logo} onChange={setLogo} name={name} />
         {err && <p className="form-error">{err}</p>}
         <div className="form-actions"><button className="btn primary">حفظ</button><button type="button" className="btn" onClick={onClose}>إلغاء</button></div>
       </form>
@@ -207,6 +210,7 @@ export function NewFarmSheet({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
+  const [logo, setLogo] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   return (
@@ -221,6 +225,7 @@ export function NewFarmSheet({ onClose }: { onClose: () => void }) {
           setBusy(false);
           return setErr(error?.code === '42501' ? 'إنشاء المواقع متاح لمدير النظام فقط' : 'تعذر إنشاء الموقع، حاول مرة أخرى');
         }
+        if (logo) await supabase.from('farms').update({ logo_data: logo }).eq('id', data as string);
         await syncNow();
         setFarmId(data as string);
         toast(`تم إنشاء ${name.trim()} — ابدأ بتحديد إحداثياته وتقسيمه`);
@@ -230,6 +235,7 @@ export function NewFarmSheet({ onClose }: { onClose: () => void }) {
         <p className="muted">كل موقع له صوبه وفريقه وملفاته المستقلة. ستكون مدير النظام فيه، وتقدر تضيف فريقه من «فريق العمل».</p>
         <Field label="اسم الموقع"><input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="مثل: موقع الصالحية — القطاع الشمالي" autoFocus /></Field>
         <Field label="المكان (المحافظة / المنطقة)"><input className="input" value={location} onChange={(e) => setLocation(e.target.value)} /></Field>
+        <LogoPicker value={logo} onChange={setLogo} name={name} />
         {err && <p className="form-error">{err}</p>}
         <div className="form-actions"><button className="btn primary" disabled={busy}>{busy ? 'جاري الإنشاء…' : 'إنشاء الموقع'}</button><button type="button" className="btn" onClick={onClose}>إلغاء</button></div>
       </form>

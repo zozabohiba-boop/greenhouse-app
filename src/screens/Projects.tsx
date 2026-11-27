@@ -6,6 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp } from '../app/context';
 import { rolesOf, roleLabels, type Role } from '../lib/access';
 import { db } from '../lib/db';
+import { FarmMark } from '../components/LogoPicker';
 import { alive } from '../lib/repo';
 import { formatDate, isoWeek, todayLocal, weekBounds } from '../lib/dates';
 import { SEVERITY } from '../lib/labels';
@@ -95,7 +96,8 @@ export function ProjectsBoard({ canCreate }: { canCreate?: boolean }) {
           <button key={c.f.id} type="button" className="proj-card" aria-current={c.f.id === farmId || undefined}
             onClick={() => { setFarmId(c.f.id); nav('/'); }}>
             <span className="proj-top">
-              <b>{c.f.name}</b>
+              <FarmMark logo={c.f.logo_data} name={c.f.name} size={40} />
+              <b className="grow">{c.f.name}</b>
               <span className="chip">{roleLabels(c.roles)}</span>
             </span>
             {c.location && <span className="muted proj-loc"><Icon name="pin" size={14} /> {c.location}</span>}

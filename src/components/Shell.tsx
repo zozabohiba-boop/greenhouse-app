@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useApp } from '../app/context';
 import { roleLabels } from '../lib/access';
@@ -7,6 +7,7 @@ import { db } from '../lib/db';
 import { SyncPill } from './Sync';
 import { Sheet } from './Sheet';
 import { Icon } from './Icon';
+import { FarmMark } from './LogoPicker';
 import { UpdatePrompt } from './UpdatePrompt';
 import { ChangePassword } from '../screens/Team';
 import { NewFarmSheet } from '../screens/Farm';
@@ -14,13 +15,16 @@ import { NewFarmSheet } from '../screens/Farm';
 export function Shell() {
   const { farm, roles, user } = useApp();
   const [menu, setMenu] = useState(false);
+  // خارج المشاريع (شاشة المشاريع) يفضل لوجو التطبيق؛ داخل مشروع يحل لوجو شركته مكانه
+  const outside = useLocation().pathname.startsWith('/projects');
+  const logo = outside ? null : farm?.logo_data ?? null;
   return (
     <div className="shell">
       <header className="topbar">
         <Link to="/" className="brand" aria-label="الرئيسية">
-          <img src="./icons/icon-192.png" alt="" />
+          {logo ? <FarmMark logo={logo} name={farm?.name} /> : <img src="./icons/icon-192.png" alt="" />}
           <span>
-            <b>{farm?.name ?? 'Greenhouse Assistant'}</b>
+            <b>{outside ? 'Greenhouse Assistant' : farm?.name ?? 'Greenhouse Assistant'}</b>
             <small>{roles.length ? roleLabels(roles) : user?.email}</small>
           </span>
         </Link>
