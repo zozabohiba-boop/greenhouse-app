@@ -17,7 +17,7 @@ su postgres -s /bin/bash -c "$PG -d e2e -f /tmp/012_roles_access.sql"
 if [ -f /tmp/013_taxonomy_data.sql ]; then su postgres -s /bin/bash -c "$PG -d e2e -f /tmp/013_taxonomy_data.sql"; fi
 su postgres -s /bin/bash -c "$PG -d e2e -f /tmp/014_store_enums.sql"
 su postgres -s /bin/bash -c "$PG -d e2e -f /tmp/015_store_registry.sql"
-for f in /tmp/016_*.sql /tmp/017_*.sql; do [ -f "$f" ] && su postgres -s /bin/bash -c "$PG -d e2e -f $f"; done
+for f in /tmp/016_*.sql /tmp/017_*.sql /tmp/018_*.sql /tmp/019_*.sql; do [ -f "$f" ] && su postgres -s /bin/bash -c "$PG -d e2e -f $f"; done
 su postgres -s /bin/bash -c "$PG -d e2e -f /tmp/seed.sql"
 cat > /tmp/postgrest.conf <<CONF
 db-uri = "postgres://authenticator:auth@127.0.0.1:5544/e2e"

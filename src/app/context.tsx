@@ -56,6 +56,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [farmId, setFarmIdState] = useState<string | null>(() => localStorage.getItem(FARM_KEY));
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>();
+  // مستخدم غيّر كلمة المرور المؤقتة في هذه الجلسة: أحداث مصادقة قديمة (SIGNED_IN عند عودة التبويب مثلًا) لا ترجّع علامة «لازم يغيّر» — تسجيل دخول جديد فقط يقدر
+  const pwChanged = useRef<string | null>(null);
+  // أثناء تسجيل الدخول: signIn وحده يحدد الهوية بعد فحص الجهاز المشترك (لا نفتح التطبيق قبل مسح بيانات مستخدم سابق)
+  const signingIn = useRef(false);
 
   const toast = useCallback((msg: string) => {
     setToastMsg(msg);
@@ -76,8 +80,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
       setLive(!!session);
-      if (session?.user) {
-        const id = { id: session.user.id, email: session.user.email ?? '', mustChange: !!session.user.user_metadata?.must_change_password };
+      if (session?.user && !signingIn.current) {
+        const id = { id: session.user.id, email: session.user.email ?? '', mustChange: !!session.user.user_metadata?.must_change_password && pwChanged.current !== session.user.id };
         localStorage.setItem(IDENTITY_KEY, JSON.stringify(id));
         setUser(id);
       }
@@ -93,7 +97,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return startAutoSync();
   }, [user]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  // تسجيل الدخول الفعلي — يُستدعى من signIn فقط
+  const doSignIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (error || !data.user) {
       if (error && /fetch|network/i.test(error.message)) return 'لا يوجد اتصال بالإنترنت. أول تسجيل دخول يحتاج إنترنت.';
@@ -108,13 +113,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setFarmIdState(null);
     }
     await setMeta('owner', data.user.id);
-    const id = { id: data.user.id, email: data.user.email ?? email, mustChange: !!data.user.user_metadata?.must_change_password };
+    const id = { id: data.user.id, email: data.user.email ?? email, mustChange: !!data.user.user_metadata?.must_change_password && pwChanged.current !== data.user.id };
     localStorage.setItem(IDENTITY_KEY, JSON.stringify(id));
     setUser(id);
     setCurrentUser(id.id);
     void syncNow(); // التحميل الأول يكمل في الخلفية — لا ننتظره حتى لا نقاطع المستخدم
     return null;
+  };
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    signingIn.current = true;
+    pwChanged.current = null;
+    try {
+      return await doSignIn(email, password);
+    } finally {
+      signingIn.current = false;
+    }
   }, []);
+
 
   const changePassword = useCallback(async (password: string) => {
     const { data, error } = await supabase.auth.updateUser({ password, data: { must_change_password: false } });
@@ -125,6 +141,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return 'تعذر تغيير كلمة المرور. حاول مرة أخرى.';
     }
     if (data.user) {
+      pwChanged.current = data.user.id;
       const id = { id: data.user.id, email: data.user.email ?? '', mustChange: false };
       localStorage.setItem(IDENTITY_KEY, JSON.stringify(id));
       setUser(id);
@@ -139,6 +156,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return `فيه ${pending + rejected.length} سجل لم يُرفع بعد. اتصل بالإنترنت وزامن قبل تسجيل الخروج حتى لا تضيع البيانات.`;
     }
     await supabase.auth.signOut();
+    pwChanged.current = null;
     localStorage.removeItem(IDENTITY_KEY);
     setUser(null);
     setLive(false);

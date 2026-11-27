@@ -18,6 +18,8 @@ const ok = (cond, msg) => {
   if (!cond) failures++;
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+/** انتظار ظهور عنصر (بدل isVisible اللحظي) — يرجع true/false */
+const seen = (loc, t = 10000) => loc.first().waitFor({ state: 'visible', timeout: t }).then(() => true, () => false);
 
 const gw = await startGateway();
 const { server } = gw;
@@ -72,7 +74,7 @@ try {
   await page.fill('input[type=password]', 'Admin#2026');
   await page.click('button:has-text("دخول")');
   await page.locator('h1', { hasText: 'الأسبوع' }).waitFor({ timeout: 15000 });
-  ok(await page.locator('.topbar', { hasText: 'المزرعة الرئيسية' }).isVisible(), 'المزرعة الوحيدة تُختار تلقائيًا والدور ظاهر');
+  ok(await seen(page.locator('.topbar', { hasText: 'المزرعة الرئيسية' })), 'المزرعة الوحيدة تُختار تلقائيًا والدور ظاهر');
   ok(await page.locator('.topbar', { hasText: 'مدير النظام' }).isVisible(), 'دور مدير النظام ظاهر في الشريط العلوي');
   {
     const sub = (await page.locator('.page-head p').first().textContent()) ?? '';
@@ -744,7 +746,7 @@ try {
   const mg = await newTablet();
   await login(mg.page, 'manager@test.local', 'Manager#2026');
   const mp = mg.page;
-  ok(await mp.locator('.topbar', { hasText: 'مدير الشركة' }).isVisible() && await mp.locator('a:has-text("لوحة المتابعة")').isVisible(), 'مدير الشركة: لوحة المتابعة الكاملة');
+  ok(await seen(mp.locator('.topbar', { hasText: 'مدير الشركة' })) && await seen(mp.locator('a:has-text("لوحة المتابعة")')), 'مدير الشركة: لوحة المتابعة الكاملة');
   ok(!(await mp.locator('.proj-card').count()), 'مدير الشركة يدخل مشروعه مباشرة');
   await mp.click('button[aria-label="القائمة"]');
   ok(!(await mp.locator('.sheet button:has-text("مشروع جديد")').count()) && !(await mp.locator('.sheet button:has-text("مديرو النظام")').count()), 'مدير الشركة لا يملك إنشاء مشاريع أو مديري نظام');
@@ -778,6 +780,61 @@ try {
   const pw2 = (await mp.locator('[data-testid="temp-password"]').textContent())?.trim();
   ok(!!pw2 && sql("select m.role || '/' || m.extra_roles::text from farm_members m join profiles p on p.id = m.user_id where p.email = 'store2@test.local'") === 'storekeeper/{purchasing}', 'مدير الشركة أضاف عضوًا بدورين (أمين مخزن + مسؤول مشتريات) بكلمة مرور مؤقتة');
   await mp.click('.sheet button:has-text("تم")');
+
+  // الاستشاري: صلاحيات كاملة زي مدير الشركة + لوجو المشروع (يحل محل لوجو التطبيق داخل المشروع فقط)
+  await mp.click('button:has-text("إضافة عضو")');
+  await mp.fill('.sheet label:has-text("الاسم") input', 'استشاري المشروع');
+  await mp.fill('.sheet label:has-text("البريد الإلكتروني") input', 'cons@test.local');
+  await mp.click('.sheet .role-pick label:has-text("مهندس مكافحة")');
+  await mp.click('.sheet .role-pick label:has-text("استشاري المشروع")');
+  await mp.click('.sheet button:has-text("إنشاء الحساب")');
+  const pwC = (await mp.locator('[data-testid="temp-password"]').textContent())?.trim();
+  ok(!!pwC && sql("select m.role from farm_members m join profiles p on p.id = m.user_id where p.email = 'cons@test.local'") === 'consultant', 'مدير الشركة أضاف استشاري المشروع');
+  await mp.click('.sheet button:has-text("تم")');
+  const CONS = sql("select id from profiles where email = 'cons@test.local'");
+  ok(asUser(CONS, 'select count(*) from activities') === sql('select count(*) from activities where deleted_at is null'), 'RLS: الاستشاري يقرأ كل المعاملات زي المدير');
+  ok(asUser(CONS, `with u as (update farms set name = name where id = '${FARM}' returning 1) select count(*) from u`) === '1', 'RLS: الاستشاري يعدّل بيانات المشروع واللوجو');
+  ok(asUser(UID.irr, `with u as (update farms set name = name where id = '${FARM}' returning 1) select count(*) from u`) === '0', 'RLS: مهندس الري لا يعدّل بيانات المشروع');
+  const cn = await newTablet();
+  await login(cn.page, 'cons@test.local', pwC, '.login h1:has-text("اختر كلمة مرور جديدة")');
+  await cn.page.fill('label:has-text("كلمة المرور الجديدة") input', 'Istishari#2027');
+  await cn.page.fill('label:has-text("تأكيد كلمة المرور") input', 'Istishari#2027');
+  await cn.page.click('button:has-text("حفظ والمتابعة")');
+  await cn.page.locator('h1', { hasText: 'الأسبوع' }).waitFor({ timeout: 30000 });
+  const cp = cn.page;
+  ok(await seen(cp.locator('a:has-text("لوحة المتابعة")')), 'الاستشاري: لوحة المتابعة الكاملة زي المدير');
+  await cp.goto(APP + '#/team');
+  ok(await cp.locator('button:has-text("إضافة عضو")').isVisible({ timeout: 10000 }), 'الاستشاري يقدر يضيف أعضاء');
+  await cp.goto(APP + '#/farm');
+  ok(!(await cp.locator('.brand img').first().getAttribute('src'))?.startsWith('data:'), 'قبل رفع اللوجو: لوجو التطبيق ظاهر');
+  await cp.click('button:has-text("تعديل الاسم واللوجو")');
+  await cp.setInputFiles('.sheet .logo-pick input[type=file]', 'e2e/logo-test.png');
+  await cp.locator('.sheet .logo-box img').waitFor({ timeout: 10000 });
+  await cp.screenshot({ path: `${SHOTS}/40-logo-picker.png` });
+  await cp.click('.sheet button.primary:has-text("حفظ")');
+  await cp.locator('.sheet').waitFor({ state: 'detached', timeout: 15000 });
+  const logoLen = Number(sql(`select coalesce(length(logo_data), 0) from farms where id = '${FARM}'`));
+  ok(logoLen > 100 && logoLen <= 200000 && sql(`select left(logo_data, 11) from farms where id = '${FARM}'`) === 'data:image/', `اللوجو اتحفظ على السيرفر (${logoLen} حرف)`);
+  await cp.locator('.brand img[src^="data:"]').waitFor({ timeout: 10000 });
+  ok(true, 'داخل المشروع: لوجو الشركة مكان لوجو التطبيق');
+  await cp.screenshot({ path: `${SHOTS}/41-logo-in-project.png` });
+  await cp.goto(APP + '#/products');
+  await cp.click('button:has-text("مادة جديدة")');
+  ok(await cp.locator('.sheet button:has-text("تصوير العبوة")').isVisible({ timeout: 10000 }), 'إضافة مادة جديدة: زر تصوير العبوة (السكان) ظاهر');
+  await cn.ctx.close();
+  const ad = await newTablet();
+  await login(ad.page, 'admin@test.local', 'Admin#2026', '.proj-card');
+  ok(await seen(ad.page.locator('.proj-card:has-text("المزرعة الرئيسية") img.farm-mark[src^="data:"]')), 'شاشة اختيار المشروع: كارت المشروع يعرض لوجو الشركة');
+  ok(await seen(ad.page.locator('.proj-card:has-text("موقع تجريبي 2") .farm-mark.fallback')), 'مشروع بدون لوجو: يعرض الحرف الأول');
+  await ad.page.screenshot({ path: `${SHOTS}/42-projects-logos.png` });
+  await ad.page.click('.proj-card:has-text("المزرعة الرئيسية")');
+  await ad.page.locator('.topbar .brand img[src^="data:"]').waitFor({ timeout: 10000 });
+  ok(true, 'الدخول للمشروع: لوجو الشركة يحل محل لوجو التطبيق');
+  await ad.page.click('button[aria-label="القائمة"]');
+  await ad.page.click('.sheet button:has-text("كل المشاريع")');
+  await ad.page.locator('.proj-card').first().waitFor();
+  ok((await ad.page.locator('.topbar .brand img').first().getAttribute('src'))?.includes('icon-192') === true && await seen(ad.page.locator('.topbar .brand b', { hasText: 'Greenhouse Assistant' })), 'شاشة كل المشاريع: لوجو التطبيق واسمه (مش لوجو الشركة)');
+  await ad.ctx.close();
 
   // أمين المخزن: استلام وصرف بالتشغيلة، ورفض صرف أكبر من الرصيد، ووزن الحصاد مع فترة الأمان
   const stk = await newTablet();

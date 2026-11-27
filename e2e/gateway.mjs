@@ -170,7 +170,9 @@ export function startGateway({ port = 54321, rest = 'http://127.0.0.1:3001' } = 
         return txt ? JSON.parse(txt) : null;
       };
       const isSys = async (id) => (await q(`system_admins?user_id=eq.${id}&deleted_at=is.null&select=id`)).length > 0;
-      const roleIn = async (farm, id) => (await q(`farm_members?farm_id=eq.${farm}&user_id=eq.${id}&select=role`))[0]?.role ?? null;
+      const rolesIn = async (farm, id) => { const r = (await q(`farm_members?farm_id=eq.${farm}&user_id=eq.${id}&select=role,extra_roles`))[0]; return r ? [r.role, ...(r.extra_roles ?? [])] : []; };
+      const roleIn = async (farm, id) => (await rolesIn(farm, id))[0] ?? null;
+      const canManage = (roles) => roles.includes('admin') || roles.includes('farm_manager') || roles.includes('consultant');
       const temp = () => `Tmp${crypto.randomBytes(3).toString('hex')}-${crypto.randomBytes(2).toString('hex')}`;
       const ensure = async (email, name) => {
         if (USERS[email]) return { id: USERS[email].id, password: null };
@@ -183,20 +185,22 @@ export function startGateway({ port = 54321, rest = 'http://127.0.0.1:3001' } = 
       try {
         const meSys = await isSys(p.sub);
         if (b.action === 'create_member') {
-          const my = meSys ? 'admin' : await roleIn(b.farm_id, p.sub);
-          if (my !== 'admin' && my !== 'farm_manager') return send(res, 403, { error: 'forbidden' });
+          const my = meSys ? ['admin'] : await rolesIn(b.farm_id, p.sub);
+          if (!canManage(my)) return send(res, 403, { error: 'forbidden' });
           const email = String(b.email || '').trim().toLowerCase();
-          if (!ROLES.includes(b.role)) return send(res, 400, { error: 'bad_role' });
+          const asked = Array.isArray(b.roles) ? b.roles.map(String) : [String(b.role ?? '')];
+          const picked = ROLES.filter((r) => asked.includes(r));
+          if (!picked.length || asked.some((r) => !ROLES.includes(r))) return send(res, 400, { error: 'bad_role' });
+          b.role = picked[0]; b.extra = picked.slice(1);
           const acc = await ensure(email, b.full_name || null);
           await q('farm_invitations?on_conflict=farm_id,email', { method: 'POST', headers: { prefer: 'resolution=merge-duplicates' },
-            body: JSON.stringify({ farm_id: b.farm_id, email, role: b.role, invited_by: p.sub, accepted_at: null, accepted_user_id: null }) });
+            body: JSON.stringify({ farm_id: b.farm_id, email, role: b.role, extra_roles: b.extra, invited_by: p.sub, accepted_at: null, accepted_user_id: null }) });
           await q('rpc/apply_invitation_for_email', { method: 'POST', body: JSON.stringify({ p_email: email }) });
           return send(res, 200, { ok: true, existing_account: acc.password === null, temp_password: acc.password });
         }
         if (b.action === 'reset_password') {
           if (!meSys) {
-            const my = await roleIn(b.farm_id, p.sub);
-            if (my !== 'admin' && my !== 'farm_manager') return send(res, 403, { error: 'forbidden' });
+            if (!canManage(await rolesIn(b.farm_id, p.sub))) return send(res, 403, { error: 'forbidden' });
             const tr = await roleIn(b.farm_id, b.user_id);
             if (!tr || tr === 'admin' || (await isSys(b.user_id))) return send(res, 404, { error: 'not_member' });
           }
