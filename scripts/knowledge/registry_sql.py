@@ -4,7 +4,7 @@
   python3 scripts/knowledge/registry_sql.py > supabase/migrations/016_registry_data.sql
 
 القواعد:
-- لا أرقام مخترعة: كل صف MRL له source و retrieved_on من الملف؛ فترات الأمان (phi_days) لا تُملأ هنا أبدًا (تُؤخذ من ملصق المنتج المسجل في مصر).
+- لا أرقام مخترعة: كل صف MRL له source و retrieved_on من الملف؛ فترات الأمان (phi_days) تأتي فقط من صفوف السوق EG المستخرجة من كتاب توصيات الآفات 2026 (eg_book.py)؛ لا تُخمَّن.
 - idempotent: upsert على (lower(name_en)) و (substance, market, crop). لا حذف.
 - مواد السجل عامة (farm_id = null)، والتعديل عليها محصور بمدير النظام عبر RLS.
 """
@@ -78,6 +78,8 @@ def main():
             return 'x' + url.split('pestId=')[1]
         if 'eu-pesticides-database' in url and 'pest_res_id_list=' in url:
             return 'e' + url.split('pest_res_id_list=')[1]
+        if url.startswith('book:'):
+            return ''  # مصدر كتاب (ورقي/PDF): لا رابط
         raise SystemExit('مصدر غير معروف: ' + url)
     lines = []
     for m in d['mrls']:
@@ -86,22 +88,23 @@ def main():
         # default_loq مسموح فقط لصفوف الاتحاد الأوروبي (القيمة عند حد الكشف *)؛ التاريخ لكل صف
         assert (not m.get('default_loq') or m['market'] == 'EU') and re.fullmatch(r'\d{4}-\d{2}-\d{2}', m['retrieved_on']), m
         c = (m.get('commodity') or '').replace('|', '/').replace(chr(10), ' ')
-        lines.append('|'.join([m['substance'].lower(), m['market'], m['crop'], repr(m['mrl_mg_kg']), key((m.get('source') or '').split('  ')[0]), c,
-                               't' if m.get('default_loq') else 'f', m['retrieved_on']]))
+        lines.append('|'.join([m['substance'].lower(), m['market'], m['crop'], '' if m['mrl_mg_kg'] is None else repr(m['mrl_mg_kg']),
+                               key((m.get('source') or '').split('  ')[0]), c, 't' if m.get('default_loq') else 'f', m['retrieved_on'],
+                               '' if m.get('phi_days') is None else str(m['phi_days'])]))
     w('with raw as (select l from regexp_split_to_table($d$')
     w('\n'.join(lines))
     w("$d$, E'\\n') l where l <> ''),")
     w("v as (select split_part(l, '|', 1) as name_en, split_part(l, '|', 2) as market, split_part(l, '|', 3) as crop_code,")
-    w("  split_part(l, '|', 4)::numeric as mrl_mg_kg, split_part(l, '|', 5) as k, split_part(l, '|', 6) as notes,\n  split_part(l, '|', 7) = 't' as loq, split_part(l, '|', 8)::date as got from raw)")
-    w('insert into public.substance_limits (farm_id, substance_id, market, crop_code, mrl_mg_kg, default_loq, source_url, retrieved_on, notes)')
-    w("select null, s.id, v.market, v.crop_code, v.mrl_mg_kg, v.loq,")
-    w("  case when v.k like 'c%' then 'https://www.law.cornell.edu/cfr/text/40/180.' || substr(v.k, 2)")
+    w("  nullif(split_part(l, '|', 4), '')::numeric as mrl_mg_kg, split_part(l, '|', 5) as k, split_part(l, '|', 6) as notes,\n  split_part(l, '|', 7) = 't' as loq, split_part(l, '|', 8)::date as got, nullif(split_part(l, '|', 9), '')::int as phi from raw)")
+    w('insert into public.substance_limits (farm_id, substance_id, market, crop_code, mrl_mg_kg, default_loq, phi_days, source_url, retrieved_on, notes)')
+    w("select null, s.id, v.market, v.crop_code, v.mrl_mg_kg, v.loq, v.phi,")
+    w("  case when v.k = '' then null when v.k like 'c%' then 'https://www.law.cornell.edu/cfr/text/40/180.' || substr(v.k, 2)")
     w("       when v.k like 'e%' then 'https://ec.europa.eu/food/plant/pesticides/eu-pesticides-database/start/screen/mrls/details?lg_code=EN&pest_res_id_list=' || substr(v.k, 2)")
     w("       else 'https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=' || substr(v.k, 2) end,")
     w("  v.got, v.notes")
     w("from v join public.active_substances s on s.farm_id is null and lower(s.name_en) = v.name_en")
     w("on conflict (coalesce(farm_id, '00000000-0000-0000-0000-000000000000'::uuid), substance_id, market, crop_code) where deleted_at is null do update set")
-    w('  mrl_mg_kg = excluded.mrl_mg_kg, default_loq = excluded.default_loq, source_url = excluded.source_url,')
+    w('  mrl_mg_kg = excluded.mrl_mg_kg, default_loq = excluded.default_loq, phi_days = excluded.phi_days, source_url = excluded.source_url,')
     w('  retrieved_on = excluded.retrieved_on, notes = excluded.notes, updated_at = now(), server_updated_at = now();')
     w('')
     # تطبيع عربي/إنجليزي: حروف صغيرة، توحيد الألف والياء والتاء المربوطة، وكل ما عدا الحروف والأرقام فاصل
