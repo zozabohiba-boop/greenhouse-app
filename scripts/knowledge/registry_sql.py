@@ -8,7 +8,7 @@
 - idempotent: upsert على (lower(name_en)) و (substance, market, crop). لا حذف.
 - مواد السجل عامة (farm_id = null)، والتعديل عليها محصور بمدير النظام عبر RLS.
 """
-import json, os
+import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 d = json.load(open(os.path.join(HERE, 'pesticides_data.json'), encoding='utf-8'))
@@ -42,6 +42,9 @@ def arr(xs):
     return "array[" + ", ".join(q(x) for x in xs) + "]::text[]" if xs else "'{}'::text[]"
 
 
+ONLY = set(a for a in sys.argv[1:] if a.isalpha() and a.isupper())  # مثال: python3 registry_sql.py EU  ← صفوف السوق فقط
+
+
 def main():
     out = []
     w = out.append
@@ -73,22 +76,29 @@ def main():
             return 'c' + url.rsplit('180.', 1)[1]
         if 'pestId=' in url:
             return 'x' + url.split('pestId=')[1]
+        if 'eu-pesticides-database' in url and 'pest_res_id_list=' in url:
+            return 'e' + url.split('pest_res_id_list=')[1]
         raise SystemExit('مصدر غير معروف: ' + url)
     lines = []
     for m in d['mrls']:
-        assert not m.get('default_loq') and m['retrieved_on'] == RETRIEVED_ON, m
+        if ONLY and m['market'] not in ONLY:
+            continue
+        # default_loq مسموح فقط لصفوف الاتحاد الأوروبي (القيمة عند حد الكشف *)؛ التاريخ لكل صف
+        assert (not m.get('default_loq') or m['market'] == 'EU') and re.fullmatch(r'\d{4}-\d{2}-\d{2}', m['retrieved_on']), m
         c = (m.get('commodity') or '').replace('|', '/').replace(chr(10), ' ')
-        lines.append('|'.join([m['substance'].lower(), m['market'], m['crop'], repr(m['mrl_mg_kg']), key((m.get('source') or '').split('  ')[0]), c]))
+        lines.append('|'.join([m['substance'].lower(), m['market'], m['crop'], repr(m['mrl_mg_kg']), key((m.get('source') or '').split('  ')[0]), c,
+                               't' if m.get('default_loq') else 'f', m['retrieved_on']]))
     w('with raw as (select l from regexp_split_to_table($d$')
     w('\n'.join(lines))
     w("$d$, E'\\n') l where l <> ''),")
     w("v as (select split_part(l, '|', 1) as name_en, split_part(l, '|', 2) as market, split_part(l, '|', 3) as crop_code,")
-    w("  split_part(l, '|', 4)::numeric as mrl_mg_kg, split_part(l, '|', 5) as k, split_part(l, '|', 6) as notes from raw)")
+    w("  split_part(l, '|', 4)::numeric as mrl_mg_kg, split_part(l, '|', 5) as k, split_part(l, '|', 6) as notes,\n  split_part(l, '|', 7) = 't' as loq, split_part(l, '|', 8)::date as got from raw)")
     w('insert into public.substance_limits (farm_id, substance_id, market, crop_code, mrl_mg_kg, default_loq, source_url, retrieved_on, notes)')
-    w("select null, s.id, v.market, v.crop_code, v.mrl_mg_kg, false,")
+    w("select null, s.id, v.market, v.crop_code, v.mrl_mg_kg, v.loq,")
     w("  case when v.k like 'c%' then 'https://www.law.cornell.edu/cfr/text/40/180.' || substr(v.k, 2)")
+    w("       when v.k like 'e%' then 'https://ec.europa.eu/food/plant/pesticides/eu-pesticides-database/start/screen/mrls/details?lg_code=EN&pest_res_id_list=' || substr(v.k, 2)")
     w("       else 'https://codex.fao.org/codex-texts/codex-online-databases/pesticides-residues/pesticide-index/pesticide-details?pestId=' || substr(v.k, 2) end,")
-    w("  date '" + RETRIEVED_ON + "', v.notes")
+    w("  v.got, v.notes")
     w("from v join public.active_substances s on s.farm_id is null and lower(s.name_en) = v.name_en")
     w("on conflict (coalesce(farm_id, '00000000-0000-0000-0000-000000000000'::uuid), substance_id, market, crop_code) where deleted_at is null do update set")
     w('  mrl_mg_kg = excluded.mrl_mg_kg, default_loq = excluded.default_loq, source_url = excluded.source_url,')
